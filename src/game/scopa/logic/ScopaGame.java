@@ -1,11 +1,17 @@
 package game.scopa.logic;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import com.msg.MsgMasterRule;
+import com.server.wait.Config;
+import com.server.wait.GameStartCondition;
 
 import game.GameType;
 import game.Playable;
 
-public class ScopaGame extends Playable {
+public class ScopaGame implements Playable {
 
 	private int nPlayer = 2;
 	
@@ -25,17 +31,58 @@ public class ScopaGame extends Playable {
 	private ScopaHand handP5;
 	private ScopaHand handP6;
 	
-	public ScopaGame(int nPlayer){
-		if(nPlayer < 2 || nPlayer > 6 || nPlayer == 5) throw new RuntimeException("Too much or too less player: "+nPlayer+". Need [2,3,4 or 6] players");
-		
-		this.type = GameType.SCOPA;
-		this.nPlayer = nPlayer;
-		this.score = new ScopaScore(nPlayer);
-		
-		this.state = State.start;
-		
+	public ScopaGame(){
+		this.state = State.notStarted;		
 	}
-
+	
+	public void initGame(List<Config> configs, MsgMasterRule rules){
+		if (!checkInitialConfig(configs,rules).getConditionsStatus()){
+			this.state = State.notStarted;
+		} else {
+			this.state = State.start;
+			nPlayer = configs.size();
+			
+			//TODO handle team game and rules
+			this.state = State.start;
+		}
+	}
+	
+	public GameType getGameType(){
+		return GameType.SCOPA;
+	}
+	
+	@Override
+	public GameStartCondition checkInitialConfig(List<Config> configs, MsgMasterRule rules) {
+		
+		if (configs.size()==5 || configs.size() < 2 || configs.size() > 6)		
+			return new GameStartCondition(false,
+					"Too much or too less player: "+configs.size()+". Need [2,3,4 or 6] players");
+		
+		Map<Integer,Integer> teams = new HashMap<Integer,Integer>(6);
+		
+		for(int i=1;i<=6;i++){
+			teams.put(i, 0);
+		}
+		for(Config conf : configs){
+			int team = conf.getTeam();
+			teams.put(team, teams.get(team));		
+		}
+		int p=0;
+		for(Integer players : teams.values()){
+			if (p==0){
+				p = players;
+				continue;
+			} else if (p==players){
+				continue;
+			} else {
+				return new GameStartCondition(false,"Each team should have same number of players");
+			}
+		}
+		
+		//rules don't care in this game
+		
+		return new GameStartCondition(true,null);
+	}
 	
 	//FIXME p2 should not see other hand
 	
@@ -296,7 +343,8 @@ public class ScopaGame extends Playable {
 	}
 	
 	private enum State {
-		start,p1,p2,p3,p4,p5,p6,giveNewHand,takeAll,endSet,endMatch,unknown
+		notStarted,start,p1,p2,p3,p4,p5,p6,giveNewHand,takeAll,endSet,endMatch,unknown
 	}
+
 	
 }
