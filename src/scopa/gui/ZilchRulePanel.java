@@ -1,4 +1,4 @@
-package game.scopa.gui;
+package scopa.gui;
 
 import javax.swing.JLabel;
 

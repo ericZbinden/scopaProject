@@ -1,4 +1,4 @@
-package game.scopa.logic;
+package scopa.logic;
 
 import game.GameType;
 import game.lex.Lexique;

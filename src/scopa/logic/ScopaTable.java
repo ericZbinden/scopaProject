@@ -1,4 +1,4 @@
-package game.scopa.logic;
+package scopa.logic;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,5 +39,11 @@ public interface ScopaTable {
  * @return all possible outcome
  */
 	public List<ArrayList<ScopaCard>> allPossibleTakeWith(ScopaCard card);
+	
+	/**
+	 * 
+	 * @return the list of cards on the table
+	 */
+	public List<ScopaCard> cardsOnTable();
 
 }

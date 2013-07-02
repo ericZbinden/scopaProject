@@ -5,7 +5,6 @@ import java.io.IOException;
 import com.msg.Message;
 import com.msg.MsgConnect;
 import com.msg.MsgMasterGame;
-import com.msg.MsgMasterRule;
 import com.server.wait.Config;
 
 public interface ServerConnect {
@@ -15,9 +14,8 @@ public interface ServerConnect {
 	 * @param clientID
 	 * @param msg
 	 * @throws IOException
-	 * @throws UnknownClientException this client does not exist
 	 */
-	public void transfertMsgTo(String clientID, Message msg) throws IOException, UnknownClientException;
+	public void transfertMsgTo(String clientID, Message msg) throws IOException;
 	
 	/**
 	 * Transfer a msg to all client except to the sender
@@ -40,6 +38,19 @@ public interface ServerConnect {
 	 * @param rule
 	 */
 	public void saveRule(MsgMasterGame rule);
+	
+	/**
+	 * @return is all players connected are ready
+	 */
+	public boolean areAllPlayersReady();
+	
+	
+	/**
+	 * Start a new game with last game msg received as rules
+	 * @throws IllegalInitialConditionException if initial condition are not satisfied
+	 * or if all players are not ready
+	 */
+	public void startGame() throws IllegalInitialConditionException;
 	
 	/**
 	 * Called when a new client wants to connect to this server

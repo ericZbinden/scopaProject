@@ -1,4 +1,4 @@
-package game.scopa.logic;
+package scopa.logic;
 
 import java.util.List;
 

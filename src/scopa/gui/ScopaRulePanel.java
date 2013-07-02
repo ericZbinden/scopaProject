@@ -1,7 +1,6 @@
-package game.scopa.gui;
+package scopa.gui;
 
 import game.GameType;
-import game.scopa.msg.MsgScopaRules;
 import gui.RulePanel;
 
 import java.awt.Color;
@@ -12,6 +11,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.swing.JCheckBox;
+
+import scopa.com.MsgScopaRules;
 
 import com.msg.MalformedMessageException;
 import com.msg.MsgMasterRule;
@@ -51,7 +52,7 @@ public class ScopaRulePanel extends RulePanel implements ActionListener {
 	}
 	
 	public void editRules(MsgMasterRule ruleMsg) throws MalformedMessageException{
-		if(ruleMsg.getGameType()==GameType.SCOPA && ruleMsg instanceof MsgScopaRules){
+		if(ruleMsg.getGameType().equals(GameType.SCOPA) && ruleMsg instanceof MsgScopaRules){
 			
 			MsgScopaRules scopaMsg = (MsgScopaRules) ruleMsg;
 			

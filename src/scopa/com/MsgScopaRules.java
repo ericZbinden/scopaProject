@@ -1,4 +1,4 @@
-package game.scopa.msg;
+package scopa.com;
 
 import game.GameType;
 

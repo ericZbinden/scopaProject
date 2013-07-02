@@ -18,6 +18,8 @@ import com.msg.MsgMasterRule;
 import com.msg.MsgNewPlayer;
 import com.msg.MsgPlay;
 import com.msg.MsgReset;
+import com.msg.MsgStart;
+import com.msg.MsgStartNack;
 import com.msg.MsgType;
 import com.msg.MsgWRslot;
 
@@ -179,6 +181,10 @@ public class ServerCSocket implements Runnable {
 					play(play);
 				} else throw new MalformedMessageException();
 				break;
+			case start:
+				if(prequest instanceof MsgStart){
+					start(prequest);
+				}
 			default:
 				Logger.debug("Unknown msg type: "+type+". Packet is ignored.");
 			}
@@ -188,21 +194,35 @@ public class ServerCSocket implements Runnable {
 		}
 	}
 	
+	private void start(Message prequest) throws IOException {
+		if(isWaitingOrLog(prequest)){
+			try{
+				sc.startGame();
+			} catch (IllegalInitialConditionException e){
+					sc.transfertMsgTo(prequest.getSenderID(), new MsgStartNack("server"));
+			}
+		}
+	}
+	
 	private void masterRule(MsgMasterRule prequest) throws IOException {
-		sc.saveRule(prequest);
-		sc.transferMsgToAll(prequest, prequest.getSenderID());					
+		if(isWaitingOrLog(prequest)){
+			sc.saveRule(prequest);
+			sc.transferMsgToAll(prequest, prequest.getSenderID());
+		}
 	}
 
 	private void masterGame(MsgMasterGame prequest) throws IOException {
-		sc.saveRule(prequest);
-		sc.transferMsgToAll(prequest, prequest.getSenderID());		
+		if(isWaitingOrLog(prequest)){
+			sc.saveRule(prequest);
+			sc.transferMsgToAll(prequest, prequest.getSenderID());
+		}
 	}
 
 	private void wrSlot(MsgWRslot prequest) throws IOException {
-		if(state.equals(ServerState.waiting)){
+		if(isWaitingOrLog(prequest)){
 			sc.transferMsgToAll(prequest, prequest.getSenderID());			
 			sc.updateWR(prequest.getImpactedID(), prequest.getConf(), this);
-		}				
+		}			
 	}
 
 	private void chat(MsgChat prequest) throws IOException {
@@ -308,5 +328,13 @@ public class ServerCSocket implements Runnable {
 	public String toString(){
 		return "scs:"+state+" "+this.clientID+" "+srv.isClosed();
 	}
-
+	
+	private boolean isWaitingOrLog(Message msg){
+		if(state.equals(ServerState.waiting)){
+			return true;
+		} else {
+			Logger.debug("Receive msg but ignored it in waiting phase: "+msg.toString());
+			return false;
+		}
+	}
 }

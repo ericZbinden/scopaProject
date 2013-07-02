@@ -1,4 +1,4 @@
-package game.scopa.logic;
+package scopa.logic;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,9 +9,19 @@ public class ScopaHand {
 	
 	private List<ScopaCard> hand;
 	
-	public ScopaHand(){
+	private int team;
+	
+	private String player;
+	
+	public ScopaHand(String player, int team){
 		this.heap = new ArrayList<ScopaCard>();
 		this.hand = new ArrayList<ScopaCard>(3);
+		this.player=player;
+		this.team=team;
+	}
+	
+	public String getPlayer(){
+		return player;
 	}
 	
 	public List<ScopaCard> getHand(){
@@ -22,14 +32,6 @@ public class ScopaHand {
 		this.hand = hand;
 	}
 	
-	/*public List<ScopaCard> getHeap(){
-		return heap;
-	}*/
-	
-	/*public ScopaCard playCard(int index){
-		return hand.remove(index);
-	}*/
-	
 	public boolean playCard(ScopaCard card){
 		if(hand.contains(card)){
 			hand.remove(card);
@@ -37,7 +39,7 @@ public class ScopaHand {
 		} else return false;
 	}
 	
-	public boolean emptyHand(){
+	public boolean isEmpty(){
 		return hand.isEmpty();
 	}
 	
@@ -45,6 +47,9 @@ public class ScopaHand {
 		heap.addAll(cards);
 	}
 	
+	public int getTeam(){
+		return team;
+	}
 	
 	public void addCardToHeap(ScopaCard card){
 		heap.add(card);
@@ -113,7 +118,4 @@ public class ScopaHand {
 		
 		return cards;		
 	}
-	
-	
-
 }

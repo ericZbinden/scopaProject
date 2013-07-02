@@ -1,4 +1,4 @@
-package game.scopa.logic;
+package scopa.logic;
 
 public class ScopaCard {
 	

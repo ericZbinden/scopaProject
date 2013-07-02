@@ -1,5 +1,8 @@
 package com.server;
 
+import game.GameType;
+import game.Playable;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -18,7 +21,6 @@ import com.msg.MsgDeco;
 import com.msg.MsgMasterGame;
 import com.msg.MsgMasterRule;
 import com.msg.MsgReset;
-import com.msg.MsgWRslot;
 import com.server.wait.ClosedConf;
 import com.server.wait.Config;
 import com.server.wait.EmptyConf;
@@ -28,28 +30,27 @@ import util.Logger;
 
 public class Server implements Runnable, ServerConnect {
 
-	/**
-	 * static reference to the class.
-	 */
+	/** static reference to the class. */
 	private static Server server = null;
-	
-	private static int listeningPort = 10001;
-	
+	private static int listeningPort;	
 	private static String pwd;
-	
-	private static ActionListener al;
-	
-	private int openSlot;
-
 	/** The server socket of this thread */
 	private ServerSocket listener;
-	
-	private Map<String,ServerCSocket> clients;
-	private Map<String,Config> confs;
-	private MsgMasterGame rule;
-	
 	/**The listener thread */
 	private static Thread t;
+	
+	/** Ref to the gui that launched this server */
+	private static ActionListener al;
+
+	// ref to connected clients 
+	private int openSlot;
+	private Map<String,ServerCSocket> clients;
+	private Map<String,Config> confs;
+	
+	// ref to game 
+	private MsgMasterGame rule;
+	private Playable game;
+
 	
 	/**
 	 * return the static reference.
@@ -136,13 +137,14 @@ public class Server implements Runnable, ServerConnect {
 	}
 
 	@Override
-	public void transfertMsgTo(String clientID, Message msg) throws IOException, UnknownClientException {
+	public void transfertMsgTo(String clientID, Message msg) throws IOException {
 		ServerCSocket sock = clients.get(clientID);
 		if(sock != null){
 			sock.sendToThisClient(msg);
-		} else
-			throw new UnknownClientException(clientID);
-		
+		} else {
+			Logger.error("clientID "+clientID+" is unknown, failed to send msg");
+			//TODO remonter l'erreur à l'UI
+		}		
 	}
 
 	@Override
@@ -154,8 +156,44 @@ public class Server implements Runnable, ServerConnect {
 		}		
 	}
 	
-	public void saveRule(MsgMasterGame rule){
+	public synchronized void saveRule(MsgMasterGame rule){
 		this.rule = rule;
+	}
+	
+	@Override
+	public synchronized boolean areAllPlayersReady(){
+		
+		for(Config conf : confs.values()){
+			if (!conf.isReady())
+				return false;
+		}
+		
+		return true;
+	}
+	
+	@Override
+	public synchronized void startGame() throws IllegalInitialConditionException{
+		if (areAllPlayersReady()){
+			
+			GameType gameToStart = rule.getGameType();
+			game = gameToStart.getGame();
+			
+			MsgMasterRule rules;
+			
+			if(rule instanceof MsgMasterRule){
+				rules = (MsgMasterRule) rule;
+			} else {
+				rules = gameToStart.getRulePanel().getMsgRule("server");
+			}
+			//try to generate the game
+			game.initGame(new ArrayList<Config>(confs.values()), (MsgMasterRule)rule);
+			
+			//Send to all players the starting conf
+			
+			//TODO
+
+			
+		} else throw new IllegalInitialConditionException("All players are not ready!");
 	}
 
 	@Override

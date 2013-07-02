@@ -1,4 +1,4 @@
-package game.scopa.logic;
+package scopa.logic;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -125,6 +125,11 @@ public class ScopaTableCards extends ArrayList<ScopaCard> implements ScopaTable 
 			if(c.getValue()==card.getValue()) return true;
 		}
 		return false;
+	}
+
+	@Override
+	public List<ScopaCard> cardsOnTable() {
+		return this;
 	}
 	
 }

@@ -1,4 +1,4 @@
-package game.scopa.logic;
+package scopa.logic;
 
 public enum ScopaValue {
 as,two,three,four,five,six,seven,queen,joker,king;

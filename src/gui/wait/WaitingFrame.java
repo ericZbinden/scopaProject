@@ -49,6 +49,7 @@ import com.msg.MsgMasterGame;
 import com.msg.MsgMasterRule;
 import com.msg.MsgNewPlayer;
 import com.msg.MsgReset;
+import com.msg.MsgStart;
 import com.msg.MsgWRslot;
 import com.server.wait.ClosedConf;
 import com.server.wait.Config;
@@ -58,6 +59,7 @@ public class WaitingFrame extends JFrame implements KeyListener,ActionListener, 
 	
 	//SRV
 	ClientSocket srv;
+	boolean msgStartSend = false;
 	
 	//CLIENT
 	private String clientID;
@@ -365,14 +367,19 @@ public class WaitingFrame extends JFrame implements KeyListener,ActionListener, 
 //		case config:
 //			//talk to srv
 //			break;
-		case start:
+//		case start:
 		case startNack:
+			this.writeIntoChatFromServer("Game can not start, some player are not ready.");
+			this.msgStartSend = false;
 			break;
 		case chat:
 			MsgChat chat = (MsgChat) msg;
 			writeIntoChat(chat.getSenderID(),chat.getText());
 			break;		
 		case gameBaseConf:
+			//start a game
+			
+			this.setVisible(false);
 			break;
 		case play:
 			break;
@@ -440,7 +447,7 @@ public class WaitingFrame extends JFrame implements KeyListener,ActionListener, 
 						cp.getConfig().setReady(true); //hack to avoid kicked player doesn't allow to start the game
 						conf.remove(cp);
 						startGame.invalidate();
-						srv.sendMsg(new MsgWRslot(new ClosedConf(),clientID,closedID));					
+						srv.sendWrSlotMsg(new ClosedConf(),closedID);					
 						break;
 //					case kick:
 //						this.kickSlot(cp,true);
@@ -465,18 +472,13 @@ public class WaitingFrame extends JFrame implements KeyListener,ActionListener, 
 			if(lastGame!=t){ //Check if need to update
 				lastGame = t;
 				this.updateGameChoice((GameType)gameChoice.getSelectedItem());
-				srv.sendMsg(new MsgMasterGame((GameType)gameChoice.getSelectedItem(),clientID));		
+				srv.sendGameMsg((GameType)gameChoice.getSelectedItem());		
 			}	
 			
 		} else if(e.getSource().equals(startGame)){
-			if(startGame.getBackground().equals(Color.GREEN)){
-				//TODO start the game
-				//do not dispose the window
-			} else {
-				this.writeIntoChatFromServer("All players are not ready");
-			}
+			askGameStart();
 		} else if(e.getSource().equals(rulePanel)){
-			srv.sendMsg(rulePanel.getMsgRule(clientID));
+			srv.sendRuleMsg(rulePanel.getMsgRule(clientID));
 			
 		} else if(e.getSource().equals(srv)){
 			this.writeIntoChatFromServer("Server crashed");
@@ -484,6 +486,17 @@ public class WaitingFrame extends JFrame implements KeyListener,ActionListener, 
 			Logger.debug("Unknown source: "+e.getSource());
 		}
 		
+	}
+	
+	private void askGameStart(){
+		if(startGame.getBackground().equals(Color.GREEN)){
+			if(this.msgStartSend){ //send msg only once
+				srv.sendStartMsg();
+			} 
+			this.writeIntoChatFromServer("Game will start");
+		} else {
+			this.writeIntoChatFromServer("All players are not ready");
+		}
 	}
 	
 //	private ConfigPanel getOpenSlot(){		
@@ -554,7 +567,7 @@ public class WaitingFrame extends JFrame implements KeyListener,ActionListener, 
 		conf.add(newCP,conf.getComponentCount()-1);
 		conf.invalidate();
 		//Send to srv
-		srv.sendMsg(new MsgWRslot((EmptyConf)newCP.getConfig(),clientID,newCP.getConfig().getClientID()));					
+		srv.sendWrSlotMsg((EmptyConf)newCP.getConfig(),newCP.getConfig().getClientID());					
 
 	}
 	
@@ -626,4 +639,5 @@ public class WaitingFrame extends JFrame implements KeyListener,ActionListener, 
 	public void serverDown(){
 		this.dispose("Server connection closed");
 	}
+
 }

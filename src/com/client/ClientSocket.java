@@ -1,5 +1,6 @@
 package com.client;
 
+import game.GameType;
 import gui.wait.ControlPanel;
 
 import java.io.IOException;
@@ -12,6 +13,10 @@ import util.Logger;
 
 import com.msg.Message;
 import com.msg.MsgChat;
+import com.msg.MsgMasterGame;
+import com.msg.MsgMasterRule;
+import com.msg.MsgPlay;
+import com.msg.MsgStart;
 import com.msg.MsgType;
 import com.msg.MsgWRslot;
 import com.server.wait.*;
@@ -23,7 +28,6 @@ public class ClientSocket implements Runnable{
 	ObjectOutputStream out;
 	ControlPanel cp;
 	
-	
 	public ClientSocket(Socket sock, ObjectInputStream in, ObjectOutputStream out,ControlPanel cp) {
 		this.sock=sock;
 		this.in=in;
@@ -31,12 +35,16 @@ public class ClientSocket implements Runnable{
 		this.cp=cp;
 	}
 	
+/*********************** SEND MSG ****************************/
 	
 	public void sendChatMsg(String id, String txt){
-		sendMsg(new MsgChat(id,txt));
+		this.sendOrClose(new MsgChat(id,txt));
 	}
 	
-	
+	public void sendStartMsg(){
+		this.sendOrClose(new MsgStart(cp.getClientID()));
+	}
+		
 	public void sendWrSlotMsg(Config conf, String impactedID){
 		MsgWRslot msg;
 		if (conf instanceof ClosedConf){
@@ -45,21 +53,77 @@ public class ClientSocket implements Runnable{
 			msg = new MsgWRslot((EmptyConf)conf,cp.getClientID(),impactedID);
 		} else {
 			msg = new MsgWRslot(conf,cp.getClientID());
-		}	
-		sendMsg(msg);
+		}
+		this.sendOrClose(msg);
 	}
 	
+	public void sendGameMsg(GameType gameType){
+		MsgMasterGame msg = new MsgMasterGame(gameType,cp.getClientID());
+		this.sendOrClose(msg);
+	}
 	
-	public void sendMsg(Message msg){
-		try {
-			out.writeObject(msg);
-			Logger.debug("ClientSocket sended:\n"+msg);
+	public void sendRuleMsg(MsgMasterRule msg){
+		this.sendOrClose(msg);
+	}
+	
+	public void sendPlayMsg(MsgPlay msg){
+		this.sendOrClose(msg);
+	}
+	
+/*********************** CONCREAT SEND ******************************/	
+	
+	/**
+	 * Send the message with succes or close the socket
+	 * @param msg
+	 */
+	private void sendOrClose(Message msg){
+		try{
+			sendMsg(msg);
 		} catch (IOException e) {
-			Logger.debug("Pas réussi à envoyer ce msg");
-			e.printStackTrace();
+			ioError(e,msg);
 		}
 	}
+	
+	private void sendMsg(Message msg) throws IOException{
+			out.writeObject(msg);
+			Logger.debug("ClientSocket sended:\n"+msg);
+	}
+	
+	/**
+	 * Unrecoverable error, close socket
+	 * @param e
+	 * @param msg
+	 */
+	private void ioError(IOException e, Message msg){
+		Logger.error("Unable to send msg: "+msg.toString()+"\nCaused by: "+e.getLocalizedMessage());
+		e.printStackTrace();	
+		//kill 
+		this.close();
+	}
+	
+	public void close(){		
+		try{
+			in.close();
+			out.close();
+			sock.close();
+		} catch(Exception e){
+			//die silently
+		}		
+	}
+	
+	
+/************************* MISC *******************************/
+	
+	
+	public void setControlPanel(ControlPanel cp){
+		this.cp = cp;
+	}
+	
+	
 
+	
+
+/**************** HANDLER RECEIVING MSG ************************/
 
 	@Override
 	public void run() {
@@ -88,16 +152,6 @@ public class ClientSocket implements Runnable{
 				if (!running)
 					this.close();
 			}		
-		}		
-	}
-	
-	public void close(){		
-		try{
-			in.close();
-			out.close();
-			sock.close();
-		} catch(Exception e){
-			//die silently
 		}		
 	}
 

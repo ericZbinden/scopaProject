@@ -1,10 +1,16 @@
-package game.scopa.logic;
+package scopa.logic;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import scopa.com.MsgScopaBaseConf;
+import util.Logger;
+
+import com.msg.MsgGameBaseConf;
 import com.msg.MsgMasterRule;
+import com.server.IllegalInitialConditionException;
 import com.server.wait.Config;
 import com.server.wait.GameStartCondition;
 
@@ -13,7 +19,9 @@ import game.Playable;
 
 public class ScopaGame implements Playable {
 
-	private int nPlayer = 2;
+	private int nPlayer;
+	
+	private transient List<String> playerOrders;
 	
 	private int lastPlayerToTake;
 	
@@ -28,35 +36,34 @@ public class ScopaGame implements Playable {
 	private ScopaHand handP2;
 	private ScopaHand handP3;
 	private ScopaHand handP4;
-	private ScopaHand handP5;
-	private ScopaHand handP6;
+	//private ScopaHand handP5;
+	//private ScopaHand handP6;
 	
 	public ScopaGame(){
 		this.state = State.notStarted;		
 	}
 	
-	public void initGame(List<Config> configs, MsgMasterRule rules){
-		if (!checkInitialConfig(configs,rules).getConditionsStatus()){
-			this.state = State.notStarted;
-		} else {
-			this.state = State.start;
-			nPlayer = configs.size();
+	public void initGame(List<Config> configs, MsgMasterRule rules) throws IllegalInitialConditionException {
+		checkInitialConfig(configs,rules);
 			
-			//TODO handle team game and rules
-			this.state = State.start;
-		}
+		nPlayer = configs.size();
+			
+		//TODO handle team game and rules
+		state = nextState();
+		this.newGame();
 	}
 	
 	public GameType getGameType(){
 		return GameType.SCOPA;
 	}
 	
-	@Override
-	public GameStartCondition checkInitialConfig(List<Config> configs, MsgMasterRule rules) {
+	
+	public void checkInitialConfig(List<Config> configs, MsgMasterRule rules) throws IllegalInitialConditionException {
 		
-		if (configs.size()==5 || configs.size() < 2 || configs.size() > 6)		
-			return new GameStartCondition(false,
-					"Too much or too less player: "+configs.size()+". Need [2,3,4 or 6] players");
+//		if (configs.size()==5 || configs.size() < 2 || configs.size() > 6)		
+		if (configs.size() < 2 || configs.size() > 4)	
+			throw new IllegalInitialConditionException(
+					"Too much or too less player: "+configs.size()+". Need [2,3,4] players");
 		
 		Map<Integer,Integer> teams = new HashMap<Integer,Integer>(6);
 		
@@ -75,16 +82,53 @@ public class ScopaGame implements Playable {
 			} else if (p==players){
 				continue;
 			} else {
-				return new GameStartCondition(false,"Each team should have same number of players");
+				throw new IllegalInitialConditionException(
+						"Each team should have same number of players");
 			}
 		}
 		
 		//rules don't care in this game
+	}
 		
-		return new GameStartCondition(true,null);
+	
+	public MsgGameBaseConf getMsgGameBaseConf(String playerId) throws IllegalStateException{
+		ScopaHand handy = getHandByPlayerId(playerId);
+		if(handy != null){
+			return new MsgScopaBaseConf(getPlayerOrder(),handy.getHand(),table.cardsOnTable(),handy.getPlayer());
+		}
+		throw new IllegalStateException("Unable to recover the desired msgBaseConf");
 	}
 	
-	//FIXME p2 should not see other hand
+	
+	private List<String> getPlayerOrder(){
+		if(playerOrders == null || playerOrders.isEmpty()){
+			//build the list
+			playerOrders = new ArrayList<String>(nPlayer);
+			playerOrders.add(handP1.getPlayer());
+			playerOrders.add(handP2.getPlayer());
+			playerOrders.add(handP3.getPlayer());
+			playerOrders.add(handP4.getPlayer());	
+		}
+		
+		return playerOrders;		
+	}
+	
+	private ScopaHand getHandByPlayerId(String id){
+		if(handP1 != null && handP1.getPlayer().equals(id)){
+			return handP1;
+		} else if(handP2 != null && handP2.getPlayer().equals(id)){
+			return handP2;
+		} else if(handP3 != null && handP3.getPlayer().equals(id)){
+			return handP3;
+		} else if(handP4 != null && handP4.getPlayer().equals(id)){
+			return handP4;
+		} else {
+			Logger.debug("Unable to recover the hand of player "+id+".\n" +
+					"Available hands are: ["+handP1.getPlayer()+","+handP2.getPlayer()+
+					","+handP3.getPlayer()+","+handP3.getPlayer()+"]");
+			return null;
+		}
+	}
 	
 	public ScopaHand getHandP1(){
 		return handP1;
@@ -101,14 +145,14 @@ public class ScopaGame implements Playable {
 	public ScopaHand getHandP4(){
 		return handP4;
 	}
-	
-	public ScopaHand getHandP5(){
-		return handP5;
-	}
-	
-	public ScopaHand getHandP6(){
-		return handP6;
-	}
+//	
+//	public ScopaHand getHandP5(){
+//		return handP5;
+//	}
+//	
+//	public ScopaHand getHandP6(){
+//		return handP6;
+//	}
 	
 	public ScopaTable getTable(){
 		return table;
@@ -167,14 +211,14 @@ public class ScopaGame implements Playable {
 			if(playerNumber != 4) return false;
 			if(!handP4.playCard(card)) return false;
 			break;
-		case p5:
-			if(playerNumber != 5) return false;
-			if(!handP5.playCard(card)) return false;
-			break;
-		case p6:
-			if(playerNumber != 6) return false;
-			if(!handP6.playCard(card)) return false;
-			break;
+//		case p5:
+//			if(playerNumber != 5) return false;
+//			if(!handP5.playCard(card)) return false;
+//			break;
+//		case p6:
+//			if(playerNumber != 6) return false;
+//			if(!handP6.playCard(card)) return false;
+//			break;
 		default: state = State.unknown;
 		}
 		if(state!=State.unknown){
@@ -195,12 +239,12 @@ public class ScopaGame implements Playable {
 				case 4:
 					handP4.getHand().add(card);
 					break;
-				case 5:
-					handP5.getHand().add(card);
-					break;
-				case 6:
-					handP6.getHand().add(card);
-					break;
+//				case 5:
+//					handP5.getHand().add(card);
+//					break;
+//				case 6:
+//					handP6.getHand().add(card);
+//					break;
 				default:
 				}
 
@@ -219,12 +263,12 @@ public class ScopaGame implements Playable {
 				case p4:
 					handP4.addCardsToHeap(cs);
 					break;
-				case p5:
-					handP5.addCardsToHeap(cs);
-					break;
-				case p6:
-					handP6.addCardsToHeap(cs);
-					break;
+//				case p5:
+//					handP5.addCardsToHeap(cs);
+//					break;
+//				case p6:
+//					handP6.addCardsToHeap(cs);
+//					break;
 				default:
 				}
 				state = nextState();
@@ -249,12 +293,12 @@ public class ScopaGame implements Playable {
 		case 4:
 			handP4.addCardsToHeap(table.takeAll());
 			break;
-		case 5:
-			handP5.addCardsToHeap(table.takeAll());
-			break;
-		case 6:
-			handP6.addCardsToHeap(table.takeAll());
-			break;
+//		case 5:
+//			handP5.addCardsToHeap(table.takeAll());
+//			break;
+//		case 6:
+//			handP6.addCardsToHeap(table.takeAll());
+//			break;
 		default:
 			state = State.unknown;
 		}
@@ -268,10 +312,10 @@ public class ScopaGame implements Playable {
 			handP3.newHand(deck.draw3Cards());
 		if(nPlayer > 3)
 			handP4.newHand(deck.draw3Cards());
-		if(nPlayer > 4){
-			handP5.newHand(deck.draw3Cards());
-			handP6.newHand(deck.draw3Cards());
-		}
+//		if(nPlayer > 4){
+//			handP5.newHand(deck.draw3Cards());
+//			handP6.newHand(deck.draw3Cards());
+//		}
 		state = nextState();
 	}
 	
@@ -281,6 +325,8 @@ public class ScopaGame implements Playable {
 
 	public State nextState(){
 		switch(state){
+		case notStarted:
+			return State.start;
 		case start:
 			return State.p1;
 		case p1:
@@ -288,7 +334,7 @@ public class ScopaGame implements Playable {
 		case p2:
 			if(nPlayer > 2) return State.p3;
 			else {
-				if(handP2.emptyHand()) {
+				if(handP2.isEmpty()) {
 					if(deck.isEmpty())
 						return State.takeAll;
 					else 
@@ -299,7 +345,7 @@ public class ScopaGame implements Playable {
 		case p3:
 			if(nPlayer > 3) return State.p4;
 			else {
-				if(handP3.emptyHand()) {
+				if(handP3.isEmpty()) {
 					if(deck.isEmpty())
 						return State.takeAll;
 					else 
@@ -308,26 +354,26 @@ public class ScopaGame implements Playable {
 					return State.p1;
 			}
 		case p4:
-			if(nPlayer > 4) return State.p5;
-			else {
-				if(handP3.emptyHand()) {
+//			if(nPlayer > 4) return State.p5;
+//			else {
+				if(handP3.isEmpty()) {
 					if(deck.isEmpty())
 						return State.takeAll;
 					else 
 						return State.giveNewHand;
 				} else
 					return State.p1;
-			}
-		case p5:
-			return State.p6;
-		case p6:
-			if(handP6.emptyHand()) {
-				if(deck.isEmpty())
-					return State.takeAll;
-				 else
-					return State.giveNewHand;
-			} else
-				return State.p1;
+//			}
+//		case p5:
+//			return State.p6;
+//		case p6:
+//			if(handP6.isEmpty()) {
+//				if(deck.isEmpty())
+//					return State.takeAll;
+//				 else
+//					return State.giveNewHand;
+//			} else
+//				return State.p1;
 		case giveNewHand: 
 			return State.p1;
 		case takeAll:
@@ -343,7 +389,7 @@ public class ScopaGame implements Playable {
 	}
 	
 	private enum State {
-		notStarted,start,p1,p2,p3,p4,p5,p6,giveNewHand,takeAll,endSet,endMatch,unknown
+		notStarted,start,p1,p2,p3,p4,/*p5,p6,*/giveNewHand,takeAll,endSet,endMatch,unknown
 	}
 
 	
