@@ -14,4 +14,7 @@ public interface ControlPanel {
 	/** The down connection from the server is down */
 	public void serverDown();
 	
+	/** Called when the ui frame should be closed and disposed */
+	public void dispose();
+	
 }

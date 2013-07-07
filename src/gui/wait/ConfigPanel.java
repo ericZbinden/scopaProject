@@ -193,9 +193,9 @@ public class ConfigPanel extends Box implements ActionListener{
 		if (isMaster){
 			slot.removeActionListener(this);
 			slot.removeAllItems();
-			slot.addItem(c.getClientID());
+			slot.addItem("  "+c.getClientID());
 			slot.addItem(CLOSED);
-			slot.setSelectedItem(c.getClientID());
+			slot.setSelectedItem("  "+c.getClientID());
 			slot.addActionListener(this);
 		}		
 		conf = c.clone();

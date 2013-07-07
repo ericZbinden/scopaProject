@@ -13,11 +13,12 @@ import javax.swing.JPanel;
 import scopa.logic.EmptyHand;
 import scopa.logic.ScopaCard;
 import scopa.logic.ScopaDeck;
-import scopa.logic.ScopaDeckCards;
+import scopa.logic.ScopaDeckImpl;
+import scopa.logic.ScopaFactory;
 import scopa.logic.ScopaGame;
 import scopa.logic.ScopaHand;
 import scopa.logic.ScopaTable;
-import scopa.logic.ScopaTableCards;
+import scopa.logic.ScopaTableImpl;
 import util.Logger;
 
 import gui.GamePanel;
@@ -34,10 +35,10 @@ private ScopaDeck deck;
 	
 	public ScopaGamePanel(int players){
 		//logic
-		this.table= ScopaTableCards.newTable(); //FIXME logic is externalized into server, should not be there
+		this.table= ScopaFactory.getNewScopaTable(); //FIXME logic is externalized into server, should not be there
 		boolean ok;
 		do{
-			this.deck = ScopaDeckCards.newDeck();	
+			this.deck = ScopaFactory.getNewScopaDeck();	
 			deck.shuffle();
 			ok = table.putInitial(deck.drawInitialCards());
 		} while (!ok);

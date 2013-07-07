@@ -27,6 +27,7 @@ public class ClientSocket implements Runnable{
 	ObjectInputStream in;
 	ObjectOutputStream out;
 	ControlPanel cp;
+	boolean isClosing = false;
 	
 	public ClientSocket(Socket sock, ObjectInputStream in, ObjectOutputStream out,ControlPanel cp) {
 		this.sock=sock;
@@ -101,26 +102,27 @@ public class ClientSocket implements Runnable{
 		this.close();
 	}
 	
-	public void close(){		
+	public void close(){	
+		this.setClosing();
 		try{
 			in.close();
 			out.close();
 			sock.close();
 		} catch(Exception e){
 			//die silently
-		}		
+		}	
 	}
 	
 	
 /************************* MISC *******************************/
 	
-	
 	public void setControlPanel(ControlPanel cp){
 		this.cp = cp;
 	}
 	
-	
-
+	public void setClosing(){
+		isClosing=true;
+	}
 	
 
 /**************** HANDLER RECEIVING MSG ************************/
@@ -137,16 +139,18 @@ public class ClientSocket implements Runnable{
 				MsgType type = msg.getType();
 				Logger.debug("client "+cp.getClientID()+" received msg: "+type);			
 				cp.update(msg);
-					
-			} catch (SocketException se) {
-				Logger.debug("socket closed by server: "+se.getMessage());
-				cp.serverDown();
-				running = false;
+									
 			} catch (ClassNotFoundException cnfe) {
-				Logger.error(cnfe.getMessage());
+				Logger.error("Malformed msg: "+cnfe.getMessage());
 			} catch (IOException e){
-				Logger.error("Down connection: "+e.getLocalizedMessage()+"\nStop listening");
-				cp.serverDown();
+				if(isClosing){
+					Logger.debug("socket closing by server: "+e.getMessage());
+					//closing procedure started, ui will dipose itself
+				} else {
+					Logger.debug("Unexpected socket closed by server: "+e.getMessage());
+					//unexpected procedure, tell ui to dispose 
+					cp.serverDown();
+				}
 				running = false;
 			} finally { 
 				if (!running)

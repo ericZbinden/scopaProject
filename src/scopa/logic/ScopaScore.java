@@ -21,17 +21,17 @@ public class ScopaScore {
 	private int currentScoreP4 = 0;
 	private int winP4 = 0;
 	
-	private int currentScoreP5 = 0;
-	private int winP5 = 0;
-	
-	private int currentScoreP6 = 0;
-	private int winP6 = 0;
+//	private int currentScoreP5 = 0;
+//	private int winP5 = 0;
+//	
+//	private int currentScoreP6 = 0;
+//	private int winP6 = 0;
 	
 	public ScopaScore(int nPlayer){
 		this.nPlayer = nPlayer;
 		
-		if(nPlayer < 2 || nPlayer > 6 || nPlayer == 5)
-			throw new RuntimeException("Too much or too less player: "+nPlayer+". Need [2,3,4 or 6] players");
+		if(nPlayer < 2 || nPlayer > 4)
+			throw new RuntimeException("Too much or too less player: "+nPlayer+". Need [2,3,4] players");
 	}
 	
 	public void resteMatch(){
@@ -49,12 +49,12 @@ public class ScopaScore {
 			case 4:
 				winP4++;
 				break;
-			case 5:
-				winP5++;
-				break;		
-			case 6:
-				winP6++;
-				break;
+//			case 5:
+//				winP5++;
+//				break;		
+//			case 6:
+//				winP6++;
+//				break;
 			default: 
 			}
 		}		
@@ -65,24 +65,24 @@ public class ScopaScore {
 		 currentScoreP2 = 0;
 		 currentScoreP3 = 0;
 		 currentScoreP4 = 0;
-		 currentScoreP5 = 0;
-		 currentScoreP6 = 0;
+//		 currentScoreP5 = 0;
+//		 currentScoreP6 = 0;
 	}
 	
-	public boolean markScore(int p1, int p2, int p3, int p4, int p5, int p6){
+	public boolean markScore(int p1, int p2, int p3, int p4/*, int p5, int p6*/){
 		currentScoreP1 += p1;
 		currentScoreP2 += p2;
 		currentScoreP3 += p3;
 		currentScoreP4 += p4;
-		currentScoreP5 += p5;
-		currentScoreP6 += p6;
+//		currentScoreP5 += p5;
+//		currentScoreP6 += p6;
 
 		return checkWinner();
 	}
 	
-	public boolean markScore(int p1, int p2, int p3, int p4){
-		return markScore(p1,p2,p3,p4,0,0);
-	}
+//	public boolean markScore(int p1, int p2, int p3, int p4){
+//		return markScore(p1,p2,p3,p4,0,0);
+//	}
 	
 	public boolean markScore(int p1, int p2, int p3){
 		return markScore(p1,p2,p3,0);
@@ -117,17 +117,17 @@ public class ScopaScore {
 			higher1 = 4;
 		}
 		
-		if(nPlayer > 4 && score1 < currentScoreP5){
-			score2 = score1;
-			score1 = currentScoreP5;
-			higher1 = 5;
-		}
-		
-		if(nPlayer > 4 && score1 < currentScoreP6){
-			score2 = score1;
-			score1 = currentScoreP6;
-			higher1 = 6;
-		}
+//		if(nPlayer > 4 && score1 < currentScoreP5){
+//			score2 = score1;
+//			score1 = currentScoreP5;
+//			higher1 = 5;
+//		}
+//		
+//		if(nPlayer > 4 && score1 < currentScoreP6){
+//			score2 = score1;
+//			score1 = currentScoreP6;
+//			higher1 = 6;
+//		}
 		
 		if(score1 > 10 && (score2+2)<score1){
 			winner = true;
@@ -148,9 +148,9 @@ public class ScopaScore {
 	public List<Integer> getSetScores(){
 		List<Integer> score = new ArrayList<Integer>();
 		switch(nPlayer){
-		case 6:
-			score.add(0, currentScoreP6);
-			score.add(0, currentScoreP5);
+//		case 6:
+//			score.add(0, currentScoreP6);
+//			score.add(0, currentScoreP5);
 		case 4:
 			score.add(0, currentScoreP4);
 		case 3:
@@ -167,9 +167,9 @@ public class ScopaScore {
 	public List<Integer> getMatchScores(){
 		List<Integer> score = new ArrayList<Integer>();
 		switch(nPlayer){
-		case 6:
-			score.add(0, winP6);
-			score.add(0, winP5);
+//		case 6:
+//			score.add(0, winP6);
+//			score.add(0, winP5);
 		case 4:
 			score.add(0, winP4);
 		case 3:
@@ -185,9 +185,10 @@ public class ScopaScore {
 	
 	public String toString(){
 		return "ScopaScore Sheet:\n\tNumber of player: "+nPlayer+
-				"\n\tP1\tP2\tP3\tP4\tP5\tP6"+
-				"\nPoints:\t"+currentScoreP1+"\t"+currentScoreP2+"\t"+currentScoreP3+"\t"+currentScoreP4+"\t"+currentScoreP5+"\t"+currentScoreP6+
-				"\nMatch:\t"+winP1+"\t"+winP2+"\t"+winP3+"\t"+winP4+"\t"+winP5+"\t"+winP6;
+				"\n\tP1\tP2\tP3\tP4"+//\tP5\tP6"+
+				"\nPoints:\t"+currentScoreP1+"\t"+currentScoreP2+"\t"+currentScoreP3+"\t"+currentScoreP4+//"\t"+currentScoreP5+"\t"+currentScoreP6+
+				"\nMatch:\t"+winP1+"\t"+winP2+"\t"+winP3+"\t"+winP4+"\t"//+winP5+"\t"+winP6;
+				;
 	}
 	
 	

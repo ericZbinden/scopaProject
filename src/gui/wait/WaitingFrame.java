@@ -1,6 +1,8 @@
 package gui.wait;
 
 import game.GameType;
+import gui.ChatMsgSender;
+import gui.ChatPanel;
 import gui.RulePanel;
 import gui.wait.ConfigPanel.ParentAction;
 
@@ -11,10 +13,6 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -32,11 +30,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultHighlighter;
-import javax.swing.text.Highlighter;
 
 import util.Logger;
 
@@ -45,20 +38,22 @@ import com.msg.MalformedMessageException;
 import com.msg.Message;
 import com.msg.MsgChat;
 import com.msg.MsgDeco;
+import com.msg.MsgGameBaseConf;
 import com.msg.MsgMasterGame;
 import com.msg.MsgMasterRule;
 import com.msg.MsgNewPlayer;
+import com.msg.MsgPlay;
 import com.msg.MsgReset;
-import com.msg.MsgStart;
+import com.msg.MsgStartNack;
 import com.msg.MsgWRslot;
 import com.server.wait.ClosedConf;
 import com.server.wait.Config;
 import com.server.wait.EmptyConf;
 
-public class WaitingFrame extends JFrame implements KeyListener,ActionListener, MouseListener, ControlPanel{
+public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSender, ControlPanel{
 	
 	//SRV
-	ClientSocket srv;
+	ClientSocket clientSocket;
 	boolean msgStartSend = false;
 	
 	//CLIENT
@@ -69,11 +64,11 @@ public class WaitingFrame extends JFrame implements KeyListener,ActionListener, 
 	private static final long serialVersionUID = -3752588378621496399L;
 	private Map<String,ConfigPanel> slots ;
 	private Box conf = new Box(BoxLayout.Y_AXIS);
-	private JTextArea chat = new JTextArea();
-	private JTextField chatEntry = new JTextField();
+	private ChatPanel chat;
 	private RulePanel rulePanel;
 	private Box bottom = new Box(BoxLayout.X_AXIS);
 	private GameType lastGame;
+	private ControlPanel gameGui;
 	private JButton startGame = new JButton("Start Game!"){
 		boolean ready = true;
 		@Override
@@ -130,8 +125,8 @@ public class WaitingFrame extends JFrame implements KeyListener,ActionListener, 
 		this.isMaster=master;
 		
 		slots = new HashMap<String,ConfigPanel>();
-		srv = new ClientSocket(sock,in,out,this);
-		new Thread(srv).start();
+		clientSocket = new ClientSocket(sock,in,out,this);
+		new Thread(clientSocket).start();
 		this.build(coordinate,configs);
 	}
 	
@@ -229,23 +224,8 @@ public class WaitingFrame extends JFrame implements KeyListener,ActionListener, 
 	private void buildBottom(Box bottom){
 		
 		//CHAT
-		//TODO in later version, use JEditorPane or JTextPane instead (give more possibilities)
-		chat.setRows(10);
-		chat.setText("");
-		chat.setLineWrap(true);
-		chat.setEditable(false);		
-		chatEntry.setPreferredSize(new Dimension(290,30));
-		chatEntry.addKeyListener(this);
-		chat.addMouseListener(this);
-
-		JScrollPane jsp = new JScrollPane(chat);
-		jsp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		jsp.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		jsp.setPreferredSize(new Dimension(290,270));
-		Box chatbox = new Box(BoxLayout.Y_AXIS);
-		chatbox.add(jsp);
-		chatbox.add(chatEntry);
-		bottom.add(chatbox);
+		chat = new ChatPanel(this);
+		bottom.add(chat);
 		
 		bottom.add(new JSeparator(JSeparator.VERTICAL));
 		
@@ -269,41 +249,6 @@ public class WaitingFrame extends JFrame implements KeyListener,ActionListener, 
 		
 	}
 	
-	@Override
-	public void keyPressed(KeyEvent arg0) {		
-	}
-
-	@Override
-	public void keyReleased(KeyEvent arg0) {		
-	}
-
-	@Override
-	public void keyTyped(KeyEvent arg0) {
-		if (arg0.getKeyChar() == '\n') {
-			String txt = chatEntry.getText();
-			chatEntry.setText("");
-			writeIntoChat(clientID,txt);
-			
-			srv.sendChatMsg(clientID, txt);
-		}
-	}
-	
-	private synchronized void writeIntoChat(String writer, String text){
-		chat.append("["+writer+"]: "+text+"\n");
-		chat.invalidate();
-		chat.repaint();
-	}
-	
-	private void writeIntoChatFromServer(String text){
-		int textSize = chat.getText().length();
-		this.writeIntoChat("Server", text);
-		Highlighter.HighlightPainter serverHighlight = new DefaultHighlighter.DefaultHighlightPainter(Color.red);
-		try {
-			chat.getHighlighter().addHighlight(textSize, textSize+8, serverHighlight);
-		} catch (BadLocationException e1) {
-		}
-	}
-	
 	public void update(Message msg){
 		switch(msg.getType()){
 		case wrSlot:
@@ -317,7 +262,7 @@ public class WaitingFrame extends JFrame implements KeyListener,ActionListener, 
 							ConfigPanel cp = slots.remove(impactedID);
 							conf.remove(cp);
 							if (!(cp.getConfig() instanceof EmptyConf)){
-								this.writeIntoChatFromServer(impactedID+" haz been kicked");
+								chat.writeIntoChatFromServer(impactedID+" haz been kicked");
 							}
 						} else if (slot.getConf() instanceof EmptyConf){
 							//a player disconnected or kicked
@@ -326,7 +271,7 @@ public class WaitingFrame extends JFrame implements KeyListener,ActionListener, 
 							ConfigPanel newCP = new ConfigPanel(slot.getConf(), isMaster, this);
 							slots.put(slot.getConf().getClientID(), newCP);
 							conf.add(newCP,conf.getComponentCount()-1);
-							this.writeIntoChatFromServer(impactedID+" haz left");
+							chat.writeIntoChatFromServer(impactedID+" haz left");
 						} else {
 							//Updating a player conf
 							Config c = slot.getConf();
@@ -369,24 +314,36 @@ public class WaitingFrame extends JFrame implements KeyListener,ActionListener, 
 //			break;
 //		case start:
 		case startNack:
-			this.writeIntoChatFromServer("Game can not start, some player are not ready.");
+			MsgStartNack startNack = (MsgStartNack) msg;
+			chat.writeIntoChatFromServer("Game can not start: "+startNack.getReason());
 			this.msgStartSend = false;
 			break;
 		case chat:
-			MsgChat chat = (MsgChat) msg;
-			writeIntoChat(chat.getSenderID(),chat.getText());
+			MsgChat chatMsg = (MsgChat) msg;
+			chat.writeIntoChat(chatMsg.getSenderID(),chatMsg.getText());
 			break;		
 		case gameBaseConf:
 			//start a game
+			MsgGameBaseConf baseConf = (MsgGameBaseConf) msg;
+			GameType gameType = baseConf.getGameType();
+			
+			//TODO
+			//ControlPanel cp = gameType.getControlPanel();
+			//gameGui.setGamePanel(cp);
+			//gameGui.update(baseConf);
+			//gameGui.setVisible(true);
 			
 			this.setVisible(false);
 			break;
 		case play:
+			MsgPlay play = (MsgPlay) msg;
+			//TODO
+			//gameGui.update(play)
 			break;
 		case newPlayer:
 			//a new player just connect
 			MsgNewPlayer co = (MsgNewPlayer) msg;
-			writeIntoChat(co.getNewPlayerID(),"haz connect");
+			chat.writeIntoChat(co.getNewPlayerID(),"haz connect");
 			ConfigPanel cpNew = slots.remove(co.getOpenID());
 			cpNew.setStatusToOccupied(new Config(co.getNewPlayerID()));
 			slots.put(co.getNewPlayerID(), cpNew);
@@ -396,16 +353,20 @@ public class WaitingFrame extends JFrame implements KeyListener,ActionListener, 
 //		case connect:		
 //			break;
 		case reco:
+			//TODO
 			break;
 		case reset:
 			MsgReset reset = (MsgReset) msg;
-			this.dispose("Connection reset: "+reset.getReason());
+			//Only warn client of the reset, connection will be closed by server
+			JOptionPane.showMessageDialog(this, "Connection reset: "+reset.getReason());
+			clientSocket.setClosing();
+			this.setVisible(false);
 			break;
 		case disconnect:
 			MsgDeco deco = (MsgDeco) msg;
 			ConfigPanel cpDeco = slots.get(deco.getDecoClient());
 			if (cpDeco != null){
-				writeIntoChat(deco.getDecoClient(),"haz quit");
+				chat.writeIntoChat(deco.getDecoClient(),"haz quit");
 				slots.remove(deco.getDecoClient());
 				cpDeco.setStatusToEmpty(new EmptyConf(deco.getEmptyID()));
 				slots.put(cpDeco.getConfig().getClientID(), cpDeco);
@@ -435,19 +396,19 @@ public class WaitingFrame extends JFrame implements KeyListener,ActionListener, 
 					case ready:
 						startGame.invalidate(); //no break statement (that's normal)
 					case teamEdit:
-						srv.sendWrSlotMsg(cp.getConfig(), cp.getConfig().getClientID());
+						clientSocket.sendWrSlotMsg(cp.getConfig(), cp.getConfig().getClientID());
 						break;
 					case close:
 						Config closed = cp.getConfig();
 						String closedID = closed.getClientID();
 						if (!(closed instanceof EmptyConf)){
-							this.writeIntoChatFromServer("you kicked "+closedID);
+							chat.writeIntoChatFromServer("you kicked "+closedID);
 						}
 						slots.remove(closedID);
-						cp.getConfig().setReady(true); //hack to avoid kicked player doesn't allow to start the game
+						//cp.getConfig().setReady(true); //hack to avoid kicked player doesn't allow to start the game
 						conf.remove(cp);
 						startGame.invalidate();
-						srv.sendWrSlotMsg(new ClosedConf(),closedID);					
+						clientSocket.sendWrSlotMsg(new ClosedConf(),closedID);					
 						break;
 //					case kick:
 //						this.kickSlot(cp,true);
@@ -472,16 +433,16 @@ public class WaitingFrame extends JFrame implements KeyListener,ActionListener, 
 			if(lastGame!=t){ //Check if need to update
 				lastGame = t;
 				this.updateGameChoice((GameType)gameChoice.getSelectedItem());
-				srv.sendGameMsg((GameType)gameChoice.getSelectedItem());		
+				clientSocket.sendGameMsg((GameType)gameChoice.getSelectedItem());		
 			}	
 			
 		} else if(e.getSource().equals(startGame)){
 			askGameStart();
 		} else if(e.getSource().equals(rulePanel)){
-			srv.sendRuleMsg(rulePanel.getMsgRule(clientID));
+			clientSocket.sendRuleMsg(rulePanel.getMsgRule(clientID));
 			
-		} else if(e.getSource().equals(srv)){
-			this.writeIntoChatFromServer("Server crashed");
+		} else if(e.getSource().equals(clientSocket)){
+			chat.writeIntoChatFromServer("Server crashed");
 		} else {
 			Logger.debug("Unknown source: "+e.getSource());
 		}
@@ -490,12 +451,13 @@ public class WaitingFrame extends JFrame implements KeyListener,ActionListener, 
 	
 	private void askGameStart(){
 		if(startGame.getBackground().equals(Color.GREEN)){
-			if(this.msgStartSend){ //send msg only once
-				srv.sendStartMsg();
+			if(!this.msgStartSend){ //send msg only once
+				clientSocket.sendStartMsg();
+				msgStartSend = true;
 			} 
-			this.writeIntoChatFromServer("Game will start");
+			chat.writeIntoChatFromServer("Game will start");
 		} else {
-			this.writeIntoChatFromServer("All players are not ready");
+			chat.writeIntoChatFromServer("All players are not ready");
 		}
 	}
 	
@@ -567,7 +529,7 @@ public class WaitingFrame extends JFrame implements KeyListener,ActionListener, 
 		conf.add(newCP,conf.getComponentCount()-1);
 		conf.invalidate();
 		//Send to srv
-		srv.sendWrSlotMsg((EmptyConf)newCP.getConfig(),newCP.getConfig().getClientID());					
+		clientSocket.sendWrSlotMsg((EmptyConf)newCP.getConfig(),newCP.getConfig().getClientID());					
 
 	}
 	
@@ -588,47 +550,20 @@ public class WaitingFrame extends JFrame implements KeyListener,ActionListener, 
 		this.pack();
 		this.repaint();
 	}
-
-	@Override
-	public void mouseClicked(MouseEvent arg0) {
-		if(arg0.getSource().equals(chat)){
-			this.chatEntry.requestFocus();
-		}
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent arg0) {
-		
-	}
-
-	@Override
-	public void mouseExited(MouseEvent arg0) {
-		
-	}
-
-	@Override
-	public void mousePressed(MouseEvent arg0) {
-		
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent arg0) {
-		
-	}
 	
-	public void dispose(String msgToDisplay){
+	public void disposeWithMsgDialog(String msgToDisplay){
 		
 		if(msgToDisplay != null && !msgToDisplay.equals("")){
 			JOptionPane.showMessageDialog(this, msgToDisplay);
 		} else {
-			Logger.error("Reset following to unknown reason");
+			JOptionPane.showMessageDialog(this, "Reset following to unknown reason");
 		}
 		dispose();
 	}
 	
 	@Override
 	public void dispose(){
-		srv.close();
+		clientSocket.close();
 		super.dispose();
 	}
 	
@@ -637,7 +572,18 @@ public class WaitingFrame extends JFrame implements KeyListener,ActionListener, 
 	}
 	
 	public void serverDown(){
-		this.dispose("Server connection closed");
+		this.disposeWithMsgDialog("Server connection closed");
+		super.dispose();
+	}
+
+	@Override
+	public void sendChatMsg(String txtMsg) {
+		clientSocket.sendChatMsg(getClientID(), txtMsg);
+	}
+
+	@Override
+	public String getLocalClient() {
+		return getClientID();
 	}
 
 }

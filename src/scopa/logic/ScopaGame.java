@@ -170,9 +170,10 @@ public class ScopaGame implements Playable {
 	
 	public void newGame(){
 		
+		table = ScopaFactory.getNewScopaTable();
 		boolean ok = false;
 		do {
-			deck = ScopaDeckCards.newDeck();
+			deck = ScopaFactory.getNewScopaDeck();
 			deck.shuffle();
 			ok = table.putInitial(deck.drawInitialCards());
 

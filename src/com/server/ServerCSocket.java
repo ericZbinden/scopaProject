@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.net.SocketException;
 
 import util.Logger;
 
@@ -24,10 +23,6 @@ import com.msg.MsgType;
 import com.msg.MsgWRslot;
 
 public class ServerCSocket implements Runnable {
-	
-	private enum ServerState{
-		none,waiting,playing,closing,closed
-	}
 
 	/**
 	 * reference to the server socket.
@@ -35,11 +30,11 @@ public class ServerCSocket implements Runnable {
 	private Socket srv;
 	private ObjectInputStream in;
 	private ObjectOutputStream out;
+	private boolean isClosing;
 	
 	private ServerConnect sc;
 
 	private String clientID;
-	private ServerState state = ServerState.none;	
 	
 	/**
 	 * Default builder.
@@ -71,7 +66,8 @@ public class ServerCSocket implements Runnable {
 			out = new ObjectOutputStream(srv.getOutputStream());
 			in = new ObjectInputStream(srv.getInputStream());
 		} catch (Exception e) {
-			Logger.error("Connection lost during "+this.getState()+"\n"+e.getLocalizedMessage());
+			Logger.error("Connection lost during initial connect when srv is "+sc.getServerState()+
+					"\n\t"+e.getLocalizedMessage());
 			this.close(false);
 			running = false;
 		}
@@ -79,31 +75,22 @@ public class ServerCSocket implements Runnable {
 		try{
 			while(running){
 				Object request = in.readObject();
-				//Logger.debug("ServerClientSocket received msg:\n"+request.toString());
-				Message prequest;
 				if (request instanceof Message) {
-					prequest = (Message) request;
-					processPacket(prequest, out, in);
+					processPacket((Message) request);
 				}
 				Logger.debug("End processPacket.");
 				Logger.dot();
 			}
 			
-		} catch ( SocketException se){
-				Logger.error("Connection closed by client during "+this.getState()+"\n"+se.getLocalizedMessage());
 		} catch (Exception e) {
-				Logger.error("Connection lost during "+this.getState()+"\n"+e.getLocalizedMessage());			
-		} finally {
-			switch(this.getState()){
-			case closed:
-				break;
-			case closing:
-				this.close(false);
-				break;
-			default:
-				this.close(true);
+			if(!isClosing){
+				Logger.error("scs> Connection lost during "+sc.getServerState()+"\n\t"+e.getMessage());
+				e.printStackTrace();
 			}
-			running = false;
+		} finally {
+			if(!isClosing){
+				this.close(true);
+			} 
 		}
 	}
 
@@ -114,8 +101,7 @@ public class ServerCSocket implements Runnable {
 	 * @param out the output of the server for the feedback to the request.
 	 * @param in the input of the server socket.
 	 */
-	public void processPacket(Message prequest, ObjectOutputStream out,
-			ObjectInputStream in) throws IOException {
+	public void processPacket(Message prequest) {
 
 		MsgType type = prequest.getType();
 		String senderID = prequest.getSenderID();
@@ -141,9 +127,9 @@ public class ServerCSocket implements Runnable {
 			case reco:
 				reco(prequest);
 				break;
-			case refresh:
-				refresh();
-				break;
+//			case refresh:
+//				refresh();
+//				break;
 //			case config:
 //				if(prequest instanceof MsgConfig){
 //					MsgConfig conf = (MsgConfig) prequest;
@@ -194,38 +180,38 @@ public class ServerCSocket implements Runnable {
 		}
 	}
 	
-	private void start(Message prequest) throws IOException {
+	private void start(Message prequest) {
 		if(isWaitingOrLog(prequest)){
 			try{
 				sc.startGame();
 			} catch (IllegalInitialConditionException e){
-					sc.transfertMsgTo(prequest.getSenderID(), new MsgStartNack("server"));
+					sc.transfertMsgTo(prequest.getSenderID(), new MsgStartNack(e.getLocalizedMessage()));
 			}
 		}
 	}
 	
-	private void masterRule(MsgMasterRule prequest) throws IOException {
+	private void masterRule(MsgMasterRule prequest) {
 		if(isWaitingOrLog(prequest)){
 			sc.saveRule(prequest);
 			sc.transferMsgToAll(prequest, prequest.getSenderID());
 		}
 	}
 
-	private void masterGame(MsgMasterGame prequest) throws IOException {
+	private void masterGame(MsgMasterGame prequest) {
 		if(isWaitingOrLog(prequest)){
 			sc.saveRule(prequest);
 			sc.transferMsgToAll(prequest, prequest.getSenderID());
 		}
 	}
 
-	private void wrSlot(MsgWRslot prequest) throws IOException {
+	private void wrSlot(MsgWRslot prequest) {
 		if(isWaitingOrLog(prequest)){
 			sc.transferMsgToAll(prequest, prequest.getSenderID());			
 			sc.updateWR(prequest.getImpactedID(), prequest.getConf(), this);
 		}			
 	}
 
-	private void chat(MsgChat prequest) throws IOException {
+	private void chat(MsgChat prequest) {
 		sc.transferMsgToAll(prequest, prequest.getSenderID());		
 	}
 
@@ -236,14 +222,14 @@ public class ServerCSocket implements Runnable {
 //			//Ignore msg
 //		}
 //	}
-	
-	private void refresh(){
-		if(state.equals(ServerState.waiting)){
-			//TODO
-		} else {
-			//Ignore msg
-		}
-	}
+//	
+//	private void refresh(){
+//		if(state.equals(ServerState.waiting)){
+//			
+//		} else {
+//			//Ignore msg
+//		}
+//	}
 	
 	private void play(MsgPlay play){
 		//TODO serverclient should contain a Playable or an acces to an interface
@@ -254,23 +240,22 @@ public class ServerCSocket implements Runnable {
 	}
 	
 	private void connect(MsgConnect msg){
+		ServerState state = sc.getServerState();
 		if(state.equals(ServerState.none) || state.equals(ServerState.waiting)){
-			Logger.debug("State set to waiting");
-			state = ServerState.waiting;
 			this.clientID=msg.getSenderID();
-			Message m = sc.connect(msg, this);
+			Message respond = sc.connect(msg, this);
 			
-			if(m instanceof MsgReset){
+			if(respond instanceof MsgReset){
 				try {
-					this.sendToThisClient(m);
-					Logger.debug("Connection reset: "+((MsgReset)m).getReason());
+					this.sendToThisClient(respond);
+					Logger.debug("Connection reset: "+((MsgReset)respond).getReason());
 				} catch (IOException e) {
 				}
 				this.close(false);
 			} else {
 				try {
-					MsgConfig mc = (MsgConfig) m;
-					this.sendToThisClient(m);
+					MsgConfig mc = (MsgConfig) respond;
+					this.sendToThisClient(respond);
 					Logger.debug("Connection accepted");
 					sc.transferMsgToAll(new MsgNewPlayer(clientID,mc.getImpactedID()), msg.getSenderID());
 
@@ -278,10 +263,12 @@ public class ServerCSocket implements Runnable {
 					this.close(false);
 				}
 			}
-		}	
+		} else {
+			Logger.debug("Received msg but was ignored: "+msg.toString());
+		}
 	}
 	
-	public void disconnect(Message msg) throws IOException {
+	public void disconnect(Message msg) {
 		sc.transferMsgToAll(msg, msg.getSenderID());
 	}
 	
@@ -303,6 +290,7 @@ public class ServerCSocket implements Runnable {
 	
 	public void close(boolean sendMsgToSrv){
 		Logger.debug("Socket client: "+clientID+" closing");
+		isClosing = true;
 
 		try {
 			if (sendMsgToSrv){
@@ -312,25 +300,17 @@ public class ServerCSocket implements Runnable {
 			out.close();
 			srv.close();
 			
-		} catch (IOException e) {
-		}
-		state = ServerState.closed;
-	}
-	
-	public ServerState getState(){
-		return state;
-	}
-	
-	public void setClosingState(){
-		state = ServerState.closing;
+		} catch (IOException e) {}
 	}
 	
 	public String toString(){
-		return "scs:"+state+" "+this.clientID+" "+srv.isClosed();
+		return "ServerClientSocket:\n" +
+				"\tServerState:"+sc.getServerState()+"\n"
+				+"Socket:"+this.clientID+"\tState:"+srv.isClosed();
 	}
 	
 	private boolean isWaitingOrLog(Message msg){
-		if(state.equals(ServerState.waiting)){
+		if(sc.getServerState().equals(ServerState.waiting)){
 			return true;
 		} else {
 			Logger.debug("Receive msg but ignored it in waiting phase: "+msg.toString());

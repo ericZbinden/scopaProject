@@ -2,12 +2,15 @@ package com.msg;
 
 public class MsgStartNack extends Message {
 
-	public MsgStartNack() {
-		super(MsgType.startNack);
-	}
+	private String reason;
 
-	public MsgStartNack(String senderID) {
-		super(MsgType.startNack, senderID,null);
+	public MsgStartNack(String reason) {
+		super(MsgType.startNack, "server",null);
+		this.reason=reason;
+	}
+	
+	public String getReason(){
+		return reason;
 	}
 
 }

@@ -18,9 +18,11 @@ import com.msg.Message;
 import com.msg.MsgConfig;
 import com.msg.MsgConnect;
 import com.msg.MsgDeco;
+import com.msg.MsgGameBaseConf;
 import com.msg.MsgMasterGame;
 import com.msg.MsgMasterRule;
 import com.msg.MsgReset;
+import com.msg.MsgStartNack;
 import com.server.wait.ClosedConf;
 import com.server.wait.Config;
 import com.server.wait.EmptyConf;
@@ -31,6 +33,7 @@ import util.Logger;
 public class Server implements Runnable, ServerConnect {
 
 	/** static reference to the class. */
+	private ServerState state = ServerState.none;	
 	private static Server server = null;
 	private static int listeningPort;	
 	private static String pwd;
@@ -137,10 +140,15 @@ public class Server implements Runnable, ServerConnect {
 	}
 
 	@Override
-	public void transfertMsgTo(String clientID, Message msg) throws IOException {
+	public void transfertMsgTo(String clientID, Message msg) {
 		ServerCSocket sock = clients.get(clientID);
 		if(sock != null){
-			sock.sendToThisClient(msg);
+			try{
+				sock.sendToThisClient(msg);
+			} catch (IOException e){
+				Logger.error("srv> Failed to send msg to "+sock.getClientID()+". Closing.");
+				sock.close(true);
+			}
 		} else {
 			Logger.error("clientID "+clientID+" is unknown, failed to send msg");
 			//TODO remonter l'erreur à l'UI
@@ -148,10 +156,15 @@ public class Server implements Runnable, ServerConnect {
 	}
 
 	@Override
-	public void transferMsgToAll(Message msg, String senderID) throws IOException {
+	public void transferMsgToAll(Message msg, String senderID) {
 		for(ServerCSocket sock : clients.values()){
 			if (!sock.getClientID().equals(senderID)){
-				sock.sendToThisClient(msg);
+				try{
+					sock.sendToThisClient(msg);
+				} catch (IOException e){
+					Logger.error("srv> Failed to send msg to "+sock.getClientID()+". Closing.");
+					sock.close(true);
+				}
 			}
 		}		
 	}
@@ -186,12 +199,24 @@ public class Server implements Runnable, ServerConnect {
 				rules = gameToStart.getRulePanel().getMsgRule("server");
 			}
 			//try to generate the game
-			game.initGame(new ArrayList<Config>(confs.values()), (MsgMasterRule)rule);
+			game.initGame(new ArrayList<Config>(confs.values()),rules);
 			
-			//Send to all players the starting conf
-			
-			//TODO
+			ServerCSocket current = null;
+			try{
+				//Send to all players the starting conf
+				for(ServerCSocket player : clients.values()){
+					current = player;
+					MsgGameBaseConf msg = game.getMsgGameBaseConf(player.getClientID());
+					player.sendToThisClient(msg);
+				}
+			} catch (IOException e){
+				current.close(true);	
+				//alert all players that the game did not start
+				String reason = "Player "+current.getClientID()+" has quit";
+				this.transferMsgToAll(new MsgStartNack(reason),"server");
 
+				throw new IllegalInitialConditionException(reason);
+			}
 			
 		} else throw new IllegalInitialConditionException("All players are not ready!");
 	}
@@ -208,11 +233,10 @@ public class Server implements Runnable, ServerConnect {
 					//closing an used slot (kick)
 					confs.remove(impactedID);
 					ServerCSocket kickedClient = clients.remove(impactedID);
-					kickedClient.setClosingState();
 					try {
 						kickedClient.sendToThisClient(new MsgReset("You have been kicked"));
 					} catch (Exception e) {
-						Logger.error(e.getLocalizedMessage());
+						Logger.debug("kicked msg failed to send:\n\t"+e.getLocalizedMessage());
 					} 
 					kickedClient.close(false);
 					Logger.debug("Open slot: "+openSlot);
@@ -257,39 +281,47 @@ public class Server implements Runnable, ServerConnect {
 	@Override
 	public synchronized Message connect(MsgConnect msg, ServerCSocket scs) {
 		
-		if(openSlot > 0){
-			//if(pwd==msg.getPwd()){
-				openSlot--;
-				
-				List<Config> cs = new ArrayList<Config>();
-				//Client config
-				Config clientConf = new Config(msg.getSenderID(),true);
-				cs.add(clientConf);
-				
-				//replaced slot
-				Config conf = this.getOpenSlot();
-				System.out.println(conf.toString());
-				confs.remove(conf.getClientID()); 
-				
-				//Other config
-				for (Entry<String,Config> c : confs.entrySet()){
-						Logger.debug(c.getKey()+" : "+c.getValue().toString());
-						cs.add(c.getValue());
-				}
-				MsgConfig msgCo = new MsgConfig(msg.getSenderID(),cs,rule,conf.getClientID());
-				//Add to ref this client
-				clients.put(msg.getSenderID(), scs);
-				confs.put(msg.getSenderID(), clientConf);
-				Logger.debug("Open slot left: "+openSlot+"\n"+msgCo.toString());
-				return msgCo;
-			//} else
-			//	return new MsgReset("Wrong password");
+		if(state.equals(ServerState.none) || state.equals(ServerState.waiting)){
+			Logger.debug("State set to waiting");
+			state = ServerState.waiting;
 			
-			
+			if(openSlot > 0){
+				//if(pwd==msg.getPwd()){
+					openSlot--;
+					
+					List<Config> cs = new ArrayList<Config>();
+					//Client config
+					Config clientConf = new Config(msg.getSenderID(),true);
+					cs.add(clientConf);
+					
+					//replaced slot
+					Config conf = this.getOpenSlot();
+					Logger.debug("Replacing slot "+conf.toString()+" by new player"+scs.getClientID());
+					confs.remove(conf.getClientID()); 
+					
+					//Build other config for msgCo
+					for (Entry<String,Config> c : confs.entrySet()){
+							Logger.debug(c.getKey()+" : "+c.getValue().toString());
+							cs.add(c.getValue());
+					}
+					MsgConfig msgCo = new MsgConfig(msg.getSenderID(),cs,rule,conf.getClientID());
+					//Add to ref this client
+					clients.put(msg.getSenderID(), scs);
+					confs.put(msg.getSenderID(), clientConf);
+					Logger.debug("Open slot left: "+openSlot+"\n"+msgCo.toString());
+					return msgCo;
+				//} else
+				//	return new MsgReset("Wrong password");
+				
+				
+			} else {
+				Logger.debug("Server full, refused connection to "+msg.getSenderID());
+				return new MsgReset("Server full");
+			}
 		} else {
-			Logger.debug("Server full, refused connection to "+msg.getSenderID());
-			return new MsgReset("Server full");
-		}
+			Logger.debug("Received msg but was ignored: "+msg.toString());
+			return new MsgReset("Game already started");
+		}		
 	}
 
 	@Override
@@ -304,13 +336,11 @@ public class Server implements Runnable, ServerConnect {
 			open = new EmptyConf(id);
 			
 		} while (confs.get(open.getClientID())!=null);
+		confs.remove(scs.getClientID());
 		confs.put(open.getClientID(), open);
 		openSlot++;
-		try {
-			this.transferMsgToAll(new MsgDeco(scs.getClientID(),scs.getClientID(),id), scs.getClientID());
-		} catch (IOException e) {
-			Logger.error("Unable to transmit msg to all");
-		}
+		Logger.debug("Open slot: "+openSlot);
+		this.transferMsgToAll(new MsgDeco(scs.getClientID(),scs.getClientID(),id), scs.getClientID());
 	}
 	
 	private Config getOpenSlot(){		
@@ -321,6 +351,11 @@ public class Server implements Runnable, ServerConnect {
 		}
 		Logger.debug("srv> No open slot left");
 		return null;
+	}
+
+	@Override
+	public ServerState getServerState() {
+		return state;
 	}
 
 }

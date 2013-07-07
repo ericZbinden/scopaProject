@@ -15,7 +15,7 @@ public interface ServerConnect {
 	 * @param msg
 	 * @throws IOException
 	 */
-	public void transfertMsgTo(String clientID, Message msg) throws IOException;
+	public void transfertMsgTo(String clientID, Message msg);
 	
 	/**
 	 * Transfer a msg to all client except to the sender
@@ -23,7 +23,7 @@ public interface ServerConnect {
 	 * @param senderID
 	 * @throws IOException
 	 */
-	public void transferMsgToAll(Message msg, String senderID) throws IOException;
+	public void transferMsgToAll(Message msg, String senderID);
 	
 	/**
 	 * Update a WaitingRoom slot
@@ -43,6 +43,10 @@ public interface ServerConnect {
 	 * @return is all players connected are ready
 	 */
 	public boolean areAllPlayersReady();
+	
+	
+	/** @return the server state */
+	public ServerState getServerState();
 	
 	
 	/**

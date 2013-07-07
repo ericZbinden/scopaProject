@@ -89,7 +89,9 @@ public class StartServerFrame extends JFrame implements ActionListener, KeyListe
 	}
 	
 	public void closeServer(){
-		server.interrupt();
+		if(server != null){
+			server.interrupt();
+		}
 	}
 
 	@Override
