@@ -1,7 +1,5 @@
 package com.server;
 
-import java.io.IOException;
-
 import com.msg.Message;
 import com.msg.MsgConnect;
 import com.msg.MsgMasterGame;
@@ -13,7 +11,6 @@ public interface ServerConnect {
 	 * Send a msg to one client
 	 * @param clientID
 	 * @param msg
-	 * @throws IOException
 	 */
 	public void transfertMsgTo(String clientID, Message msg);
 	
@@ -21,7 +18,6 @@ public interface ServerConnect {
 	 * Transfer a msg to all client except to the sender
 	 * @param msg
 	 * @param senderID
-	 * @throws IOException
 	 */
 	public void transferMsgToAll(Message msg, String senderID);
 	

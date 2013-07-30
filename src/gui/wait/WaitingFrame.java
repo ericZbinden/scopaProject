@@ -4,6 +4,8 @@ import game.GameType;
 import gui.ChatMsgSender;
 import gui.ChatPanel;
 import gui.RulePanel;
+import gui.game.GameGui;
+import gui.game.GameGuiFrame;
 import gui.wait.ConfigPanel.ParentAction;
 
 import java.awt.BorderLayout;
@@ -38,12 +40,12 @@ import com.msg.MalformedMessageException;
 import com.msg.Message;
 import com.msg.MsgChat;
 import com.msg.MsgDeco;
-import com.msg.MsgGameBaseConf;
 import com.msg.MsgMasterGame;
 import com.msg.MsgMasterRule;
 import com.msg.MsgNewPlayer;
 import com.msg.MsgPlay;
 import com.msg.MsgReset;
+import com.msg.MsgStartAck;
 import com.msg.MsgStartNack;
 import com.msg.MsgWRslot;
 import com.server.wait.ClosedConf;
@@ -68,7 +70,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 	private RulePanel rulePanel;
 	private Box bottom = new Box(BoxLayout.X_AXIS);
 	private GameType lastGame;
-	private ControlPanel gameGui;
+	private GameGui gameGui;
 	private JButton startGame = new JButton("Start Game!"){
 		boolean ready = true;
 		@Override
@@ -124,6 +126,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 		this.clientID=clientID;
 		this.isMaster=master;
 		
+		gameGui = new GameGuiFrame(this, null);
 		slots = new HashMap<String,ConfigPanel>();
 		clientSocket = new ClientSocket(sock,in,out,this);
 		new Thread(clientSocket).start();
@@ -317,28 +320,29 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 			MsgStartNack startNack = (MsgStartNack) msg;
 			chat.writeIntoChatFromServer("Game can not start: "+startNack.getReason());
 			this.msgStartSend = false;
+			ConfigPanel clientConf = slots.get(clientID);
+			clientConf.getConfig().setReady(false);
+			clientConf.invalidate();
+			startGame.invalidate();
+			this.repaint();
+			this.setVisible(true);
+			gameGui.setVisible(false);
 			break;
 		case chat:
 			MsgChat chatMsg = (MsgChat) msg;
 			chat.writeIntoChat(chatMsg.getSenderID(),chatMsg.getText());
 			break;		
-		case gameBaseConf:
+		case startAck:
 			//start a game
-			MsgGameBaseConf baseConf = (MsgGameBaseConf) msg;
-			GameType gameType = baseConf.getGameType();
-			
-			//TODO
-			//ControlPanel cp = gameType.getControlPanel();
-			//gameGui.setGamePanel(cp);
-			//gameGui.update(baseConf);
-			//gameGui.setVisible(true);
-			
+			MsgStartAck startAck = (MsgStartAck) msg;
+			GameType gameType = startAck.getGameType();
+			gameGui.setGameType(gameType);
+			gameGui.setVisible(true);			
 			this.setVisible(false);
-			break;
+			break;			
 		case play:
 			MsgPlay play = (MsgPlay) msg;
-			//TODO
-			//gameGui.update(play)
+			gameGui.update(play);
 			break;
 		case newPlayer:
 			//a new player just connect

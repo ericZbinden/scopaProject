@@ -2,9 +2,9 @@ package game;
 
 import java.util.List;
 
-import com.msg.MsgGameBaseConf;
 import com.msg.MsgMasterRule;
 import com.server.IllegalInitialConditionException;
+import com.server.ServerApi;
 import com.server.wait.Config;
 
 public interface Playable extends Cloneable{
@@ -30,10 +30,13 @@ public interface Playable extends Cloneable{
 	public void initGame(List<Config> configs, MsgMasterRule rules) throws IllegalInitialConditionException;
 	
 	/**
-	 * Get the MsgGameBaseConf to send to playerId to start this game
-	 * @param playerId
-	 * @return
-	 * @throws IllegalStateException
+	 * Start the game
 	 */
-	public MsgGameBaseConf getMsgGameBaseConf(String playerId) throws IllegalStateException;
+	public void start();
+	
+	/**
+	 * The ServerApi grand access to the game to communication channel 
+	 * @param api
+	 */
+	public void setServerApi(ServerApi api);
 }

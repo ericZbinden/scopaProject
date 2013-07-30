@@ -10,7 +10,15 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import com.msg.MsgPlay;
+
+import scopa.com.MsgBaseConf;
+import scopa.com.MsgScopa;
+import scopa.com.MsgScopaAck;
+import scopa.com.MsgScopaHand;
+import scopa.com.MsgScopaPlay;
 import scopa.logic.EmptyHand;
+import scopa.logic.OffuscatedHand;
 import scopa.logic.ScopaCard;
 import scopa.logic.ScopaDeck;
 import scopa.logic.ScopaDeckImpl;
@@ -21,207 +29,180 @@ import scopa.logic.ScopaTable;
 import scopa.logic.ScopaTableImpl;
 import util.Logger;
 
+import game.GameType;
 import gui.GamePanel;
 
 public class ScopaGamePanel extends GamePanel {
 
-private ScopaTable table;
-private ScopaDeck deck;
+	private ScopaTable table;
+	//private ScopaDeck deck;
+	//private ScopaHand hand;
 	
-	private BorderPanel p1;
-	private BorderPanel p2;
-	private BorderPanel p3;
-	private BorderPanel p4;
+	private String nextPlayer;
 	
-	public ScopaGamePanel(int players){
+	private BorderPanel south;
+	private BorderPanel west;
+	private BorderPanel east;
+	private BorderPanel north;
+	private JPanel center;
+	
+	public ScopaGamePanel(){
 		//logic
-		this.table= ScopaFactory.getNewScopaTable(); //FIXME logic is externalized into server, should not be there
-		boolean ok;
-		do{
-			this.deck = ScopaFactory.getNewScopaDeck();	
-			deck.shuffle();
-			ok = table.putInitial(deck.drawInitialCards());
-		} while (!ok);
+		this.table= ScopaFactory.getNewScopaTable();
+		nextPlayer = ScopaGame.SRV;
 		
 		//gui
-		this.build(players);
-
+		this.build();
 	}
 	
-	private void build(int players){
+	private void build(){
 		
 		this.setBackground(Color.GREEN);
 		this.setPreferredSize(new Dimension(800, 800));
 		this.setMinimumSize(this.getPreferredSize());
 		this.setLayout(new BorderLayout());
 		
-		switch(players){ //FIXME ça va pas
-		case 4:
-			
-		case 3:
-			
-		case 2:
-			break;
-		default:
-			throw new IllegalArgumentException("Number of players should be 2,3 or 4 but was: "+players);
-		}
-
+		this.south= new BorderPanel(BorderLayout.SOUTH);
+		this.west = new BorderPanel(BorderLayout.WEST);
+		this.east = new BorderPanel(BorderLayout.EAST);
+		this.north = new BorderPanel(BorderLayout.NORTH);
 		
-		this.p1= new BorderPanel(new ScopaHand("Bob",1), Zone.S); //FIXME fix team
-		this.p2 = new BorderPanel(new EmptyHand(),Zone.W);
-		this.p3 = new BorderPanel(new EmptyHand(),Zone.E);
-		this.p4 = new BorderPanel(new ScopaHand("PLAYER",2), Zone.N);
-		
-		this.add(p1,BorderLayout.NORTH); 
-		this.add(p2,BorderLayout.WEST); 
-		this.add(p3,BorderLayout.EAST); 
-		this.add(p4,BorderLayout.SOUTH); 
-		this.add(this.buildTable(), BorderLayout.CENTER);
-	
-		
+		this.add(south,BorderLayout.NORTH); 
+		this.add(west,BorderLayout.WEST); 
+		this.add(east,BorderLayout.EAST); 
+		this.add(north,BorderLayout.SOUTH); 
+		this.add(this.buildTable(), BorderLayout.CENTER);	
 	}
 
 	
 	private JPanel buildTable(){
 		
-		JPanel panel = new JPanel();
-		panel.setPreferredSize(new Dimension(400, 400));
-		this.setMinimumSize(this.getPreferredSize());
-		this.setMaximumSize(this.getPreferredSize());
+		center = new JPanel();
+		center.setPreferredSize(new Dimension(400, 400));
+		center.setMinimumSize(this.getPreferredSize());
+		center.setMaximumSize(this.getPreferredSize());
 		//TODO
-		return panel;
+		return center;
 	}
 	
 	public void giveNewHand(List<ScopaCard> playerCards){
-		p1.newHand(playerCards);
-		p2.newHand(null);
-		p3.newHand(null);
-		p4.newHand(null);
+		south.newHand(playerCards);
+		west.newHand(null);
+		east.newHand(null);
+		north.newHand(null);
 	}
 	
-	public void SouthPlay(ScopaCard playedCard){
-		p1.playCard(playedCard);
+	public void southPlay(ScopaCard playedCard){
+		south.playCard(playedCard);
 	}
 	
-	public void NorthPlay(){
-		p4.playCard(null);
+	public void northPlay(){
+		north.playCard(null);
 	}
 	
-	public void EastPlay(){
-		p3.playCard(null);
+	public void eastPlay(){
+		east.playCard(null);
 	}
 	
-	public void WestPlay(){
-		p2.playCard(null);
+	public void westPlay(){
+		west.playCard(null);
 	}
 	
-	
+	public void dudePlay(String name){
+		if (west.getPlayerName().equals(name)){
+			westPlay();
+		} else if (east.getPlayerName().equals(name)){
+			eastPlay();
+		} else if (north.getPlayerName().equals(name)){
+			northPlay();
+		} else {
+			Logger.error("Unknown player "+name+". Move ignored");
+		}
+	}
 
 	
-	private class BorderPanel extends JPanel {
-		
-		private Zone z; //region du board
-		private int cards = 0;
-		public ScopaHand hand; //the player hand
-		private boolean otherPlayer;
-		
-		private JLabel guiCards; //other player cards image
-		
-		public BorderPanel(boolean otherPlayer, Zone z){
-			this(otherPlayer,null,z);
-		}
-		
-		public BorderPanel(ScopaHand hand, Zone z){
-			this(true,hand,z);
-		}
-		
-		private BorderPanel(boolean otherPlayer, ScopaHand hand, Zone z){
-			this.otherPlayer=otherPlayer;
-			this.hand = hand;
-			this.z = z;
+//	public static void main(String[] args){
+//		//test main
+//		JFrame frame = new JFrame();
+//		ScopaGamePanel sgp = new ScopaGamePanel();
+//		frame.add(sgp);
+//		frame.pack();
+//		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+//		frame.setVisible(true);
+//	}
 
-			switch(z){
-			case N:
-				this.setBackground(Color.blue);
-				this.setPreferredSize(new Dimension(400, 200));
-			case S:
-				this.setBackground(Color.GREEN);
-				this.setPreferredSize(new Dimension(400, 200));
+	@Override
+	public void update(MsgPlay msg) {
+		
+		if (msg.getGameType().equals(GameType.SCOPA)){
+			MsgScopa msgScopa = (MsgScopa) msg;
+			nextPlayer = msgScopa.nextPlayerToPlayIs();
+			switch(msgScopa.getScopaType()){
+			case baseConf:
+				MsgBaseConf msgConf = (MsgBaseConf) msgScopa;
+				String player = msgConf.getPlayerEast();
+				if(player.equals("")){
+					east.setHand(new EmptyHand());
+				} else {
+					east.setHand(new OffuscatedHand(player,0)); //FIXME setup team
+				}
+				player = msgConf.getPlayerWest();
+				if(player.equals("")){
+					west.setHand(new EmptyHand());
+				} else {
+					west.setHand(new OffuscatedHand(player,0)); //FIXME setup team
+				}
+				player = msgConf.getPlayerNorth();
+				if(player.equals("")){
+					north.setHand(new EmptyHand());
+				} else {
+					north.setHand(new OffuscatedHand(player,0)); //FIXME setup team
+				}
+				ScopaHand playerHand = new ScopaHand("",0); //FIXME playerName and team
+				playerHand.newHand(msgConf.getHand());
+				south.setHand(playerHand); 
+				table.putInitial(msgConf.getTable());
 				break;
-			case E:
-				this.setBackground(Color.RED);
-				this.setPreferredSize(new Dimension(200, 400));
-			case W:
-				this.setBackground(Color.cyan);
-				this.setPreferredSize(new Dimension(200, 400));
+			case play:
+				MsgScopaPlay msgPlay = (MsgScopaPlay) msgScopa;
+				ScopaCard played = msgPlay.getPlayed(); //TODO display who played and the replay thing
+				List<ScopaCard> taken = msgPlay.getTaken();
+				if(taken.isEmpty()){
+					table.putCard(played);
+				} else {
+					table.putCard(played, taken);
+				}
+				this.dudePlay(msgPlay.getSenderID());
 				break;
+			case hand:
+				MsgScopaHand msgHand = (MsgScopaHand) msgScopa;
+				south.newHand(msgHand.getCards());
+				break;
+			case ack:
+				//MsgScopaAck msgAck = (MsgScopaAck) msgScopa;
+				break;
+			default:
+				Logger.debug("Unknown scopa type: "+msgScopa.getScopaType()+", ignoring it.");
 			}
-			this.setMinimumSize(this.getPreferredSize());
-			this.setMaximumSize(this.getPreferredSize());
-			
-			JLabel playerName = new JLabel("    "+hand.getPlayer());
-			playerName.setPreferredSize(new Dimension(200,50));
-			this.guiCards= new JLabel();
-			guiCards.setPreferredSize(new Dimension(157,97));
-			
-			this.add(playerName);
-			this.add(guiCards);
-		}
-		
-		public void newHand(List<ScopaCard> newCards){
-			if(hand != null){
-				hand.newHand(newCards);
-			} else if (otherPlayer){
-				cards = 3;
-			} else {
-				return;
-			}
-			this.updateCardDisplay();
-			this.invalidate();
-			this.repaint();
-		}	
-		
-		public void playCard(ScopaCard playedCard){
-			if(hand != null){
-				boolean ok = hand.playCard(playedCard);
-				if(!ok)
-					Logger.error("Unable to play card "+playedCard.toString());
-			} else if (otherPlayer){
-				cards--;
-			} else {
-				return;
-			}
-			
-			this.updateCardDisplay();
-			this.invalidate();
-			this.repaint();			
-		}
-		
-		private void updateCardDisplay(){
-			if (hand!=null){
-				
-			} else if (cards > 0){		
-				guiCards.setIcon(new ImageIcon("resources/img/gui/carte"+cards+".png"));
-			} else {
-				guiCards.setIcon(null);
-			}
-			guiCards.invalidate();
-		}
+			//TODO repaint
+		} else {
+			Logger.debug("Malformed msg of type: "+msg.getGameType().getGameType()+". Ignoring it.");
+		}		
 	}
-	
-	private enum Zone {
-		N,S,E,W
-	}
-	
-	
-	public static void main(String[] args){
-		//test main
-		JFrame frame = new JFrame();
-		ScopaGamePanel sgp = new ScopaGamePanel(2);
-		frame.add(sgp);
-		frame.pack();
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.setVisible(true);
+
+
+	@Override
+	public GamePanel clone() {
+		ScopaGamePanel sgp = new ScopaGamePanel();
+		sgp.east = new BorderPanel(east.hand,BorderLayout.EAST);
+		sgp.west = new BorderPanel(west.hand,BorderLayout.WEST);
+		sgp.south = new BorderPanel(south.hand,BorderLayout.SOUTH);
+		sgp.north = new BorderPanel(north.hand,BorderLayout.NORTH);
+		sgp.table = ScopaFactory.getNewScopaTable();
+		sgp.table.putInitial(table.cardsOnTable()); //FIXME force cards
+		sgp.nextPlayer = new String(nextPlayer);
+		//center ?
+		return sgp;
 	}
 
 }

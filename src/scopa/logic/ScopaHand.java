@@ -28,6 +28,10 @@ public class ScopaHand {
 		return hand;
 	}
 	
+	public int getNumberCardInHand(){
+		return hand.size();
+	}
+	
 	public void newHand(List<ScopaCard> hand){
 		this.hand = hand;
 	}

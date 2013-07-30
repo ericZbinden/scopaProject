@@ -6,7 +6,7 @@ public enum MsgType {
 	
 	//Waiting
 	wrSlot,masterGame,masterRule,newPlayer,
-	config,refresh,start,startNack,
+	config,refresh,start,startNack,startAck,
 	
 	//game
 	gameBaseConf,play,

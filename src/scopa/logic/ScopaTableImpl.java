@@ -51,7 +51,7 @@ public class ScopaTableImpl extends ArrayList<ScopaCard> implements ScopaTable {
 		int king = 0;
 		for(ScopaCard c : cards){
 			value += ScopaValue.val(c);
-			if(c.getValue()==ScopaValue.king)
+			if(c.getValue().equals(ScopaValue.king))
 				king++;
 		}
 		if(value <= 10) return false;

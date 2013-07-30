@@ -15,22 +15,25 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.msg.Message;
+import com.msg.MsgChat;
 import com.msg.MsgConfig;
 import com.msg.MsgConnect;
 import com.msg.MsgDeco;
-import com.msg.MsgGameBaseConf;
 import com.msg.MsgMasterGame;
 import com.msg.MsgMasterRule;
+import com.msg.MsgPlay;
 import com.msg.MsgReset;
+import com.msg.MsgStartAck;
 import com.msg.MsgStartNack;
 import com.server.wait.ClosedConf;
 import com.server.wait.Config;
 import com.server.wait.EmptyConf;
 
+import scopa.com.MsgBaseConf;
 import util.Logger;
 
 
-public class Server implements Runnable, ServerConnect {
+public class Server implements Runnable, ServerConnect, ServerApi {
 
 	/** static reference to the class. */
 	private ServerState state = ServerState.none;	
@@ -206,7 +209,8 @@ public class Server implements Runnable, ServerConnect {
 				//Send to all players the starting conf
 				for(ServerCSocket player : clients.values()){
 					current = player;
-					MsgGameBaseConf msg = game.getMsgGameBaseConf(player.getClientID());
+					MsgStartAck msg = new MsgStartAck(gameToStart);
+					//MsgGameBaseConf msg = game.getMsgGameBaseConf(player.getClientID());
 					player.sendToThisClient(msg);
 				}
 			} catch (IOException e){
@@ -217,6 +221,8 @@ public class Server implements Runnable, ServerConnect {
 
 				throw new IllegalInitialConditionException(reason);
 			}
+			
+			game.start();
 			
 		} else throw new IllegalInitialConditionException("All players are not ready!");
 	}
@@ -356,6 +362,32 @@ public class Server implements Runnable, ServerConnect {
 	@Override
 	public ServerState getServerState() {
 		return state;
+	}
+
+	@Override
+	public void sendMsgTo(String client, MsgPlay msg) {
+		this.transfertMsgTo(client, msg);
+	}
+
+	@Override
+	public void sendMsgToAll(MsgPlay msg) {
+		this.transferMsgToAll(msg, null);	
+	}
+
+	@Override
+	public void sendMsgToAllExcept(String client, MsgPlay msg) {
+		this.transferMsgToAll(msg, client);		
+	}
+
+	@Override
+	public void writeIntoClientChat(String client, String txt) {
+		this.transfertMsgTo(client, new MsgChat("server", client, txt));
+		
+	}
+
+	@Override
+	public void writeIntoAllChat(String txt) {
+		this.transferMsgToAll(new MsgChat("server",null,txt), null);				
 	}
 
 }

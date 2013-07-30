@@ -1,28 +1,36 @@
 package scopa.logic;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import scopa.com.MsgScopaBaseConf;
+import scopa.com.MsgBaseConf;
+import scopa.com.MsgScopa;
+import scopa.com.MsgScopaAck;
+import scopa.com.MsgScopaHand;
+import scopa.com.MsgScopaPlay;
 import util.Logger;
 
-import com.msg.MsgGameBaseConf;
 import com.msg.MsgMasterRule;
+import com.msg.MsgPlay;
 import com.server.IllegalInitialConditionException;
+import com.server.ServerApi;
 import com.server.wait.Config;
-import com.server.wait.GameStartCondition;
 
 import game.GameType;
 import game.Playable;
 
 public class ScopaGame implements Playable {
 
+	public final static String SRV = "server";
+	
+	private ServerApi api;
+	
 	private int nPlayer;
-	
-	private transient List<String> playerOrders;
-	
+		
 	private int lastPlayerToTake;
 	
 	private ScopaScore score;
@@ -32,40 +40,102 @@ public class ScopaGame implements Playable {
 	private ScopaDeck deck;
 	private ScopaTable table;
 	
-	private ScopaHand handP1;	
-	private ScopaHand handP2;
+	private ScopaHand handP1;	//play with 3 when play in team
+	private ScopaHand handP2;	//play with 4 when play in team
 	private ScopaHand handP3;
 	private ScopaHand handP4;
-	//private ScopaHand handP5;
-	//private ScopaHand handP6;
 	
 	public ScopaGame(){
 		this.state = State.notStarted;		
 	}
 	
+	@Override
 	public void initGame(List<Config> configs, MsgMasterRule rules) throws IllegalInitialConditionException {
+		/** check condition **/
 		checkInitialConfig(configs,rules);
-			
+					
+		/** players **/
 		nPlayer = configs.size();
+		
+		/** team repartition **/
+		Set<Integer> teams = new HashSet<>(configs.size());		
+		for(Config c: configs){
+			teams.add(c.getTeam());
+		}		
+		int nbTeam = teams.size();
+
+		//to obtain a random n°1 player to start with
+		Collections.shuffle(configs);
+
+		if(nbTeam == nPlayer){
+			//Each player play by itself
+			handP1 = new ScopaHand(configs.get(0).getClientID(),configs.get(0).getTeam());
+			handP2 = new ScopaHand(configs.get(1).getClientID(),configs.get(1).getTeam());
 			
-		//TODO handle team game and rules
+			if(nPlayer > 2){
+				handP3 = new ScopaHand(configs.get(2).getClientID(),configs.get(2).getTeam());
+			} else {
+				handP3 = new EmptyHand();
+			}
+			
+			if(nPlayer > 3){
+				handP4 = new ScopaHand(configs.get(3).getClientID(),configs.get(3).getTeam());
+			} else {
+				handP4 = new EmptyHand();
+			}
+		} else {
+			//Play by team of 2
+			Config c = configs.get(0);
+			handP1 = new ScopaHand(c.getClientID(),c.getTeam());
+			
+			c = configs.get(1);
+			if(c.getTeam()==handP1.getTeam()){
+				handP3 = new ScopaHand(c.getClientID(),c.getTeam());
+				
+				c = configs.get(2);
+				handP2 = new ScopaHand(c.getClientID(),c.getTeam());
+				c = configs.get(3);
+				handP4 = new ScopaHand(c.getClientID(),c.getTeam());
+
+			} else {
+				handP2 = new ScopaHand(c.getClientID(),c.getTeam());
+				
+				c = configs.get(2);
+				if(c.getTeam()==handP1.getTeam()){
+					handP3 = new ScopaHand(c.getClientID(),c.getTeam());
+					
+					c = configs.get(3);
+					handP4 = new ScopaHand(c.getClientID(),c.getTeam());
+					
+				} else {				
+					handP4 = new ScopaHand(c.getClientID(),c.getTeam());
+					
+					c = configs.get(3);
+					handP3 = new ScopaHand(c.getClientID(),c.getTeam());
+				}
+			}
+		}
+			
+		/** rules **/
+		//TODO
+		
+		/** ready to start **/
 		state = nextState();
-		this.newGame();
 	}
-	
+
+	@Override
 	public GameType getGameType(){
 		return GameType.SCOPA;
 	}
 	
-	
+	@Override	
 	public void checkInitialConfig(List<Config> configs, MsgMasterRule rules) throws IllegalInitialConditionException {
 		
-//		if (configs.size()==5 || configs.size() < 2 || configs.size() > 6)		
 		if (configs.size() < 2 || configs.size() > 4)	
 			throw new IllegalInitialConditionException(
 					"Too much or too less player: "+configs.size()+". Need [2,3,4] players");
 		
-		Map<Integer,Integer> teams = new HashMap<Integer,Integer>(6);
+		Map<Integer,Integer> teams = new HashMap<Integer,Integer>(configs.size());
 		
 		for(int i=1;i<=6;i++){
 			teams.put(i, 0);
@@ -87,30 +157,78 @@ public class ScopaGame implements Playable {
 			}
 		}
 		
-		//rules don't care in this game
+		state = nextState();
 	}
 		
-	
-	public MsgGameBaseConf getMsgGameBaseConf(String playerId) throws IllegalStateException{
-		ScopaHand handy = getHandByPlayerId(playerId);
-		if(handy != null){
-			return new MsgScopaBaseConf(getPlayerOrder(),handy.getHand(),table.cardsOnTable(),handy.getPlayer());
-		}
-		throw new IllegalStateException("Unable to recover the desired msgBaseConf");
+	@Override
+	public void start() {
+		this.newGame();
 	}
 	
+
+	@Override
+	public void setServerApi(ServerApi api) {
+		this.api=api;		
+	}
 	
-	private List<String> getPlayerOrder(){
-		if(playerOrders == null || playerOrders.isEmpty()){
-			//build the list
-			playerOrders = new ArrayList<String>(nPlayer);
-			playerOrders.add(handP1.getPlayer());
-			playerOrders.add(handP2.getPlayer());
-			playerOrders.add(handP3.getPlayer());
-			playerOrders.add(handP4.getPlayer());	
-		}
+	public void receivedMsg(MsgPlay msg){
 		
-		return playerOrders;		
+		if(msg.getGameType().equals(GameType.SCOPA)){
+			MsgScopa msgScopa = (MsgScopa) msg;
+			
+			switch(msgScopa.getScopaType()){
+			case play:
+				MsgScopaPlay msgPlay = (MsgScopaPlay) msgScopa;
+				if (play(msgPlay.getSenderID(),msgPlay.getPlayed(),msgPlay.getTaken())){
+					String nextPlayer = this.getNextPlayer();
+					api.sendMsgTo(msgPlay.getSenderID(), new MsgScopaAck(nextPlayer));
+					api.sendMsgToAllExcept(msgPlay.getSenderID(), new MsgScopaPlay(msgPlay.getSenderID(),msgPlay.getPlayed(),msgPlay.getTaken(),nextPlayer));
+					
+					if(nextPlayer.equals(SRV));
+				} else {
+					//FIXME We have a problem!
+				}
+			//case ack:
+			//case baseConf:
+			default:
+				Logger.debug("Unknown scopaType: "+msgScopa.getScopaType()+", ignore this message.");
+			}
+			
+			
+		} else {
+			Logger.debug("Unknown gameType: "+msg.getGameType().getGameType()+", ignore this message.");
+		}		
+	}
+	
+	private MsgBaseConf getMsgGameBaseConf(ScopaHand handy) {
+		String north ="",west ="",east ="";
+		if(nPlayer == 2){
+			if(handy.equals(handP1)){
+				north = handP2.getPlayer();
+			} else {
+				north = handP2.getPlayer();
+			}
+		} else {
+			if(handy.equals(handP1)){
+				east = handP2.getPlayer();
+				north = handP3.getPlayer();
+				west = handP4.getPlayer();
+			} else if (handy.equals(handP2)){
+				east = handP3.getPlayer();
+				north = handP4.getPlayer();
+				west = handP1.getPlayer();
+			} else if (handy.equals(handP3)){
+				east = handP4.getPlayer();
+				north = handP1.getPlayer();
+				west = handP2.getPlayer();
+			} else {
+				east = handP1.getPlayer();
+				north = handP2.getPlayer();
+				west = handP3.getPlayer();
+			}
+		}
+			
+		return new MsgBaseConf(north,west,east,handy.getHand(),table.cardsOnTable(),handP1.getPlayer());
 	}
 	
 	private ScopaHand getHandByPlayerId(String id){
@@ -130,45 +248,52 @@ public class ScopaGame implements Playable {
 		}
 	}
 	
-	public ScopaHand getHandP1(){
-		return handP1;
-	}	
-	
-	public ScopaHand getHandP2(){
-		return handP2;
+	private String getNextPlayer(){
+		switch (state){
+		case p1:
+			return handP1.getPlayer();
+		case p2:
+			return handP2.getPlayer();
+		case p3:
+			return handP3.getPlayer();
+		case p4:
+			return handP4.getPlayer();
+		default:
+			return SRV;
+		}
 	}
 	
-	public ScopaHand getHandP3(){
-		return handP3;
-	}
-	
-	public ScopaHand getHandP4(){
-		return handP4;
-	}
+//	public ScopaHand getHandP1(){
+//		return handP1;
+//	}	
 //	
-//	public ScopaHand getHandP5(){
-//		return handP5;
+//	public ScopaHand getHandP2(){
+//		return handP2;
 //	}
 //	
-//	public ScopaHand getHandP6(){
-//		return handP6;
+//	public ScopaHand getHandP3(){
+//		return handP3;
 //	}
-	
-	public ScopaTable getTable(){
-		return table;
-	}
-	
-	public ScopaScore getScore(){
-		return score;
-	}
+//	
+//	public ScopaHand getHandP4(){
+//		return handP4;
+//	}
+//	
+//	public ScopaTable getTable(){
+//		return table;
+//	}
+//	
+//	public ScopaScore getScore(){
+//		return score;
+//	}
 	
 	
 	/**
 	 * ACTION METHODS
 	 */
 	
-	
-	public void newGame(){
+	/** Create a new table, a new deck and distribute first hand*/
+	private void newGame(){
 		
 		table = ScopaFactory.getNewScopaTable();
 		boolean ok = false;
@@ -178,109 +303,82 @@ public class ScopaGame implements Playable {
 			ok = table.putInitial(deck.drawInitialCards());
 
 		}while(!ok);
+		
+		handP1.newHand(deck.draw3Cards());
+		api.sendMsgTo(handP1.getPlayer(), this.getMsgGameBaseConf(handP1));
+		handP2.newHand(deck.draw3Cards());
+		api.sendMsgTo(handP2.getPlayer(), this.getMsgGameBaseConf(handP2));
+
+		
+		if(nPlayer > 2){
+			handP3.newHand(deck.draw3Cards());
+			api.sendMsgTo(handP3.getPlayer(), this.getMsgGameBaseConf(handP3));
+		}
+		
+		if(nPlayer > 3){
+			handP4.newHand(deck.draw3Cards());
+			api.sendMsgTo(handP4.getPlayer(), this.getMsgGameBaseConf(handP4));
+		}
+		
 		state = nextState();
 	}
 	
-	public void endSet(){
-		
-		
-		state = nextState();
-		
-	}
+//	public void endSet(){
+//				
+//		state = nextState();
+//		
+//	}
+//	
+//	public void endMatch(){
+//		
+//		state = nextState();
+//	}
 	
-	public void endMatch(){
-		
-		state = nextState();
-	}
 	
-	
-	public boolean play(int playerNumber, ScopaCard card, List<ScopaCard> cards){
+	public boolean play(String player, ScopaCard playedCard, List<ScopaCard> takenCards){
+		ScopaHand handy =null;
 		switch(state){
 		case p1:
-			if(playerNumber != 1) return false;
-			if(!handP1.playCard(card)) return false;
+			handy = handP1;
+			if(!player.equals(handP1.getPlayer())) return false;
+			if(!handP1.playCard(playedCard)) return false;
 			break;
 		case p2:
-			if(playerNumber != 2) return false;
-			if(!handP2.playCard(card)) return false;
+			handy = handP2;
+			if(!player.equals(handP2.getPlayer())) return false;
+			if(!handP2.playCard(playedCard)) return false;
 			break;
 		case p3:
-			if(playerNumber != 3) return false;
-			if(!handP3.playCard(card)) return false;
+			handy = handP3;
+			if(!player.equals(handP3.getPlayer())) return false;
+			if(!handP3.playCard(playedCard)) return false;
 			break;
 		case p4:
-			if(playerNumber != 4) return false;
-			if(!handP4.playCard(card)) return false;
+			handy = handP4;
+			if(!player.equals(handP3.getPlayer())) return false;
+			if(!handP4.playCard(playedCard)) return false;
 			break;
-//		case p5:
-//			if(playerNumber != 5) return false;
-//			if(!handP5.playCard(card)) return false;
-//			break;
-//		case p6:
-//			if(playerNumber != 6) return false;
-//			if(!handP6.playCard(card)) return false;
-//			break;
 		default: state = State.unknown;
+		//FIXME alert srv an error occurs
 		}
 		if(state!=State.unknown){
-			List<ScopaCard> cs = table.putCard(card, cards);
+			List<ScopaCard> cs = table.putCard(playedCard, takenCards);
 			if(cs== null) {
-				//FIXME too ugly to stay like this
 				//put card into hand because wrong play
-				switch(playerNumber){
-				case 1:
-					handP1.getHand().add(card);
-					break;
-				case 2:
-					handP2.getHand().add(card);
-					break;
-				case 3:
-					handP3.getHand().add(card);
-					break;
-				case 4:
-					handP4.getHand().add(card);
-					break;
-//				case 5:
-//					handP5.getHand().add(card);
-//					break;
-//				case 6:
-//					handP6.getHand().add(card);
-//					break;
-				default:
-				}
-
-			} else {
-				if(cs.size()>0) this.lastPlayerToTake = playerNumber;
-				switch(state){
-				case p1:
-					handP1.addCardsToHeap(cs);
-					break;
-				case p2:
-					handP2.addCardsToHeap(cs);
-					break;
-				case p3:
-					handP3.addCardsToHeap(cs);
-					break;
-				case p4:
-					handP4.addCardsToHeap(cs);
-					break;
-//				case p5:
-//					handP5.addCardsToHeap(cs);
-//					break;
-//				case p6:
-//					handP6.addCardsToHeap(cs);
-//					break;
-				default:
-				}
-				state = nextState();
-				return true;
+				handy.getHand().add(playedCard);
+				//FIXME be trustfull or quit
 			}
+			
+			handy.addCardsToHeap(cs);
 
+			state = nextState();
+			return true;
 		} 
+		
 		return false;
 	}
 	
-	public void takeAll(){
+	private void takeAll(){
 		switch(lastPlayerToTake){
 		case 1:
 			handP1.addCardsToHeap(table.takeAll());
@@ -294,12 +392,6 @@ public class ScopaGame implements Playable {
 		case 4:
 			handP4.addCardsToHeap(table.takeAll());
 			break;
-//		case 5:
-//			handP5.addCardsToHeap(table.takeAll());
-//			break;
-//		case 6:
-//			handP6.addCardsToHeap(table.takeAll());
-//			break;
 		default:
 			state = State.unknown;
 		}
@@ -312,23 +404,33 @@ public class ScopaGame implements Playable {
 		if(nPlayer > 2)
 			handP3.newHand(deck.draw3Cards());
 		if(nPlayer > 3)
-			handP4.newHand(deck.draw3Cards());
-//		if(nPlayer > 4){
-//			handP5.newHand(deck.draw3Cards());
-//			handP6.newHand(deck.draw3Cards());
-//		}
+			handP4.newHand(deck.draw3Cards());	
+		
 		state = nextState();
+		
+		sendHands();
+	}
+	
+	private void sendHands(){
+		String nextPlayer = ""; //TODO complete me
+		api.sendMsgTo(handP1.getPlayer(), new MsgScopaHand(handP1.getHand(),nextPlayer));
+		api.sendMsgTo(handP2.getPlayer(), new MsgScopaHand(handP2.getHand(),nextPlayer));
+		
+		if(nPlayer>2)
+			api.sendMsgTo(handP3.getPlayer(), new MsgScopaHand(handP3.getHand(),nextPlayer));
+		if(nPlayer>3)
+			api.sendMsgTo(handP4.getPlayer(), new MsgScopaHand(handP4.getHand(),nextPlayer));
 	}
 	
 	/**
 	 * STATE MACHINE METHODS
 	 */
 
-	public State nextState(){
+	private State nextState(){
 		switch(state){
 		case notStarted:
-			return State.start;
-		case start:
+			return State.readyToStart;
+		case readyToStart:
 			return State.p1;
 		case p1:
 			return State.p2;
@@ -355,33 +457,21 @@ public class ScopaGame implements Playable {
 					return State.p1;
 			}
 		case p4:
-//			if(nPlayer > 4) return State.p5;
-//			else {
-				if(handP3.isEmpty()) {
-					if(deck.isEmpty())
-						return State.takeAll;
-					else 
-						return State.giveNewHand;
-				} else
-					return State.p1;
-//			}
-//		case p5:
-//			return State.p6;
-//		case p6:
-//			if(handP6.isEmpty()) {
-//				if(deck.isEmpty())
-//					return State.takeAll;
-//				 else
-//					return State.giveNewHand;
-//			} else
-//				return State.p1;
+			if(handP3.isEmpty()) {
+				if(deck.isEmpty())
+					return State.takeAll;
+				else 
+					return State.giveNewHand;
+			} else
+				return State.p1;
+
 		case giveNewHand: 
 			return State.p1;
 		case takeAll:
 			return State.endSet;
 		case endSet:
 			if(score.checkWinner()) return State.endMatch;
-			else return State.start;
+			else return State.readyToStart;
 		case endMatch:
 			return State.endMatch; //TODO might be different
 		default:
@@ -390,8 +480,7 @@ public class ScopaGame implements Playable {
 	}
 	
 	private enum State {
-		notStarted,start,p1,p2,p3,p4,/*p5,p6,*/giveNewHand,takeAll,endSet,endMatch,unknown
+		notStarted,readyToStart,p1,p2,p3,p4,giveNewHand,takeAll,endSet,endMatch,unknown
 	}
-
 	
 }

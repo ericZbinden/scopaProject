@@ -19,24 +19,24 @@ public class EmptyHand extends ScopaHand {
 	}
 	
 	public void newHand(List<ScopaCard> hand){
-		throw new IllegalStateException("EmptyHand can not be filled");
 	}
 	
 	public boolean playCard(ScopaCard card){
-		throw new IllegalStateException("EmptyHand can not play a card");
-
+		return true;
 	}
 	
 	public boolean isEmpty(){
 		return true;
 	}
 	
+	public int getNumberCardInHand(){
+		return 0;
+	}
+	
 	public void addCardsToHeap(List<ScopaCard> cards){
-		throw new IllegalStateException("EmptyHand can not have a heap");
 	}
 	
 	public void addCardToHeap(ScopaCard card){
-		throw new IllegalStateException("EmptyHand can not have a heap");
 	}
 	
 	public boolean containsGold7(){

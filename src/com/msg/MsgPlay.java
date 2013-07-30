@@ -2,22 +2,23 @@ package com.msg;
 
 import game.GameType;
 
-public class MsgPlay extends Message {
+public abstract class MsgPlay extends Message {
 	
 	private static final long serialVersionUID = -5517220379168139748L;
 	
-	private GameType gameType;
+	private String gameType;
 	
-	public MsgPlay(){
-		super(MsgType.play);
+	protected MsgPlay(GameType game){
+		this(game,null,null);
 	}
 	
-	public MsgPlay(GameType game,String senderID){
-		super(MsgType.play,senderID,"server");
+	protected MsgPlay(GameType game,String senderID,String receiverID){
+		super(MsgType.play,senderID,receiverID);		
+		this.gameType=game.toString();
 	}
 	
 	public GameType getGameType(){
-		return gameType;
+		return GameType.valueOf(gameType);
 	}
 	
 	public String toString(){
