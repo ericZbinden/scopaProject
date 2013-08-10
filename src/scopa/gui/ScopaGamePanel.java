@@ -30,7 +30,10 @@ import scopa.logic.ScopaTableImpl;
 import util.Logger;
 
 import game.GameType;
-import gui.GamePanel;
+import gui.ChatPanel;
+import gui.game.GameGui;
+import gui.game.GameGuiFrame;
+import gui.game.GamePanel;
 
 public class ScopaGamePanel extends GamePanel {
 
@@ -44,7 +47,7 @@ public class ScopaGamePanel extends GamePanel {
 	private BorderPanel west;
 	private BorderPanel east;
 	private BorderPanel north;
-	private JPanel center;
+	private TablePanel center;
 	
 	public ScopaGamePanel(){
 		//logic
@@ -62,27 +65,17 @@ public class ScopaGamePanel extends GamePanel {
 		this.setMinimumSize(this.getPreferredSize());
 		this.setLayout(new BorderLayout());
 		
-		this.south= new BorderPanel(BorderLayout.SOUTH);
+		this.south= new PlayerBorderPanel(null,this);
 		this.west = new BorderPanel(BorderLayout.WEST);
 		this.east = new BorderPanel(BorderLayout.EAST);
 		this.north = new BorderPanel(BorderLayout.NORTH);
+		this.center = new TablePanel();
 		
 		this.add(south,BorderLayout.NORTH); 
 		this.add(west,BorderLayout.WEST); 
 		this.add(east,BorderLayout.EAST); 
 		this.add(north,BorderLayout.SOUTH); 
-		this.add(this.buildTable(), BorderLayout.CENTER);	
-	}
-
-	
-	private JPanel buildTable(){
-		
-		center = new JPanel();
-		center.setPreferredSize(new Dimension(400, 400));
-		center.setMinimumSize(this.getPreferredSize());
-		center.setMaximumSize(this.getPreferredSize());
-		//TODO
-		return center;
+		this.add(center, BorderLayout.CENTER);	
 	}
 	
 	public void giveNewHand(List<ScopaCard> playerCards){
@@ -121,15 +114,14 @@ public class ScopaGamePanel extends GamePanel {
 	}
 
 	
-//	public static void main(String[] args){
-//		//test main
-//		JFrame frame = new JFrame();
-//		ScopaGamePanel sgp = new ScopaGamePanel();
-//		frame.add(sgp);
-//		frame.pack();
-//		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-//		frame.setVisible(true);
-//	}
+	public static void main(String[] args){
+		//test main
+		GameGuiFrame frame = new GameGuiFrame(null);
+		//ScopaGamePanel sgp = new ScopaGamePanel();
+		//frame.add(sgp);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.start("Coubii", GameType.SCOPA, null);
+	}
 
 	@Override
 	public void update(MsgPlay msg) {
@@ -158,7 +150,7 @@ public class ScopaGamePanel extends GamePanel {
 				} else {
 					north.setHand(new OffuscatedHand(player,0)); //FIXME setup team
 				}
-				ScopaHand playerHand = new ScopaHand("",0); //FIXME playerName and team
+				ScopaHand playerHand = new ScopaHand(this.getLocalClient(),0); //FIXME setup team
 				playerHand.newHand(msgConf.getHand());
 				south.setHand(playerHand); 
 				table.putInitial(msgConf.getTable());
@@ -189,6 +181,15 @@ public class ScopaGamePanel extends GamePanel {
 			Logger.debug("Malformed msg of type: "+msg.getGameType().getGameType()+". Ignoring it.");
 		}		
 	}
+	
+	public void sendMsgScopaPlay(ScopaCard played, List<ScopaCard> taken){
+		MsgScopaPlay msg = new MsgScopaPlay(this.getLocalClient(),played,taken,null);
+		this.sendMsgPlay(msg);
+	}
+	
+	public void alertPlayerWrongPlay(){
+		this.showWarningToPlayer("The move you tried to do is not a valid move");
+	}
 
 
 	@Override
@@ -199,7 +200,7 @@ public class ScopaGamePanel extends GamePanel {
 		sgp.south = new BorderPanel(south.hand,BorderLayout.SOUTH);
 		sgp.north = new BorderPanel(north.hand,BorderLayout.NORTH);
 		sgp.table = ScopaFactory.getNewScopaTable();
-		sgp.table.putInitial(table.cardsOnTable()); //FIXME force cards
+		sgp.table.putCards(table.cardsOnTable());
 		sgp.nextPlayer = new String(nextPlayer);
 		//center ?
 		return sgp;

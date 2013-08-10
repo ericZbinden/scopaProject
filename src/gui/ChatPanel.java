@@ -1,5 +1,6 @@
 package gui;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
@@ -34,20 +35,22 @@ public class ChatPanel extends JPanel implements MouseListener, KeyListener {
 		chat.setText("");
 		chat.setLineWrap(true);
 		chat.setEditable(false);		
-		chatEntry.setPreferredSize(new Dimension(290,30));
-		chatEntry.addKeyListener(this);
+		chatEntry.setMinimumSize(new Dimension(290,30));
+		chatEntry.setMaximumSize(new Dimension(Integer.MAX_VALUE,30));
+		chatEntry.addKeyListener(this);		
 		chat.addMouseListener(this);
 
 		JScrollPane jsp = new JScrollPane(chat);
-		jsp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		jsp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		jsp.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		jsp.setPreferredSize(new Dimension(290,270));
+		jsp.setMinimumSize(new Dimension(290,270));
 		Box chatbox = new Box(BoxLayout.Y_AXIS);
 		chatbox.add(jsp);
 		chatbox.add(chatEntry);
-		this.add(chatbox);
-		//this.setPreferredSize(new Dimension(290,300));
-		//this.setMinimumSize(this.getPreferredSize());
+        
+		this.setLayout(new BorderLayout());	
+        this.add(chatbox,BorderLayout.CENTER);
+		this.setMinimumSize(new Dimension(290,300));
 	}
 	
 	public synchronized void writeIntoChat(String writer, String text){
@@ -64,6 +67,12 @@ public class ChatPanel extends JPanel implements MouseListener, KeyListener {
 			chat.getHighlighter().addHighlight(textSize, textSize+8, serverHighlight);
 		} catch (BadLocationException e1) {
 		}
+	}
+	
+	public void setPreferredSize(Dimension size){
+		super.setPreferredSize(size);
+		chat.setPreferredSize(new Dimension(size.width-10, size.height-10-30));
+		chatEntry.setPreferredSize(new Dimension(size.width-10,30));
 	}
 	
 	@Override
@@ -102,9 +111,13 @@ public class ChatPanel extends JPanel implements MouseListener, KeyListener {
 		if (arg0.getKeyChar() == '\n') {
 			String txt = chatEntry.getText();
 			chatEntry.setText("");
-			writeIntoChat(chatMsgSender.getLocalClient(),txt);
-			
-			chatMsgSender.sendChatMsg(txt);
+			if(chatMsgSender == null){
+				//Avoid nullpointer
+				writeIntoChat("Unknown",txt);
+			} else {
+				writeIntoChat(chatMsgSender.getLocalClient(),txt);		
+				chatMsgSender.sendChatMsg(txt);
+			}
 		}
 	}
 

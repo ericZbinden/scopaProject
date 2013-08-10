@@ -1,10 +1,12 @@
-package gui;
+package gui.game;
+
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import com.msg.MsgPlay;
@@ -12,6 +14,8 @@ import com.msg.MsgPlay;
 public abstract class GamePanel extends JPanel implements ActionListener, Cloneable {
 	
 	private Set<ActionListener> listeners = new HashSet<ActionListener>();
+	
+	private GameGui gameGui;
 
 	public GamePanel() {
 		listeners = new HashSet<ActionListener>();
@@ -29,7 +33,7 @@ public abstract class GamePanel extends JPanel implements ActionListener, Clonea
 	
 	/**
 	 * Collect all action from children. Update the source as this panel
-	 * and return to all suscribed listeners
+	 * and return to all subscribed listeners
 	 */
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
@@ -39,9 +43,26 @@ public abstract class GamePanel extends JPanel implements ActionListener, Clonea
 		}
 	}
 	
+	void setGameGui(GameGui gameGui){
+		this.gameGui=gameGui;
+	}
+	
+	protected void sendMsgPlay(MsgPlay msg){
+		//TODO add frame when send fails
+		gameGui.sendMsgPlay(msg);
+	}
+	
+	public String getLocalClient(){
+		return gameGui.getLocalClient();
+	}
+	
 	/**
 	 * Generate a deep copy of this panel
 	 */
 	abstract public GamePanel clone();
+	
+	public void showWarningToPlayer(String message){
+		JOptionPane.showMessageDialog(this,message); 
+	}
 
 }

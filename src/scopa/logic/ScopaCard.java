@@ -1,5 +1,7 @@
 package scopa.logic;
 
+import util.Logger;
+
 public class ScopaCard {
 	
 	private ScopaValue value;
@@ -41,12 +43,37 @@ public class ScopaCard {
 	
 	@Override
 	public boolean equals(Object obj){
-		if(obj instanceof ScopaValue){
-			ScopaCard card = (ScopaCard) obj;
-			if(card.color==this.color&&card.value==this.value)
-				return true;
+		if(obj instanceof ScopaCard){
+			ScopaCard that = (ScopaCard) obj;
+			//Logger.debug("Testing equality between ScopaCard: "+this.toString()+" and: "+that.toString());
+			return that.getColor().equals(this.color) &&
+				   that.getValue().equals(this.value);
 		}
+		//Logger.debug("Not a card: "+obj.getClass().toString());
 		return false;
+	}
+	
+	@Override
+	public int hashCode(){
+		int hash = 1;
+		switch(color){
+		case cup:
+			hash = 1;
+			break;
+		case stick:
+			hash = 2;
+			break;
+		case gold:
+			hash = 3;
+			break;
+		case sword:
+			hash = 4;
+			break;
+			default:
+				throw new RuntimeException("Unsupported enum value: "+color);
+		}
+		hash = hash * 13 + ScopaValue.val(this);
+		return hash;
 	}
 
 }

@@ -1,6 +1,7 @@
 package scopa.logic;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ScopaTableImpl extends ArrayList<ScopaCard> implements ScopaTable {
@@ -13,19 +14,7 @@ public class ScopaTableImpl extends ArrayList<ScopaCard> implements ScopaTable {
 
 	@Override
 	public List<ScopaCard> putCard(ScopaCard card) {
-		List<ArrayList<ScopaCard>> takes = allPossibleTakeWith(card);
-		if(takes.size()==0){
-			this.add(card);
-			return new ArrayList<ScopaCard>();
-		}
-		else if (takes.size()==1){
-			ArrayList<ScopaCard> t = takes.get(0);
-			this.removeAll(t);
-			t.add(card);
-			return t;
-
-		}
-		else return null;
+		return putCard(card, new ArrayList<ScopaCard>(0));
 	}
 	
 	public List<ScopaCard> putCard(ScopaCard card, List<ScopaCard> cards){
@@ -37,7 +26,7 @@ public class ScopaTableImpl extends ArrayList<ScopaCard> implements ScopaTable {
 		}
 		
 		for(ArrayList<ScopaCard> t : takes){
-			if (t.containsAll(cards) && t.size()==cards.size()){
+			if (t.size()==cards.size() && t.containsAll(cards)){
 				this.removeAll(t);
 				t.add(card);
 				return t;
@@ -126,6 +115,11 @@ public class ScopaTableImpl extends ArrayList<ScopaCard> implements ScopaTable {
 	@Override
 	public List<ScopaCard> cardsOnTable() {
 		return this;
+	}
+
+	@Override
+	public void putCards(List<ScopaCard> cards) {
+		this.addAll(cards);
 	}
 	
 }

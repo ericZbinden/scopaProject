@@ -1,7 +1,12 @@
 package scopa.logic;
 
-public class ScopaFactory {
+import java.awt.datatransfer.DataFlavor;
 
+public class ScopaFactory {
+	
+	private final static String MIME= DataFlavor.javaJVMLocalObjectMimeType +
+		    ";class=" + ScopaCard.class.getName();
+	
 	public ScopaFactory() {
 	}
 	
@@ -11,6 +16,15 @@ public class ScopaFactory {
 	
 	public static ScopaDeck getNewScopaDeck(){
 		return new ScopaDeckImpl();
+	}
+	
+	public static DataFlavor getScopaCardDataFlavor(){
+		try {
+			return new DataFlavor(MIME);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 	}
 	
 	

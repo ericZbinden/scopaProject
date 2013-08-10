@@ -20,12 +20,11 @@ import util.Logger;
 
 public class BorderPanel extends JPanel {
 	
-	private String borderLayoutProperty; //region du board
-	public ScopaHand hand; //the player hand
+	protected String borderLayoutProperty; //region du board
+	protected ScopaHand hand; //the player hand
 	
-	private JLabel playerName;
+	protected JLabel playerName;
 	private JLabel guiCards; //other player cards image
-	private JPanel cards;	 //player cards
 	
 	public BorderPanel(String borderLayoutProperty){
 		this((ScopaHand)new EmptyHand(),borderLayoutProperty);
@@ -62,26 +61,25 @@ public class BorderPanel extends JPanel {
 		this.setMaximumSize(this.getPreferredSize());
 		
 		Box panel = new Box(BoxLayout.X_AXIS);
-		playerName = new JLabel("    "+hand.getPlayer());
-		playerName.setPreferredSize(new Dimension(200,50));
+		
+		playerName = new JLabel();
+		//playerName.setPreferredSize(new Dimension(200,50));
 		panel.add(playerName);
 
-		if(borderLayoutProperty.equals(BorderLayout.SOUTH)){
-			cards.setLayout(new GridLayout(1,3));			
-		} else {
+		if(!borderLayoutProperty.equals(BorderLayout.SOUTH)){
 			this.guiCards= new JLabel();
 			guiCards.setPreferredSize(new Dimension(157,97));
 			panel.add(guiCards);
-		}
-		
+		}		
 		
 		this.add(panel);
 	}
 	
 	public void setHand(ScopaHand hand){
-		this.hand = hand;
-		this.invalidate();
-		this.repaint();
+		this.hand=hand;
+		playerName = new JLabel("    "+hand.getPlayer());
+		playerName.revalidate();
+		updateCardDisplay();
 	}
 	
 	public String getPlayerName(){
@@ -91,9 +89,7 @@ public class BorderPanel extends JPanel {
 	public void newHand(List<ScopaCard> newCards){
 		
 		hand.newHand(newCards);
-
 		this.updateCardDisplay();
-		this.repaint();
 	}	
 	
 	public boolean playCard(ScopaCard playedCard){
@@ -104,28 +100,18 @@ public class BorderPanel extends JPanel {
 		}
 		
 		this.updateCardDisplay();
-		this.repaint();			
 		return ok;
 	}
 	
-	private void updateCardDisplay(){
+	protected void updateCardDisplay(){
 		
 		if (hand instanceof EmptyHand){
-			//nothing to do
+			guiCards.removeAll();
 		} else if (hand instanceof OffuscatedHand){
 			guiCards.setIcon(new ImageIcon("resources/img/gui/carte"+hand.getNumberCardInHand()+".png"));
-			guiCards.invalidate();
-		} else {
-			int i =0;
-			cards.removeAll();
-			for(ScopaCard card : hand.getHand()){
-				JLabel c = new JLabel();
-				c.setIcon(new ImageIcon("resources/img/"+card.getColor().toString()+"/"+card.getValue().toString()+".png"));
-				cards.add(c);
-				i++;
-			}
-		}
-		
+			guiCards.revalidate();
+			this.repaint();			
+		} 
 	}
 	
 }

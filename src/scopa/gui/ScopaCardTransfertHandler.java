@@ -1,0 +1,106 @@
+package scopa.gui;
+
+
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.IOException;
+import java.util.List;
+
+import javax.swing.JComponent;
+import javax.swing.TransferHandler;
+
+import scopa.logic.ScopaCard;
+import scopa.logic.ScopaFactory;
+import util.Logger;
+
+
+public class ScopaCardTransfertHandler extends TransferHandler {
+	
+	private static final long serialVersionUID = -2839290592644692803L;
+	
+	private ScopaGamePanel sgp;
+	private ScopaCard played;
+	private List<ScopaCard> taken;
+	
+	public ScopaCardTransfertHandler(ScopaGamePanel sgp) {
+		this.sgp=sgp;
+	}
+	
+	protected Transferable createTransferable(JComponent c) { 
+		if (c instanceof CardLabel){
+			CardLabel cardPanel = (CardLabel) c;
+			this.setDragImage(cardPanel.getImage());
+			return new ScopaCardTransferable(cardPanel.getCard());
+		} else 
+			return null;
+  }
+
+  public int getSourceActions(JComponent c) {
+        return MOVE;
+  }
+  
+
+  public boolean canImport(JComponent c, DataFlavor[] flavors) {
+	  for (DataFlavor flavor : flavors) {
+		  if (flavor.equals(ScopaFactory.getScopaCardDataFlavor())) {
+			  return canImportOn(c);
+	      }
+	  }     
+      return false;
+  }
+  
+  /** If c instance of TablePanel return true else return false */
+  private boolean canImportOn(JComponent c){
+	  return (c instanceof TablePanel) || (c instanceof CardLabel && c.getParent() instanceof TablePanel);
+  }
+
+  public boolean importData(JComponent c, Transferable t) {
+      if (canImport(c,t.getTransferDataFlavors())) {
+          try {
+        	  TablePanel table;
+        	  if(c instanceof TablePanel){
+        		  table = (TablePanel) c;  
+        	  } else if (c.getParent() instanceof TablePanel){
+        		  table = (TablePanel) c.getParent();
+        	  } else {
+        		  return false;
+        	  }
+        		  
+        	  played = (ScopaCard) t.getTransferData(ScopaFactory.getScopaCardDataFlavor());
+        		  
+        	  List<ScopaCard> selected = table.getSelectedCards();        		  
+        	  taken = table.putCard(played, selected);
+       		  if(taken == null){
+       			  //Play is wrong, alert UI
+       			  sgp.alertPlayerWrongPlay();
+       			  return false;
+       		  } else {
+       			  //Play ok and done
+       			  return true;
+       		  }      
+       	       		  
+          } catch (UnsupportedFlavorException | IOException e) {
+              Logger.error("Unable to import data "+t.toString()+" into "+c.toString());
+          } 
+      }
+      return false;
+  }
+  
+  @Override
+  protected void exportDone(JComponent c, Transferable data, int action){
+	  if(action == MOVE){
+		  try{
+			  CardLabel cardPanel = (CardLabel) c;
+			  //ScopaCardTransferable scopaTransfer = (ScopaCardTransferable) data;
+			  cardPanel.setCard(null);  
+			  sgp.sendMsgScopaPlay(played, taken);
+		  } catch (Exception e){
+			  Logger.error("Unable to remove card from component "+c.toString());
+		  }
+	  } 
+  }
+  
+  
+
+}

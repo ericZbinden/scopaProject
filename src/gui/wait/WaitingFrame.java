@@ -3,6 +3,7 @@ package gui.wait;
 import game.GameType;
 import gui.ChatMsgSender;
 import gui.ChatPanel;
+import gui.PlayMsgSender;
 import gui.RulePanel;
 import gui.game.GameGui;
 import gui.game.GameGuiFrame;
@@ -52,7 +53,7 @@ import com.server.wait.ClosedConf;
 import com.server.wait.Config;
 import com.server.wait.EmptyConf;
 
-public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSender, ControlPanel{
+public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSender, PlayMsgSender, ControlPanel{
 	
 	//SRV
 	ClientSocket clientSocket;
@@ -126,7 +127,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 		this.clientID=clientID;
 		this.isMaster=master;
 		
-		gameGui = new GameGuiFrame(this, null);
+		gameGui = new GameGuiFrame(this);
 		slots = new HashMap<String,ConfigPanel>();
 		clientSocket = new ClientSocket(sock,in,out,this);
 		new Thread(clientSocket).start();
@@ -326,7 +327,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 			startGame.invalidate();
 			this.repaint();
 			this.setVisible(true);
-			gameGui.setVisible(false);
+			gameGui.setVisibleToFalse();
 			break;
 		case chat:
 			MsgChat chatMsg = (MsgChat) msg;
@@ -336,8 +337,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 			//start a game
 			MsgStartAck startAck = (MsgStartAck) msg;
 			GameType gameType = startAck.getGameType();
-			gameGui.setGameType(gameType);
-			gameGui.setVisible(true);			
+			gameGui.start(clientID, gameType, this);		
 			this.setVisible(false);
 			break;			
 		case play:
@@ -588,6 +588,12 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 	@Override
 	public String getLocalClient() {
 		return getClientID();
+	}
+
+	@Override
+	public void sendMsgPlay(MsgPlay msg) {
+		clientSocket.sendPlayMsg(msg);
+		
 	}
 
 }

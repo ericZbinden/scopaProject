@@ -22,6 +22,13 @@ public interface ScopaTable {
 	 * @return the taken card. Can be an empty list when it can't take anything. Is null if this play is not ok
 	 */
 	public List<ScopaCard> putCard(ScopaCard card, List<ScopaCard> cards);
+	
+	/**
+	 * Used to reco to a game or simply puts several cards on the table.
+	 * Do not use this methods during the game.
+	 * @param cards
+	 */
+	public void putCards(List<ScopaCard> cards);
 	/**
 	 * At the end of the game, give all card
 	 * @return all cards left on the table

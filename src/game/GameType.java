@@ -4,8 +4,8 @@ import scopa.gui.ScopaGamePanel;
 import scopa.gui.ScopaRulePanel;
 import scopa.gui.ZilchRulePanel;
 import scopa.logic.ScopaGame;
-import gui.GamePanel;
 import gui.RulePanel;
+import gui.game.GamePanel;
 
 
 public enum GameType {
