@@ -65,7 +65,12 @@ public class ScopaRulePanel extends RulePanel implements ActionListener {
 
 	@Override
 	public RulePanel clone() {	
-		return new ScopaRulePanel(canEdit);
+		ScopaRulePanel clone = new ScopaRulePanel(canEdit);
+		clone.napoli.setSelected(napoli.isSelected());
+		clone.scopa.setSelected(scopa.isSelected());
+		clone.reverse.setSelected(reverse.isSelected());
+		clone.enableAction(scopa.isEnabled());
+		return clone;
 	}
 
 	@Override
@@ -73,10 +78,11 @@ public class ScopaRulePanel extends RulePanel implements ActionListener {
 		return new MsgScopaRules(reverse.isSelected(), napoli.isSelected(), scopa.isSelected(), senderID);
 	}
 
-	
-
-	
-	
-	
+	@Override
+	public void enableAction(boolean enable) {
+		scopa.setEnabled(enable);
+		reverse.setEnabled(enable);
+		napoli.setEnabled(enable);		
+	}
 
 }

@@ -131,7 +131,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 		gameGui = new GameGuiFrame(this);
 		slots = new HashMap<>();
 		clientSocket = new ClientSocket(sock,in,out,this);
-		new Thread(clientSocket).start();
+		new Thread(null,clientSocket,"ClientSocket_"+clientID+"_P"+sock.getLocalPort()).start();
 		this.build(coordinate,configs);
 	}
 	
@@ -252,6 +252,10 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 		rulePanel.setMaximumSize(rulePanel.getPreferredSize());
 		bottom.add(rulePanel);
 		
+	}
+	
+	private boolean currentPlayerIsReady(){
+		return slots.get(clientID).getConfig().isReady();
 	}
 	
 	public void update(Message msg){
@@ -397,7 +401,9 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 				if(pa != null){
 					switch(pa){
 					case ready:
-						startGame.invalidate(); //no break statement (that's normal)
+						startGame.invalidate(); 
+						this.enableAction(!cp.getConfig().isReady());
+						//no break statement (that's normal)
 					case teamEdit:
 						clientSocket.sendWrSlotMsg(cp.getConfig(), cp.getConfig().getClientID());
 						break;
@@ -472,6 +478,14 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 	private void updateSlot(ConfigPanel impactedPanel, Config newConfig){
 		impactedPanel.updateConfig(newConfig);
 		impactedPanel.invalidate();
+	}
+	
+	private void enableAction(boolean enable){
+		slots.get(clientID).enableAction(enable);
+		if(isMaster){
+			gameChoice.setEnabled(enable);
+			rulePanel.setEnabled(enable);
+		}
 	}
 	
 	/**

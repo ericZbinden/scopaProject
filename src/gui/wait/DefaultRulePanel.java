@@ -34,4 +34,8 @@ public class DefaultRulePanel extends RulePanel {
 		return null;
 	}
 
+	@Override
+	public void enableAction(boolean enable) {		
+	}
+
 }

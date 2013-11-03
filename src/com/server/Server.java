@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import com.msg.Message;
 import com.msg.MsgChat;
@@ -48,6 +49,8 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 	/**The listener thread */
 	private static Thread t;
 	
+	private boolean closing = false;
+	
 	/** Ref to the gui that launched this server */
 	private static ActionListener al;
 
@@ -79,7 +82,7 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 		listeningPort = port;
 		pwd=password;
 		this.openSlot = 1;
-		t = new Thread(this);
+		t = new Thread(null,this,"Server_"+port);
 		clients = new HashMap<>();
 		confs = new HashMap<>();
 		Config empty = new EmptyConf(0);
@@ -90,14 +93,16 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 	/**
 	 *  Interrupt the server
 	 */
-	public void interrupt() {
-        t.interrupt();
+	public void shutDownServer() {
+		closing = true; //FIXME this thread is not closing correclty
         close();
     } 
 	
 	
 	private void close(){
-		t.interrupt();
+		if(closing)
+			t.interrupt();
+		
 		for(ServerCSocket scs : clients.values()){
 			scs.close(false);
 		}
@@ -106,6 +111,7 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 		openSlot = 0;
 		listener = null;
 		server = null;
+		
 	}
 	
 	public boolean isRunning(){
@@ -125,7 +131,13 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 			while (true) {
 				srv = listener.accept();
 				ServerCSocket req = new ServerCSocket(srv,this);
-				Thread socketListener = new Thread(req);
+				String client;
+				if(req.getClientID()== null){
+					client = "Master";
+				} else {
+					client = req.getClientID().getName();
+				}
+				Thread socketListener = new Thread(null,req,"ServerSocket_"+client+"_P"+req.getSocket().getLocalPort());
 				socketListener.start();
 			}
 
@@ -141,7 +153,8 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 				listener.close();
 			} catch (Exception e) {
 			}
-			this.close();
+			if(!closing)
+				this.close();
 		}
 	}
 

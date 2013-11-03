@@ -19,6 +19,7 @@ import java.net.Socket;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
@@ -89,7 +90,7 @@ public class StartServerFrame extends JFrame implements ActionListener, KeyListe
 	
 	public void closeServer(){
 		if(server != null){
-			server.interrupt();
+			server.shutDownServer();
 		}
 	}
 
@@ -181,8 +182,20 @@ public class StartServerFrame extends JFrame implements ActionListener, KeyListe
 	
 	@Override
 	public void dispose(){
-		closeServer();
-		super.dispose();
+		
+		Object[] options = { "Yes", "No" };
+	    int n = JOptionPane.showOptionDialog(new JFrame(),
+	    		"Server still running, are you sure you want to exit ?", "",
+	            JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+	            options, options[1]);
+	    if(n ==JOptionPane.NO_OPTION){ // negative
+	        return;
+	    }
+	    if(n == JOptionPane.CLOSED_OPTION || n == JOptionPane.OK_OPTION){ // closed the dialog or ok
+			closeServer();
+			super.dispose();
+	    }
+		
 	}
 	
 	private void setErrorText(String text){

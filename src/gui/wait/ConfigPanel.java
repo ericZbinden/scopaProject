@@ -230,6 +230,14 @@ public class ConfigPanel extends Box implements ActionListener{
 		ready,/*kick,*/close,open,teamEdit
 	}
 	
+	/**
+	 * Set enable properties to all action field
+	 * @param enable
+	 */
+	public void enableAction(boolean enable){
+		team.setEnabled(enable);
+	}
+	
 
 }
 
