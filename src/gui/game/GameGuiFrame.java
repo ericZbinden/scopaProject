@@ -5,8 +5,8 @@ import gui.ChatMsgSender;
 import gui.ChatPanel;
 import gui.PlayMsgSender;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 
@@ -14,12 +14,15 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 
+import util.Logger;
+import util.PlayerName;
+
 import com.msg.MsgPlay;
 
 public class GameGuiFrame extends JFrame implements GameGui {
 	
 	private PlayMsgSender playSender;
-	private String client;
+	private PlayerName client;
 	
 	private JPanel gPanel = new JPanel();
 	private JPanel scorePanel = new JPanel();
@@ -40,6 +43,7 @@ public class GameGuiFrame extends JFrame implements GameGui {
 		JSplitPane split = new JSplitPane();
 		split.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
 		split.add(gPanel, JSplitPane.LEFT);
+		gPanel.setLayout(new BorderLayout());
 		
 		JSplitPane split2 = new JSplitPane();
 		split2.setOrientation(JSplitPane.VERTICAL_SPLIT);
@@ -60,20 +64,25 @@ public class GameGuiFrame extends JFrame implements GameGui {
 	}
 
 	@Override
-	public void start(String client, GameType gameType, PlayMsgSender playSender) {
+	public void start(PlayerName client, GameType gameType, PlayMsgSender playSender) {
 		this.client = client;
 		this.playSender = playSender;
 		gamePanel = gameType.getGamePanel();
 		gamePanel.setGameGui(this);
 		gPanel.removeAll();
-		gPanel.add(gamePanel);
+		gPanel.add(gamePanel, BorderLayout.CENTER);
 		gPanel.revalidate();
 		this.setVisible(true);
 	}
 
 	@Override
 	public void update(MsgPlay msg) {
-		gamePanel.update(msg);
+		try{
+			//Protect from anything bad that could happen
+			gamePanel.update(msg);
+		} catch (Exception e){
+			Logger.error(e.getClass().toString()+": "+e.getMessage()+"\nCaused by msg: "+msg.toString());
+		}
 	}
 
 	@Override
@@ -91,7 +100,7 @@ public class GameGuiFrame extends JFrame implements GameGui {
 	}
 
 	@Override
-	public String getLocalClient() {
+	public PlayerName getLocalClient() {
 		return client;
 	}
 

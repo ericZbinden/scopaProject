@@ -28,6 +28,7 @@ import scopa.logic.ScopaHand;
 import scopa.logic.ScopaTable;
 import scopa.logic.ScopaTableImpl;
 import util.Logger;
+import util.PlayerName;
 
 import game.GameType;
 import gui.ChatPanel;
@@ -41,7 +42,7 @@ public class ScopaGamePanel extends GamePanel {
 	//private ScopaDeck deck;
 	//private ScopaHand hand;
 	
-	private String nextPlayer;
+	private PlayerName nextPlayer;
 	
 	private BorderPanel south;
 	private BorderPanel west;
@@ -52,7 +53,7 @@ public class ScopaGamePanel extends GamePanel {
 	public ScopaGamePanel(){
 		//logic
 		this.table= ScopaFactory.getNewScopaTable();
-		nextPlayer = ScopaGame.SRV;
+		nextPlayer = ScopaGame.SRV_NAME;
 		
 		//gui
 		this.build();
@@ -71,10 +72,10 @@ public class ScopaGamePanel extends GamePanel {
 		this.north = new BorderPanel(BorderLayout.NORTH);
 		this.center = new TablePanel();
 		
-		this.add(south,BorderLayout.NORTH); 
+		this.add(south,BorderLayout.SOUTH); 
 		this.add(west,BorderLayout.WEST); 
 		this.add(east,BorderLayout.EAST); 
-		this.add(north,BorderLayout.SOUTH); 
+		this.add(north,BorderLayout.NORTH); 
 		this.add(center, BorderLayout.CENTER);	
 	}
 	
@@ -101,7 +102,7 @@ public class ScopaGamePanel extends GamePanel {
 		west.playCard(null);
 	}
 	
-	public void dudePlay(String name){
+	public void dudePlay(PlayerName name){
 		if (west.getPlayerName().equals(name)){
 			westPlay();
 		} else if (east.getPlayerName().equals(name)){
@@ -120,7 +121,7 @@ public class ScopaGamePanel extends GamePanel {
 		//ScopaGamePanel sgp = new ScopaGamePanel();
 		//frame.add(sgp);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.start("Coubii", GameType.SCOPA, null);
+		frame.start(new PlayerName("Coubii"), GameType.SCOPA, null);
 	}
 
 	@Override
@@ -132,25 +133,25 @@ public class ScopaGamePanel extends GamePanel {
 			switch(msgScopa.getScopaType()){
 			case baseConf:
 				MsgBaseConf msgConf = (MsgBaseConf) msgScopa;
-				String player = msgConf.getPlayerEast();
+				PlayerName player = msgConf.getPlayerEast();
 				if(player.equals("")){
 					east.setHand(new EmptyHand());
 				} else {
-					east.setHand(new OffuscatedHand(player,0)); //FIXME setup team
+					east.setHand(new OffuscatedHand(player,0));
 				}
 				player = msgConf.getPlayerWest();
 				if(player.equals("")){
 					west.setHand(new EmptyHand());
 				} else {
-					west.setHand(new OffuscatedHand(player,0)); //FIXME setup team
+					west.setHand(new OffuscatedHand(player,0));
 				}
 				player = msgConf.getPlayerNorth();
 				if(player.equals("")){
 					north.setHand(new EmptyHand());
 				} else {
-					north.setHand(new OffuscatedHand(player,0)); //FIXME setup team
+					north.setHand(new OffuscatedHand(player,0));
 				}
-				ScopaHand playerHand = new ScopaHand(this.getLocalClient(),0); //FIXME setup team
+				ScopaHand playerHand = new ScopaHand(this.getLocalClient(),0);
 				playerHand.newHand(msgConf.getHand());
 				south.setHand(playerHand); 
 				table.putInitial(msgConf.getTable());
@@ -159,11 +160,10 @@ public class ScopaGamePanel extends GamePanel {
 				MsgScopaPlay msgPlay = (MsgScopaPlay) msgScopa;
 				ScopaCard played = msgPlay.getPlayed(); //TODO display who played and the replay thing
 				List<ScopaCard> taken = msgPlay.getTaken();
-				if(taken.isEmpty()){
-					table.putCard(played);
-				} else {
-					table.putCard(played, taken);
-				}
+				List<ScopaCard> check = table.putCard(played, taken);
+				if(check == null){
+					//TODO cheeter or unconsistent state
+				}			
 				this.dudePlay(msgPlay.getSenderID());
 				break;
 			case hand:
@@ -176,7 +176,8 @@ public class ScopaGamePanel extends GamePanel {
 			default:
 				Logger.debug("Unknown scopa type: "+msgScopa.getScopaType()+", ignoring it.");
 			}
-			//TODO repaint
+			this.revalidate();
+			this.repaint();
 		} else {
 			Logger.debug("Malformed msg of type: "+msg.getGameType().getGameType()+". Ignoring it.");
 		}		
@@ -201,7 +202,7 @@ public class ScopaGamePanel extends GamePanel {
 		sgp.north = new BorderPanel(north.hand,BorderLayout.NORTH);
 		sgp.table = ScopaFactory.getNewScopaTable();
 		sgp.table.putCards(table.cardsOnTable());
-		sgp.nextPlayer = new String(nextPlayer);
+		sgp.nextPlayer = new PlayerName(nextPlayer.getName());
 		//center ?
 		return sgp;
 	}

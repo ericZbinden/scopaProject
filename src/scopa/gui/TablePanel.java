@@ -2,30 +2,20 @@ package scopa.gui;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.GridLayout;
-import java.awt.LayoutManager;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JComponent;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.TransferHandler;
 
 import scopa.logic.ScopaCard;
-import scopa.logic.ScopaColor;
-import scopa.logic.ScopaDeck;
 import scopa.logic.ScopaFactory;
 import scopa.logic.ScopaTable;
-import scopa.logic.ScopaValue;
 import util.Logger;
 
 public class TablePanel extends JPanel implements MouseListener, ScopaTable {
@@ -135,21 +125,6 @@ public class TablePanel extends JPanel implements MouseListener, ScopaTable {
 		}
 		Logger.error("Unable to remove enough emptyPanel. Left: "+nb);
 	}
-	
-//	private int getComponentIndex(Component compo){
-//		int i = 0;
-//		//System.out.println(compo.toString());
-//		for(Component c : this.getComponents()){
-//			//System.out.println(":"+c.toString());
-//			if(c.equals(compo)){
-//				return i;
-//			} else {
-//				i++;
-//				continue;
-//			}
-//		}
-//		return -1;
-//	}
 
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
@@ -186,18 +161,18 @@ public class TablePanel extends JPanel implements MouseListener, ScopaTable {
 	@Override
 	public List<ScopaCard> putCard(ScopaCard card) {
 		List<ScopaCard> returned = table.putCard(card);
-		if (returned == null){
-			//TODO
-		}
+//		if (returned == null){
+//			
+//		}
 		return returned;
 	}
 
 	@Override
 	public List<ScopaCard> putCard(ScopaCard card, List<ScopaCard> cards) {
 		List<ScopaCard> returned = table.putCard(card,cards);
-		if (returned == null){
-			//TODO
-		}
+//		if (returned == null){
+//		
+//	}
 		return returned;
 	}
 
@@ -227,27 +202,27 @@ public class TablePanel extends JPanel implements MouseListener, ScopaTable {
 	}
 	
  //TEST	
-	public static void main(String[] args){
-		JFrame frame = new JFrame();
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setSize(new Dimension(300,300));
-		
-		TablePanel table = new TablePanel();
-		
-		
-		frame.add(table);
-		frame.setVisible(true);
-		
-		table.addCard(new ScopaCard(ScopaValue.as,ScopaColor.cup));
-		frame.repaint();
-		
-		ScopaDeck deck = ScopaFactory.getNewScopaDeck();
-		deck.shuffle();
-		table.addCards(deck.drawInitialCards());
-		table.addCards(deck.draw3Cards());
-		frame.repaint();
-		
-	}
+//	public static void main(String[] args){
+//		JFrame frame = new JFrame();
+//		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//		frame.setSize(new Dimension(300,300));
+//		
+//		TablePanel table = new TablePanel();
+//		
+//		
+//		frame.add(table);
+//		frame.setVisible(true);
+//		
+//		table.addCard(new ScopaCard(ScopaValue.as,ScopaColor.cup));
+//		frame.repaint();
+//		
+//		ScopaDeck deck = ScopaFactory.getNewScopaDeck();
+//		deck.shuffle();
+//		table.addCards(deck.drawInitialCards());
+//		table.addCards(deck.draw3Cards());
+//		frame.repaint();
+//		
+//	}
 
 	
 }

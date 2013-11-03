@@ -1,11 +1,12 @@
 package com.server.wait;
 
-public class ClosedConf extends Config {
+import util.PlayerName;
+import util.ReservedName;
 
-	public static final String ID = "Closed";
+public class ClosedConf extends Config {
 	
 	public ClosedConf() {
-		super(ID);
+		super(new PlayerName(ReservedName.CLOSED_CONF_NAME.getName()));
 	}
 	
 	/** Always true*/

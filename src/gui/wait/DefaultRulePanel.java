@@ -2,6 +2,8 @@ package gui.wait;
 
 import javax.swing.JLabel;
 
+import util.PlayerName;
+
 import com.msg.MalformedMessageException;
 import com.msg.MsgMasterRule;
 
@@ -28,7 +30,7 @@ public class DefaultRulePanel extends RulePanel {
 	}
 
 	@Override
-	public MsgMasterRule getMsgRule(String senderID) {
+	public MsgMasterRule getMsgRule(PlayerName senderID) {
 		return null;
 	}
 

@@ -3,6 +3,9 @@ package scopa.logic;
 import java.util.Arrays;
 import java.util.List;
 
+import util.PlayerName;
+import util.ReservedName;
+
 /**
  * Empty Hand used to be integrated into gui for non playing slot
  * @author Coubii
@@ -11,7 +14,7 @@ import java.util.List;
 public class EmptyHand extends ScopaHand {
 
 	public EmptyHand() {
-		super("", 0);
+		super(new PlayerName(ReservedName.EMPTY_NAME), 0);
 	}
 	
 	public List<ScopaCard> getHand(){

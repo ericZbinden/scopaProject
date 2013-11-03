@@ -1,18 +1,21 @@
 package com.server.wait;
 
-public class EmptyConf extends Config {
+import util.PlayerName;
+import util.ReservedName;
 
-	public static final String ID = "Open";
+public class EmptyConf extends Config {
+	
+	public static final ReservedName EMPTY_CONF_NAME = ReservedName.EMPTY_CONF_NAME;
 	
 	public EmptyConf() {
-		super(ID);
+		this(0);
 	}
 	
 	public EmptyConf(int i){
-		super(ID+i);
+		super(new PlayerName(EMPTY_CONF_NAME.getName()+i));
 	}
 	
-	public EmptyConf(String impactedID){
+	public EmptyConf(PlayerName impactedID){
 		super(impactedID);
 	}
 	
@@ -20,13 +23,6 @@ public class EmptyConf extends Config {
 	@Override
 	public boolean isReady(){
 		return true;
-	}
-	
-	public boolean equals(Object that){
-		if(that != null && that instanceof EmptyConf){
-			return this.getClientID().equals(((EmptyConf)that).getClientID());
-		}
-		return false;
 	}
 	
 	public String toString(){

@@ -3,16 +3,13 @@ package scopa.gui;
 import game.GameType;
 import gui.RulePanel;
 
-import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionListener;
-import java.util.HashSet;
-import java.util.Set;
 
 import javax.swing.JCheckBox;
 
 import scopa.com.MsgScopaRules;
+import util.PlayerName;
 
 import com.msg.MalformedMessageException;
 import com.msg.MsgMasterRule;
@@ -72,7 +69,7 @@ public class ScopaRulePanel extends RulePanel implements ActionListener {
 	}
 
 	@Override
-	public MsgMasterRule getMsgRule(String senderID) {
+	public MsgMasterRule getMsgRule(PlayerName senderID) {
 		return new MsgScopaRules(reverse.isSelected(), napoli.isSelected(), scopa.isSelected(), senderID);
 	}
 

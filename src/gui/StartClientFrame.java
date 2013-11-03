@@ -29,9 +29,12 @@ import com.msg.MsgConnect;
 import com.msg.MsgMasterGame;
 import com.msg.MsgReset;
 import com.msg.MsgType;
+import com.server.Server;
 
 import util.Logger;
+import util.PlayerName;
 import util.Regex;
+import util.ReservedName;
 
 public class StartClientFrame extends JFrame implements ActionListener, KeyListener {
 	
@@ -92,75 +95,75 @@ public class StartClientFrame extends JFrame implements ActionListener, KeyListe
 	public void actionPerformed(ActionEvent arg0) {
 		error.setText("");
 		Logger.debug("Button pressed");
-		if(!pseudo.getText().equals("")){
-			//Check ip
-			String IP = ip.getText();
-			if(Regex.matchIP4Pattern(IP)){
-				
-				String p = port.getText();
-				Socket sock = null;
-				boolean ok = false;
-				try{
-					//Check port
-					int p2 = Integer.valueOf(p);
-					if(p2 < 1 || p2 > 65535)
-						throw new NumberFormatException("not good range number");
-					sock = new Socket(IP,p2);		
-					ObjectOutputStream out = new ObjectOutputStream(sock.getOutputStream());
-					ObjectInputStream in = new ObjectInputStream(sock.getInputStream());
-					//Send connect msg
-					out.writeObject(new MsgConnect(pseudo.getText(), serverPwd.getText()));
-					//Respond
-					sock.setSoTimeout(5000);
-					Message msg = (Message) in.readObject();
-					Logger.debug("Client answer received: "+msg.getType());
-					if(msg.getType().equals(MsgType.config)){
-						//Accepted
-						MsgConfig conf = (MsgConfig) msg;		
-						sock.setSoTimeout(0);
-						WaitingFrame wf = new WaitingFrame(this.getLocation(),pseudo.getText(),sock,out,in, conf.getConfigs());
-						if (conf.getRule() != null){
-							Logger.debug("Update game");
-							wf.update(new MsgMasterGame(conf.getRule().getGameType(),"server")); //update game type
-							if (conf.getRule().getType().equals(MsgType.masterRule)){
-								Logger.debug("Update rules");
-								wf.update(conf.getRule());	//set current rules
-							}
-						}			
-						ok = true;
-						this.dispose(); 
-					} else if(msg.getType().equals(MsgType.reset)){
-						//Refused
-						error.setText("Connection reset: "+((MsgReset)msg).getReason());
-					} else {
-						//Else
-						Logger.debug(msg.toString());
-						throw new MalformedMessageException(MsgType.config);
-					}
-				} catch (NumberFormatException e){
-					error.setText("port should be a number [1,...,65535]");
-				} catch (IOException e) {
-					error.setText("Unable to connect to host: "+e.getMessage());
-				} catch (ClassNotFoundException | MalformedMessageException e) {
-					error.setText("Corrupted communication: "+e.getMessage());
-				} finally {
-					//Close socket if error happened
-					try {
-						if(sock!=null && !ok) sock.close();
-					} catch (IOException e) {
-					}
-				}
-				
-			} else {
-				error.setText("IP should be a valid IP");
-			}
-		} else {
-			error.setText("Pseudo can not be empty");
-		}
 		
-		error.invalidate();
-		this.pack();
-		this.repaint();		
+		//Check pseudo	
+		PlayerName playerId = new PlayerName(pseudo.getText());
+		if(ReservedName.isReserved(playerId)){
+			setErrorText("Your pseudo \""+playerId.getName()+"\" is reserved, choose another");
+			return;
+		}
+			
+		//Check ip
+		String IP = ip.getText();
+		if(!Regex.matchIP4Pattern(IP)){
+			setErrorText("IP should be a valid IP");
+			return;
+		}
+				
+		String p = port.getText();
+		Socket sock = null;
+		boolean ok = false;
+		try{
+			//Check port
+			int p2 = Integer.valueOf(p);
+			if(p2 < 1 || p2 > 65535)
+				throw new NumberFormatException("not good range number");
+			
+			sock = new Socket(IP,p2);		
+			ObjectOutputStream out = new ObjectOutputStream(sock.getOutputStream());
+			ObjectInputStream in = new ObjectInputStream(sock.getInputStream());
+			//Send connect msg
+			out.writeObject(new MsgConnect(playerId, serverPwd.getText()));
+			//Respond
+			sock.setSoTimeout(5000);
+			Message msg = (Message) in.readObject();
+			Logger.debug("Client answer received: "+msg.getType());
+			if(msg.getType().equals(MsgType.config)){
+				//Accepted
+				MsgConfig conf = (MsgConfig) msg;		
+				sock.setSoTimeout(0);
+				WaitingFrame wf = new WaitingFrame(this.getLocation(),playerId,sock,out,in, conf.getConfigs());
+				if (conf.getRule() != null){
+					Logger.debug("Update game");
+					wf.update(new MsgMasterGame(conf.getRule().getGameType(),Server.SERVER_NAME)); //update game type
+					if (conf.getRule().getType().equals(MsgType.masterRule)){
+						Logger.debug("Update rules");
+						wf.update(conf.getRule());	//set current rules
+					}
+				}			
+				ok = true;
+				this.dispose(); 
+			} else if(msg.getType().equals(MsgType.reset)){
+				//Refused
+				setErrorText("Connection reset: "+((MsgReset)msg).getReason());
+			} else {
+				//Else
+				Logger.debug(msg.toString());
+				throw new MalformedMessageException(MsgType.config);
+			}
+		} catch (NumberFormatException e){
+			setErrorText("port should be a number [1,...,65535]");
+		} catch (IOException e) {
+			setErrorText("Unable to connect to host: "+e.getMessage());
+		} catch (ClassNotFoundException | MalformedMessageException e) {
+			setErrorText("Corrupted communication: "+e.getMessage());
+		} finally {
+			//Close socket if error happened
+			try {
+				if(sock!=null && !ok) sock.close();
+			} catch (IOException e) {
+			}
+		}
 	}
 
 	@Override
@@ -174,6 +177,13 @@ public class StartClientFrame extends JFrame implements ActionListener, KeyListe
 	@Override
 	public void keyTyped(KeyEvent arg0) {
 		if (arg0.getKeyChar() == '\n') actionPerformed(new ActionEvent(connect, 0, "clic"));
+	}
+	
+	private void setErrorText(String errorMsg){
+		error.setText(errorMsg);
+		error.invalidate();
+		this.pack();
+		this.repaint();		
 	}
 	
 }

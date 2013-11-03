@@ -1,5 +1,7 @@
 package com.server;
 
+import util.PlayerName;
+
 import com.msg.Message;
 import com.msg.MsgConnect;
 import com.msg.MsgMasterGame;
@@ -12,14 +14,14 @@ public interface ServerConnect {
 	 * @param clientID
 	 * @param msg
 	 */
-	public void transfertMsgTo(String clientID, Message msg);
+	public void transfertMsgTo(PlayerName clientID, Message msg);
 	
 	/**
 	 * Transfer a msg to all client except to the sender
 	 * @param msg
 	 * @param senderID
 	 */
-	public void transferMsgToAll(Message msg, String senderID);
+	public void transferMsgToAll(Message msg, PlayerName senderID);
 	
 	/**
 	 * Update a WaitingRoom slot
@@ -27,7 +29,7 @@ public interface ServerConnect {
 	 * @param state
 	 * @param scs the sender of this class
 	 */
-	public void updateWR(String impactedID, Config state, ServerCSocket scs);
+	public void updateWR(PlayerName impactedID, Config state, ServerCSocket scs);
 	
 	/**
 	 * Store the current rule of the game

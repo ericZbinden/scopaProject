@@ -1,5 +1,7 @@
 package gui.wait;
 
+import util.PlayerName;
+
 import com.msg.Message;
 
 public interface ControlPanel {
@@ -9,7 +11,7 @@ public interface ControlPanel {
 	 */
 	public void update(Message msg);
 	
-	public String getClientID();
+	public PlayerName getClientID();
 	
 	/** The down connection from the server is down */
 	public void serverDown();

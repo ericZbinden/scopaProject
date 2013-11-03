@@ -1,5 +1,7 @@
 package com.msg;
 
+import util.PlayerName;
+
 import com.server.wait.ClosedConf;
 import com.server.wait.Config;
 import com.server.wait.EmptyConf;
@@ -13,39 +15,32 @@ public class MsgWRslot extends Message {
 	private final String impactedId;
 	private final String newId;
 
-	public MsgWRslot(Config conf, String sender) {
-		super(MsgType.wrSlot,sender,null);
-		this.team = conf.getTeam();
-		this.ready = conf.isReady();
-		this.confType = 2;
-		this.impactedId=conf.getClientID();
-		this.newId=conf.getClientID();
+	public MsgWRslot(Config conf, PlayerName sender) {
+		this(conf,sender,conf.getClientID());
 	}
 	
-	public MsgWRslot(ClosedConf conf, String sender, String impactedId){
+	public MsgWRslot(Config conf, PlayerName sender, PlayerName impactedId){
 		super(MsgType.wrSlot,sender,null);
+		
 		this.team = conf.getTeam();
 		this.ready = conf.isReady();
-		this.confType = 0;
-		this.impactedId=impactedId;
-		this.newId=conf.getClientID();
-	}
-	
-	public MsgWRslot(EmptyConf conf, String sender, String impactedId){
-		super(MsgType.wrSlot,sender,null);
-		this.team = conf.getTeam();
-		this.ready = conf.isReady();
-		this.confType = 1;
-		this.impactedId=impactedId;
-		this.newId=conf.getClientID();
+		if(conf instanceof EmptyConf){
+			this.confType = 1;
+		} else if (conf instanceof ClosedConf){
+			this.confType = 0;
+		} else {
+			this.confType = 2;
+		}
+		this.impactedId=impactedId.getName();
+		this.newId=conf.getClientID().getName();		
 	}
 	
 	public Config getConf(){
 		switch(confType){
 		case 0: return new ClosedConf();
-		case 1: return new EmptyConf(newId);
+		case 1: return new EmptyConf(new PlayerName(newId));
 		case 2: 
-			Config conf = new Config(impactedId,false);
+			Config conf = new Config(new PlayerName(impactedId),false);
 			conf.setTeam(team);
 			conf.setReady(ready);
 			
@@ -58,8 +53,8 @@ public class MsgWRslot extends Message {
 		return ready;
 	}
 	
-	public String getImpactedID(){
-		return impactedId;
+	public PlayerName getImpactedID(){
+		return new PlayerName(impactedId);
 	}
 	
 	public int getTeam(){

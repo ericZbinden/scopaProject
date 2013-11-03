@@ -1,5 +1,7 @@
 package com.server;
 
+import util.PlayerName;
+
 import com.msg.MsgPlay;
 
 public interface ServerApi {
@@ -9,7 +11,7 @@ public interface ServerApi {
 	 * @param client
 	 * @param msg
 	 */
-	public void sendMsgTo(String client, MsgPlay msg);
+	public void sendMsgTo(PlayerName client, MsgPlay msg);
 	
 	/**
 	 * Send a same msg to all players
@@ -24,14 +26,14 @@ public interface ServerApi {
 	 * @param client
 	 * @param msg
 	 */
-	public void sendMsgToAllExcept(String client, MsgPlay msg);
+	public void sendMsgToAllExcept(PlayerName client, MsgPlay msg);
 	
 	/**
 	 * Send a txt msg to a player
 	 * @param client
 	 * @param txt
 	 */
-	public void writeIntoClientChat(String client, String txt);
+	public void writeIntoClientChat(PlayerName client, String txt);
 	
 	/**
 	 * Send a txt msg to all players

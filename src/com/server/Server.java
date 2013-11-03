@@ -31,11 +31,14 @@ import com.server.wait.EmptyConf;
 
 import scopa.com.MsgBaseConf;
 import util.Logger;
+import util.PlayerName;
+import util.ReservedName;
 
 
 public class Server implements Runnable, ServerConnect, ServerApi {
 
 	/** static reference to the class. */
+	public static final PlayerName SERVER_NAME = new PlayerName(ReservedName.SERVER_NAME);
 	private ServerState state = ServerState.none;	
 	private static Server server = null;
 	private static int listeningPort;	
@@ -50,11 +53,11 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 
 	// ref to connected clients 
 	private int openSlot;
-	private Map<String,ServerCSocket> clients;
-	private Map<String,Config> confs;
+	private Map<PlayerName,ServerCSocket> clients;
+	private Map<PlayerName,Config> confs;
 	
 	// ref to game 
-	private MsgMasterGame rule;
+	private MsgMasterGame rule = new MsgMasterGame(GameType.SCOPA,null); //default game
 	private Playable game;
 
 	
@@ -77,8 +80,8 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 		pwd=password;
 		this.openSlot = 1;
 		t = new Thread(this);
-		clients = new HashMap<String,ServerCSocket>();
-		confs = new HashMap<String,Config>();
+		clients = new HashMap<>();
+		confs = new HashMap<>();
 		Config empty = new EmptyConf(0);
 		confs.put(empty.getClientID(), empty);
 		t.start();
@@ -143,7 +146,7 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 	}
 
 	@Override
-	public void transfertMsgTo(String clientID, Message msg) {
+	public void transfertMsgTo(PlayerName clientID, Message msg) {
 		ServerCSocket sock = clients.get(clientID);
 		if(sock != null){
 			try{
@@ -159,7 +162,7 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 	}
 
 	@Override
-	public void transferMsgToAll(Message msg, String senderID) {
+	public void transferMsgToAll(Message msg, PlayerName senderID) {
 		for(ServerCSocket sock : clients.values()){
 			if (!sock.getClientID().equals(senderID)){
 				try{
@@ -199,7 +202,7 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 			if(rule instanceof MsgMasterRule){
 				rules = (MsgMasterRule) rule;
 			} else {
-				rules = gameToStart.getRulePanel().getMsgRule("server");
+				rules = gameToStart.getRulePanel().getMsgRule(SERVER_NAME);
 			}
 			//try to generate the game
 			game.initGame(new ArrayList<Config>(confs.values()),rules);
@@ -217,18 +220,18 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 				current.close(true);	
 				//alert all players that the game did not start
 				String reason = "Player "+current.getClientID()+" has quit";
-				this.transferMsgToAll(new MsgStartNack(reason),"server");
+				this.transferMsgToAll(new MsgStartNack(reason),new PlayerName(ReservedName.SERVER_NAME));
 
 				throw new IllegalInitialConditionException(reason);
 			}
-			
-			game.start();
+
+			game.start(this);
 			
 		} else throw new IllegalInitialConditionException("All players are not ready!");
 	}
 
 	@Override
-	public synchronized void updateWR(String impactedID, Config state, ServerCSocket scs) {
+	public synchronized void updateWR(PlayerName impactedID, Config state, ServerCSocket scs) {
 			
 		Config c = confs.get(impactedID);
 		if (c != null){
@@ -306,7 +309,7 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 					confs.remove(conf.getClientID()); 
 					
 					//Build other config for msgCo
-					for (Entry<String,Config> c : confs.entrySet()){
+					for (Entry<PlayerName,Config> c : confs.entrySet()){
 							Logger.debug(c.getKey()+" : "+c.getValue().toString());
 							cs.add(c.getValue());
 					}
@@ -365,7 +368,7 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 	}
 
 	@Override
-	public void sendMsgTo(String client, MsgPlay msg) {
+	public void sendMsgTo(PlayerName client, MsgPlay msg) {
 		this.transfertMsgTo(client, msg);
 	}
 
@@ -375,19 +378,19 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 	}
 
 	@Override
-	public void sendMsgToAllExcept(String client, MsgPlay msg) {
+	public void sendMsgToAllExcept(PlayerName client, MsgPlay msg) {
 		this.transferMsgToAll(msg, client);		
 	}
 
 	@Override
-	public void writeIntoClientChat(String client, String txt) {
-		this.transfertMsgTo(client, new MsgChat("server", client, txt));
+	public void writeIntoClientChat(PlayerName client, String txt) {
+		this.transfertMsgTo(client, new MsgChat(SERVER_NAME, client, txt));
 		
 	}
 
 	@Override
 	public void writeIntoAllChat(String txt) {
-		this.transferMsgToAll(new MsgChat("server",null,txt), null);				
+		this.transferMsgToAll(new MsgChat(SERVER_NAME,null,txt), null);				
 	}
 
 }

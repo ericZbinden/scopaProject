@@ -7,9 +7,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.net.SocketException;
 
 import util.Logger;
+import util.PlayerName;
 
 import com.msg.Message;
 import com.msg.MsgChat;
@@ -38,7 +38,7 @@ public class ClientSocket implements Runnable{
 	
 /*********************** SEND MSG ****************************/
 	
-	public void sendChatMsg(String id, String txt){
+	public void sendChatMsg(PlayerName id, String txt){
 		this.sendOrClose(new MsgChat(id,txt));
 	}
 	
@@ -46,7 +46,7 @@ public class ClientSocket implements Runnable{
 		this.sendOrClose(new MsgStart(cp.getClientID()));
 	}
 		
-	public void sendWrSlotMsg(Config conf, String impactedID){
+	public void sendWrSlotMsg(Config conf, PlayerName impactedID){
 		MsgWRslot msg;
 		if (conf instanceof ClosedConf){
 			msg = new MsgWRslot((ClosedConf)conf,cp.getClientID(),impactedID);
@@ -134,10 +134,10 @@ public class ClientSocket implements Runnable{
 			
 			try {
 				
-				Logger.debug("client "+cp.getClientID()+" blocking waiting new Msg");
+				Logger.debug("client "+cp.getClientID().getName()+" blocking waiting new Msg");
 				Message msg = (Message) in.readObject();
 				MsgType type = msg.getType();
-				Logger.debug("client "+cp.getClientID()+" received msg: "+type);			
+				Logger.debug("client "+cp.getClientID().getName()+" received msg: "+type);			
 				cp.update(msg);
 									
 			} catch (ClassNotFoundException cnfe) {

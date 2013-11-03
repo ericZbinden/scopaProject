@@ -35,6 +35,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 
 import util.Logger;
+import util.PlayerName;
 
 import com.client.ClientSocket;
 import com.msg.MalformedMessageException;
@@ -60,12 +61,12 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 	boolean msgStartSend = false;
 	
 	//CLIENT
-	private String clientID;
+	private PlayerName clientID;
 	private boolean isMaster;
 
 	//GUI
 	private static final long serialVersionUID = -3752588378621496399L;
-	private Map<String,ConfigPanel> slots ;
+	private Map<PlayerName,ConfigPanel> slots ;
 	private Box conf = new Box(BoxLayout.Y_AXIS);
 	private ChatPanel chat;
 	private RulePanel rulePanel;
@@ -100,7 +101,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 	 * @param sock
 	 * @param clientID
 	 */
-	public WaitingFrame(Point coordinate, String clientID, Socket sock, ObjectOutputStream out, ObjectInputStream in){
+	public WaitingFrame(Point coordinate, PlayerName clientID, Socket sock, ObjectOutputStream out, ObjectInputStream in){
 		this(coordinate,clientID,true,sock,out,in,Arrays.asList((Config)new ClosedConf()));
 	}
 	
@@ -111,7 +112,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 	 * @param clientID
 	 * @param configs
 	 */
-	public WaitingFrame(Point coordinate,String clientID, Socket sock, ObjectOutputStream out, ObjectInputStream in, List<Config> configs){
+	public WaitingFrame(Point coordinate,PlayerName clientID, Socket sock, ObjectOutputStream out, ObjectInputStream in, List<Config> configs){
 		this(coordinate,clientID,false,sock,out,in,configs);
 	}
 	
@@ -123,12 +124,12 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 	 * @param sock
 	 * @param configs
 	 */
-	private WaitingFrame(Point coordinate, String clientID, boolean master, Socket sock, ObjectOutputStream out, ObjectInputStream in, List<Config> configs){
+	private WaitingFrame(Point coordinate, PlayerName clientID, boolean master, Socket sock, ObjectOutputStream out, ObjectInputStream in, List<Config> configs){
 		this.clientID=clientID;
 		this.isMaster=master;
 		
 		gameGui = new GameGuiFrame(this);
-		slots = new HashMap<String,ConfigPanel>();
+		slots = new HashMap<>();
 		clientSocket = new ClientSocket(sock,in,out,this);
 		new Thread(clientSocket).start();
 		this.build(coordinate,configs);
@@ -258,7 +259,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 		case wrSlot:
 			MsgWRslot slot = (MsgWRslot) msg;
 			Logger.debug(slot.toString());
-			String impactedID = slot.getImpactedID();
+			PlayerName impactedID = slot.getImpactedID();
 			ConfigPanel prev = slots.get(impactedID);	
 				if(prev != null){
 						if(slot.getConf() instanceof ClosedConf){
@@ -354,16 +355,14 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 			cpNew.invalidate();
 			this.repaint();
 			break;
-//		case connect:		
-//			break;
 		case reco:
 			//TODO
 			break;
 		case reset:
 			MsgReset reset = (MsgReset) msg;
 			//Only warn client of the reset, connection will be closed by server
-			JOptionPane.showMessageDialog(this, "Connection reset: "+reset.getReason());
 			clientSocket.setClosing();
+			JOptionPane.showMessageDialog(this, "Connection reset: "+reset.getReason());
 			this.setVisible(false);
 			break;
 		case disconnect:
@@ -404,7 +403,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 						break;
 					case close:
 						Config closed = cp.getConfig();
-						String closedID = closed.getClientID();
+						PlayerName closedID = closed.getClientID();
 						if (!(closed instanceof EmptyConf)){
 							chat.writeIntoChatFromServer("you kicked "+closedID);
 						}
@@ -465,15 +464,6 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 		}
 	}
 	
-//	private ConfigPanel getOpenSlot(){		
-//		for (ConfigPanel s : slots.values()){
-//			if (s.isOpen()){
-//				return s;
-//			}
-//		}
-//		return null;
-//	}
-	
 	/**
 	 * Update the slot with a new config
 	 * @param impactedPanel
@@ -512,7 +502,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 		int emptyIndex = 0;
 		for(int i=0;;i++){
 			//Find the 1st empty slot non used
-			if (slots.containsKey(EmptyConf.ID+i))
+			if (slots.containsKey(EmptyConf.EMPTY_CONF_NAME))
 				continue;
 					
 			emptyIndex = i;
@@ -571,7 +561,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 		super.dispose();
 	}
 	
-	public String getClientID(){
+	public PlayerName getClientID(){
 		return clientID;
 	}
 	
@@ -586,7 +576,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 	}
 
 	@Override
-	public String getLocalClient() {
+	public PlayerName getLocalClient() {
 		return getClientID();
 	}
 

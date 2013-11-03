@@ -2,6 +2,8 @@ package com.msg;
 
 import java.io.Serializable;
 
+import util.PlayerName;
+
 public class Message implements Serializable {
 
 	private static final long serialVersionUID = 5339075828532666409L;
@@ -22,18 +24,26 @@ public class Message implements Serializable {
 		receiverID = null;
 	}
 	
-	public Message(MsgType type, String senderID, String receiverID){
+	public Message(MsgType type, PlayerName senderID, PlayerName receiverID){
 		this(type);
-		this.senderID = senderID;
-		this.receiverID = receiverID;
+		if(senderID != null)
+			this.senderID = senderID.getName();
+		if(receiverID != null)
+			this.receiverID = receiverID.getName();
 	}
 	
-	public String getSenderID(){
-		return senderID;
+	public PlayerName getSenderID(){
+		if(senderID != null)
+			return new PlayerName(senderID);
+		
+		return null;
 	}
 	
-	public String getReceiverID(){
-		return receiverID;
+	public PlayerName getReceiverID(){
+		if(receiverID != null)
+			return new PlayerName(receiverID);
+		
+		return null;
 	}
 	
 	public String toString(){

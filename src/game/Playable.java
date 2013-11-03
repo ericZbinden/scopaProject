@@ -32,11 +32,6 @@ public interface Playable extends Cloneable{
 	/**
 	 * Start the game
 	 */
-	public void start();
+	public void start(ServerApi api);
 	
-	/**
-	 * The ServerApi grand access to the game to communication channel 
-	 * @param api
-	 */
-	public void setServerApi(ServerApi api);
 }

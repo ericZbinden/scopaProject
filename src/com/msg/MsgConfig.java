@@ -1,7 +1,8 @@
 package com.msg;
 
-import java.util.ArrayList;
 import java.util.List;
+
+import util.PlayerName;
 
 import com.server.wait.Config;
 
@@ -15,19 +16,16 @@ public class MsgConfig extends Message {
 		
 	private String impactedID;
 
-	public MsgConfig(String receiverID, List<Config> configs, MsgMasterGame rule, String impactedID) {
+	public MsgConfig(PlayerName receiverID, List<Config> configs, MsgMasterGame rule, PlayerName impactedID) {
 		super(MsgType.config, null, receiverID);
-		this.impactedID = impactedID;
+		
+		if(impactedID == null)
+			throw new IllegalArgumentException("Impacted player can not be null");
+		
+		this.impactedID = impactedID.getName();
 		this.configs = configs;	
 		this.rule = rule;
 	}
-	
-//	public MsgConfig(String senderID, String receiverID, Config config, String impactedID) {
-//		super(MsgType.config, senderID, receiverID);
-//		this.impactedID = impactedID;
-//		this.configs = new ArrayList<Config>();
-//		configs.add(config);	
-//	}
 	
 	public List<Config> getConfigs(){
 		return configs;
@@ -37,8 +35,8 @@ public class MsgConfig extends Message {
 		return super.toString()+",\n\t"+configs.toString();
 	}
 	
-	public String getImpactedID(){
-		return impactedID;
+	public PlayerName getImpactedID(){
+		return new PlayerName(impactedID);
 	}
 	
 	public MsgMasterGame getRule(){

@@ -98,6 +98,7 @@ public class CardLabel extends JPanel {
 		}	
 		
 		if(isSelected){
+			//TODO set the selected rectangle bigger depending on the size
 			g.setColor(Color.yellow);
 			g.drawRect(borderSize-1, borderSize-1, (int)d.getWidth()-2*borderSize+1, (int)d.getHeight()-2*borderSize+1);
 		}

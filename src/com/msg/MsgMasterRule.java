@@ -1,5 +1,6 @@
 package com.msg;
 
+import util.PlayerName;
 import game.GameType;
 
 /**
@@ -12,7 +13,7 @@ public abstract class MsgMasterRule extends MsgMasterGame {
 
 	private static final long serialVersionUID = -863958308972918195L;
 	
-	protected MsgMasterRule(GameType relatedGame, String senderID) {
+	protected MsgMasterRule(GameType relatedGame, PlayerName senderID) {
 		super(MsgType.masterRule,relatedGame,senderID);
 	}
 	

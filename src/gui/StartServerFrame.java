@@ -11,10 +11,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -23,18 +23,17 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import util.Logger;
+import util.PlayerName;
+import util.ReservedName;
 
-import com.msg.MsgConfig;
 import com.msg.MsgConnect;
-import com.msg.MsgWRslot;
 import com.server.Server;
-import com.server.wait.Config;
 
 public class StartServerFrame extends JFrame implements ActionListener, KeyListener {
 	
 	private static final long serialVersionUID = 4491088652275662971L;
 	
-	private JTextField servName = new JTextField();
+	private JTextField playerName = new JTextField();
 	//private JComboBox<GameType> gameProposed = new JComboBox<>(GameType.values());
 	private JTextField password = new JTextField();
 	private JTextField port = new JTextField();
@@ -52,7 +51,7 @@ public class StartServerFrame extends JFrame implements ActionListener, KeyListe
 		start.addActionListener(this);
 		close.addActionListener(this);
 		error.setForeground(Color.RED);	
-		servName.setPreferredSize(new Dimension(200,50));
+		playerName.setPreferredSize(new Dimension(200,50));
 		port.setPreferredSize(new Dimension(200,50));
 		port.addKeyListener(this);
 		password.setPreferredSize(new Dimension(200,50));
@@ -69,7 +68,7 @@ public class StartServerFrame extends JFrame implements ActionListener, KeyListe
 		//Center panel
 		center.setLayout(new GridLayout(3,2));
 		center.add(new JLabel("  Player name"));
-		center.add(servName);
+		center.add(playerName);
 		center.add(new JLabel("  Server password"));
 		center.add(password);
 		//center.add(gameProposed);
@@ -98,51 +97,57 @@ public class StartServerFrame extends JFrame implements ActionListener, KeyListe
 	public void actionPerformed(ActionEvent arg0) {
 		
 		if(arg0.getSource().equals(start)){
-			error.setText("");
-			//GameType game = (GameType) gameProposed.getSelectedItem();
+
+			//Check name
+			PlayerName name = new PlayerName(playerName.getText());
+			if(ReservedName.isReserved(name)){
+				setErrorText("Player name \""+name.getName()+"\" is reserved, choose anthoer");
+				return;
+			}
 			
-			String name = servName.getText();
-			if(name.equals(""))
-				name = "Anon_Server";
-			
-			String p = port.getText();
-			
+			Socket sock = null;
+			boolean ok = false;
 			try{
+				//Check port
+				String p = port.getText();
 				int p2 = Integer.valueOf(p);
 				
 				if(p2 < 1 || p2 > 65535){
 					throw new NumberFormatException("too big or too low number");
-				} else {
-					//Start server
-					running.setText(name+" listening on port: "+p2);
-					server = Server.getInstance(p2,password.getText(),this);
-					this.remove(center);
-					this.remove(start);
-					this.add(close,BorderLayout.SOUTH);
-					this.add(running,BorderLayout.CENTER);
-					this.invalidate();
-					this.pack();
-					this.repaint();
-					//Start waiting frame
-					Socket sock = new Socket("localhost",p2);
-					ObjectOutputStream out = new ObjectOutputStream(sock.getOutputStream());
-					ObjectInputStream in = new ObjectInputStream(sock.getInputStream());
-					out.writeObject(new MsgConnect(name, password.getText()));
-					in.readObject();
-					new WaitingFrame(this.getLocation(), name, sock, out,in);
-				}		
+				}
+				
+				//Start server
+				running.setText(name+" listening on port: "+p2);
+				server = Server.getInstance(p2,password.getText(),this);
+				this.remove(center);
+				this.remove(start);
+				this.add(close,BorderLayout.SOUTH);
+				this.add(running,BorderLayout.CENTER);
+				setErrorText("");
+				//Start waiting frame
+				sock = new Socket("localhost",p2);
+				ObjectOutputStream out = new ObjectOutputStream(sock.getOutputStream());
+				ObjectInputStream in = new ObjectInputStream(sock.getInputStream());
+				out.writeObject(new MsgConnect(name, password.getText()));
+				in.readObject();
+				new WaitingFrame(this.getLocation(), name, sock, out,in);		
+				ok = true;
 				
 			} catch (NumberFormatException e){
-				error.setText("Port should be a number between 1 and 65535!");
-				error.invalidate();
-				this.repaint();
+				setErrorText("Port should be a number between 1 and 65535!");
+
 			} catch (Exception e){
-				String err = "Server crashed: "+e.getLocalizedMessage();
-				error.setText(err);
-				Logger.error(err);
-				error.invalidate();
-				this.repaint();
+				setErrorText("Server crashed: "+e.getLocalizedMessage());
+				e.printStackTrace();
+			} finally {
+				if(sock != null && !ok){
+					try {
+						sock.close();
+					} catch (IOException e) {
+					}
+				}
 			}
+			
 		} else if (arg0.getSource().equals(close)) {
 			
 			closeServer();
@@ -150,18 +155,14 @@ public class StartServerFrame extends JFrame implements ActionListener, KeyListe
 			this.remove(running);
 			this.remove(close);
 			this.add(start,BorderLayout.SOUTH);
-			this.add(center,BorderLayout.CENTER);
-			
-			this.invalidate();
-			this.pack();
-			this.repaint();
+			this.add(center,BorderLayout.CENTER);			
+			repaintThis();
 			
 		} else {
 			
 			running.setText("Server crashed: "+arg0.getActionCommand());
-			this.invalidate();
-			this.pack();
-			this.repaint();
+			this.closeServer();
+			repaintThis();
 		}
 	}
 	
@@ -181,6 +182,20 @@ public class StartServerFrame extends JFrame implements ActionListener, KeyListe
 	@Override
 	public void dispose(){
 		closeServer();
+		super.dispose();
+	}
+	
+	private void setErrorText(String text){
+		error.setText(text);
+		Logger.error(text);
+		error.invalidate();
+		this.repaint();
+	}
+	
+	private void repaintThis(){
+		this.invalidate();
+		this.pack();
+		this.repaint();
 	}
 
 }

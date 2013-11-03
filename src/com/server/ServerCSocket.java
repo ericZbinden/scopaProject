@@ -6,6 +6,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 import util.Logger;
+import util.PlayerName;
 
 import com.msg.MalformedMessageException;
 import com.msg.Message;
@@ -34,7 +35,7 @@ public class ServerCSocket implements Runnable {
 	
 	private ServerConnect sc;
 
-	private String clientID;
+	private PlayerName clientID;
 	
 	/**
 	 * Default builder.
@@ -47,7 +48,7 @@ public class ServerCSocket implements Runnable {
 		this.sc = sc;
 	}
 	
-	public String getClientID(){
+	public PlayerName getClientID(){
 		return clientID;
 	}
 	
@@ -104,8 +105,8 @@ public class ServerCSocket implements Runnable {
 	public void processPacket(Message prequest) {
 
 		MsgType type = prequest.getType();
-		String senderID = prequest.getSenderID();
-		String receiverID = prequest.getReceiverID();
+		PlayerName senderID = prequest.getSenderID();
+		PlayerName receiverID = prequest.getReceiverID();
 
 		Logger.dot();
 		Logger.debug("Start processPacket:");

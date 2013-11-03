@@ -17,6 +17,7 @@ import scopa.logic.OffuscatedHand;
 import scopa.logic.ScopaCard;
 import scopa.logic.ScopaHand;
 import util.Logger;
+import util.PlayerName;
 
 public class BorderPanel extends JPanel {
 	
@@ -30,7 +31,7 @@ public class BorderPanel extends JPanel {
 		this((ScopaHand)new EmptyHand(),borderLayoutProperty);
 	}
 	
-	public BorderPanel(String otherPlayer, int team, String borderLayoutProperty){
+	public BorderPanel(PlayerName otherPlayer, int team, String borderLayoutProperty){
 		this((ScopaHand)new OffuscatedHand(otherPlayer,team), borderLayoutProperty);
 	}
 	
@@ -42,6 +43,7 @@ public class BorderPanel extends JPanel {
 		case BorderLayout.NORTH:
 			this.setBackground(Color.blue);
 			this.setPreferredSize(new Dimension(400, 200)); //TODO handle resizable dimension
+			break;
 		case BorderLayout.SOUTH:
 			this.setBackground(Color.GREEN);
 			this.setPreferredSize(new Dimension(400, 200));
@@ -82,7 +84,7 @@ public class BorderPanel extends JPanel {
 		updateCardDisplay();
 	}
 	
-	public String getPlayerName(){
+	public PlayerName getPlayerName(){
 		return hand.getPlayer();
 	}
 	

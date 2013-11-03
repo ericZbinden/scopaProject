@@ -9,6 +9,8 @@ import java.util.Set;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
+import util.PlayerName;
+
 import com.msg.MsgPlay;
 
 public abstract class GamePanel extends JPanel implements ActionListener, Cloneable {
@@ -52,7 +54,7 @@ public abstract class GamePanel extends JPanel implements ActionListener, Clonea
 		gameGui.sendMsgPlay(msg);
 	}
 	
-	public String getLocalClient(){
+	public PlayerName getLocalClient(){
 		return gameGui.getLocalClient();
 	}
 	

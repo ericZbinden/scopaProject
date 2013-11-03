@@ -1,11 +1,14 @@
 package scopa.logic;
 
+import java.io.Serializable;
+
 import util.Logger;
 
-public class ScopaCard {
-	
-	private ScopaValue value;
-	
+public class ScopaCard implements Serializable {
+
+	private static final long serialVersionUID = -7448441193550564666L;
+
+	private ScopaValue value;	
 	private ScopaColor color;
 	
 	public ScopaCard(ScopaValue value, ScopaColor color){

@@ -18,6 +18,11 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter;
 
+import com.server.Server;
+
+import util.PlayerName;
+import util.ReservedName;
+
 public class ChatPanel extends JPanel implements MouseListener, KeyListener {
 	
 	private JTextField chatEntry = new JTextField();
@@ -53,15 +58,15 @@ public class ChatPanel extends JPanel implements MouseListener, KeyListener {
 		this.setMinimumSize(new Dimension(290,300));
 	}
 	
-	public synchronized void writeIntoChat(String writer, String text){
-		chat.append("["+writer+"]: "+text+"\n");
+	public synchronized void writeIntoChat(PlayerName writer, String text){
+		chat.append("["+writer.getName()+"]: "+text+"\n");
 		chat.invalidate();
 		chat.repaint();
 	}
 	
 	public void writeIntoChatFromServer(String text){
 		int textSize = chat.getText().length();
-		this.writeIntoChat("Server", text);
+		this.writeIntoChat(Server.SERVER_NAME, text);
 		Highlighter.HighlightPainter serverHighlight = new DefaultHighlighter.DefaultHighlightPainter(Color.red);
 		try {
 			chat.getHighlighter().addHighlight(textSize, textSize+8, serverHighlight);
@@ -113,7 +118,7 @@ public class ChatPanel extends JPanel implements MouseListener, KeyListener {
 			chatEntry.setText("");
 			if(chatMsgSender == null){
 				//Avoid nullpointer
-				writeIntoChat("Unknown",txt);
+				writeIntoChat(new PlayerName(ReservedName.UNKNOWN_NAME),txt);
 			} else {
 				writeIntoChat(chatMsgSender.getLocalClient(),txt);		
 				chatMsgSender.sendChatMsg(txt);

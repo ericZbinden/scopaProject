@@ -2,6 +2,8 @@ package scopa.gui;
 
 import javax.swing.JLabel;
 
+import util.PlayerName;
+
 import com.msg.MalformedMessageException;
 import com.msg.MsgMasterRule;
 
@@ -27,7 +29,7 @@ public class ZilchRulePanel extends RulePanel {
 	}
 
 	@Override
-	public MsgMasterRule getMsgRule(String senderID) {
+	public MsgMasterRule getMsgRule(PlayerName senderID) {
 		return null;
 	}
 

@@ -1,14 +1,15 @@
 package scopa.logic;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import util.PlayerName;
 
 public class OffuscatedHand extends ScopaHand {
 	
 	private int nbCards;
 	
-	public OffuscatedHand(String playerName, int team){
+	public OffuscatedHand(PlayerName playerName, int team){
 		super(playerName, team);
 		nbCards = 0;
 	}

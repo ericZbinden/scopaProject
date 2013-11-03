@@ -6,11 +6,13 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.io.Serializable;
 
+import util.PlayerName;
+
 public class Config implements Serializable, Externalizable, Cloneable {
 
 	private static final long serialVersionUID = -8461455175877588015L;
 
-	private String clientID;
+	private PlayerName clientID;
 	
 	private int team = 1;
 	
@@ -23,11 +25,11 @@ public class Config implements Serializable, Externalizable, Cloneable {
 		
 	}
 	
-	public Config(String clientID) {
+	public Config(PlayerName clientID) {
 		this.clientID = clientID;
 	}
 	
-	public Config(String clientID, boolean self){
+	public Config(PlayerName clientID, boolean self){
 		this.clientID=clientID;
 		this.self=self;
 	}
@@ -37,7 +39,7 @@ public class Config implements Serializable, Externalizable, Cloneable {
 	}
 	
 
-	public String getClientID() {
+	public PlayerName getClientID() {
 		return clientID;
 	}
 
@@ -65,18 +67,37 @@ public class Config implements Serializable, Externalizable, Cloneable {
 		return "Config: "+clientID+(isMaster()?"(master)":"")+(self?"(self)":"")+" on team "+team+", is ready: "+ready;
 	}
 	
-	public boolean equals(Object that){
-		if(that != null && that instanceof Config){
-			Config conf = (Config) that;
-			return this.clientID.equals(conf.getClientID());
-		}
-		return false;
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((clientID == null) ? 0 : clientID.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (!(obj instanceof Config))
+			return false;
+		Config other = (Config) obj;
+		if (clientID == null) {
+			if (other.clientID != null)
+				return false;
+		} else if (!clientID.equals(other.clientID))
+			return false;
+		return true;
 	}
 
 	@Override
 	public void readExternal(ObjectInput arg0) throws IOException,
 			ClassNotFoundException {
-		clientID = (String) arg0.readObject();
+		clientID = (PlayerName) arg0.readObject();
 		ready = arg0.readBoolean();
 		team = arg0.readInt();
 		

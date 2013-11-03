@@ -7,6 +7,8 @@ import java.util.Set;
 
 import javax.swing.JPanel;
 
+import util.PlayerName;
+
 import com.msg.MalformedMessageException;
 import com.msg.MsgMasterRule;
 
@@ -42,7 +44,7 @@ public abstract class RulePanel extends JPanel implements ActionListener, Clonea
 	 * Generate a message to send to the server to propagate the update
 	 * @return
 	 */
-	abstract public MsgMasterRule getMsgRule(String senderID);
+	abstract public MsgMasterRule getMsgRule(PlayerName senderID);
 	
 	public void addActionListener(ActionListener listener) {
 		listeners.add(listener);

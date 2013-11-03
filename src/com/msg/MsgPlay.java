@@ -1,5 +1,6 @@
 package com.msg;
 
+import util.PlayerName;
 import game.GameType;
 
 public abstract class MsgPlay extends Message {
@@ -12,7 +13,7 @@ public abstract class MsgPlay extends Message {
 		this(game,null,null);
 	}
 	
-	protected MsgPlay(GameType game,String senderID,String receiverID){
+	protected MsgPlay(GameType game,PlayerName senderID,PlayerName receiverID){
 		super(MsgType.play,senderID,receiverID);		
 		this.gameType=game.toString();
 	}

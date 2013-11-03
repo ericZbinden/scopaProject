@@ -1,5 +1,7 @@
 package com.msg;
 
+import util.PlayerName;
+
 public class MsgConnect extends Message {
 
 	private static final long serialVersionUID = -2232962384841195638L;
@@ -10,7 +12,7 @@ public class MsgConnect extends Message {
 	 * @param senderID the sender id
 	 * @param pwd the password
 	 */
-	public MsgConnect(String senderID, String pwd) {
+	public MsgConnect(PlayerName senderID, String pwd) {
 		super(MsgType.connect, senderID, null);
 		this.pwd=pwd;
 	}

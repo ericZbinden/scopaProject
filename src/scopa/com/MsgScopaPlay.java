@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import scopa.logic.ScopaCard;
+import util.PlayerName;
 
 public class MsgScopaPlay extends MsgScopa {
 
@@ -14,7 +15,7 @@ public class MsgScopaPlay extends MsgScopa {
 	
 	private List<ScopaCard> taken;
 	
-	public MsgScopaPlay(String senderID, ScopaCard played, List<ScopaCard> taken, String nextPlayer) {
+	public MsgScopaPlay(PlayerName senderID, ScopaCard played, List<ScopaCard> taken, PlayerName nextPlayer) {
 		super(ScopaMsgType.play, nextPlayer, senderID,null);
 		this.played = played;
 		this.taken = taken;

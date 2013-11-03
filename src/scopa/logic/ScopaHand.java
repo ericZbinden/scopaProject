@@ -3,6 +3,8 @@ package scopa.logic;
 import java.util.ArrayList;
 import java.util.List;
 
+import util.PlayerName;
+
 public class ScopaHand {
 	
 	private List<ScopaCard> heap;
@@ -11,16 +13,16 @@ public class ScopaHand {
 	
 	private int team;
 	
-	private String player;
+	private PlayerName player;
 	
-	public ScopaHand(String player, int team){
+	public ScopaHand(PlayerName player, int team){
 		this.heap = new ArrayList<ScopaCard>();
 		this.hand = new ArrayList<ScopaCard>(3);
 		this.player=player;
 		this.team=team;
 	}
 	
-	public String getPlayer(){
+	public PlayerName getPlayer(){
 		return player;
 	}
 	
@@ -122,4 +124,33 @@ public class ScopaHand {
 		
 		return cards;		
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((player == null) ? 0 : player.hashCode());
+		result = prime * result + team;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (!(obj instanceof ScopaHand))
+			return false;
+		ScopaHand other = (ScopaHand) obj;
+		if (player == null) {
+			if (other.player != null)
+				return false;
+		} else if (!player.equals(other.player))
+			return false;
+		if (team != other.team)
+			return false;
+		return true;
+	}
+	
 }
