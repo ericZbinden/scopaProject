@@ -94,7 +94,6 @@ public class StartClientFrame extends JFrame implements ActionListener, KeyListe
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
 		error.setText("");
-		Logger.debug("Button pressed");
 		
 		//Check pseudo	
 		PlayerName playerId = new PlayerName(pseudo.getText());

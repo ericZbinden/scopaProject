@@ -73,7 +73,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 	private Box bottom = new Box(BoxLayout.X_AXIS);
 	private GameType lastGame;
 	private GameGui gameGui;
-	private JButton startGame = new JButton("Start Game!"){
+	private JButton startGame = new JButton("Start Game!"){ //FIXME should be new class
 		boolean ready = true;
 		@Override
 		public void paintComponent(Graphics g){
@@ -328,6 +328,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 			this.msgStartSend = false;
 			ConfigPanel clientConf = slots.get(clientID);
 			clientConf.getConfig().setReady(false);
+			this.enableAction(true);
 			clientConf.invalidate();
 			startGame.invalidate();
 			this.repaint();
@@ -360,7 +361,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 			this.repaint();
 			break;
 		case reco:
-			//TODO
+			//TODO implement reco
 			break;
 		case reset:
 			MsgReset reset = (MsgReset) msg;

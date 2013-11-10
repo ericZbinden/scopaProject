@@ -35,7 +35,6 @@ public class StartServerFrame extends JFrame implements ActionListener, KeyListe
 	private static final long serialVersionUID = 4491088652275662971L;
 	
 	private JTextField playerName = new JTextField();
-	//private JComboBox<GameType> gameProposed = new JComboBox<>(GameType.values());
 	private JTextField password = new JTextField();
 	private JTextField port = new JTextField();
 	private JLabel error = new JLabel();
@@ -183,7 +182,7 @@ public class StartServerFrame extends JFrame implements ActionListener, KeyListe
 	@Override
 	public void dispose(){
 		
-		if(server.isRunning()){
+		if(server != null && server.isRunning()){
 			
 			int choice = JOptionPane.showConfirmDialog(this, "Server still running, do you really want to exit ?");
 			switch(choice){
