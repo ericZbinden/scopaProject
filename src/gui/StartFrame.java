@@ -46,34 +46,48 @@ public class StartFrame extends JFrame implements ActionListener {
 	public void actionPerformed(ActionEvent arg0) {
 		if(arg0.getSource().equals(createServer)){			
 			ssfs.add(new StartServerFrame(this.getLocationOnScreen()));
+			//super.dipose() TODO
 		} else if(arg0.getSource().equals(connectToServer)){
 			new StartClientFrame(this.getLocationOnScreen());
+			super.dispose();
+		} else if(arg0.getSource().equals(exit)){
 			this.dispose();
-		} else {
-			boolean serverRunning = false;
-			for(StartServerFrame ssf : ssfs){
-				if (ssf.serverRunnuing()){
-					serverRunning = true;
-					break;
-				}
-			}
-			if(serverRunning){
-				int choice = JOptionPane.showConfirmDialog(this, "Server still running, do you really want to exit ?");
-				switch(choice){
-				case JOptionPane.YES_OPTION:
-					for(StartServerFrame ssf : ssfs){
-						ssf.closeServer();
-					}
-					System.exit(0);
-				case JOptionPane.NO_OPTION:
-				case JOptionPane.CANCEL_OPTION:
-				default:
-				}
-			} else {
-				System.exit(0);
-			}
 		}
 		
+	}
+	
+	/**
+	 * Unlike super.dispose, this call System.exit if no server is running or if client confirm his choice.
+	 */
+	public void dispose(){
+		if(canExit()){
+			System.exit(0);
+		}
+	}
+	
+	private boolean canExit(){
+		boolean serverRunning = false;
+		for(StartServerFrame ssf : ssfs){
+			if (ssf.serverRunnuing()){
+				serverRunning = true;
+				break;
+			}
+		}
+		if(serverRunning){
+			int choice = JOptionPane.showConfirmDialog(this, "Server still running, do you really want to exit ?");
+			switch(choice){
+			case JOptionPane.YES_OPTION:
+				for(StartServerFrame ssf : ssfs){
+					ssf.closeServer();
+				}
+				return true;
+			case JOptionPane.NO_OPTION:
+			case JOptionPane.CANCEL_OPTION:
+			default:
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	public static void main(String[] args){

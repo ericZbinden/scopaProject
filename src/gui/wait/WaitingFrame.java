@@ -484,7 +484,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 		slots.get(clientID).enableAction(enable);
 		if(isMaster){
 			gameChoice.setEnabled(enable);
-			rulePanel.setEnabled(enable);
+			rulePanel.setEdit(enable);
 		}
 	}
 	

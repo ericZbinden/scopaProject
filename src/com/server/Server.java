@@ -48,9 +48,7 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 	private ServerSocket listener;
 	/**The listener thread */
 	private static Thread t;
-	
-	private boolean closing = false;
-	
+		
 	/** Ref to the gui that launched this server */
 	private static ActionListener al;
 
@@ -94,13 +92,13 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 	 *  Interrupt the server
 	 */
 	public void shutDownServer() {
-		closing = true; //FIXME this thread is not closing correclty
+		state = ServerState.closing;
         close();
     } 
 	
 	
 	private void close(){
-		if(closing)
+		if(ServerState.closing.equals(state))
 			t.interrupt();
 		
 		for(ServerCSocket scs : clients.values()){
@@ -111,11 +109,15 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 		openSlot = 0;
 		listener = null;
 		server = null;
+		state = ServerState.closed;
 		
 	}
 	
 	public boolean isRunning(){
-		return server != null;
+		if(ServerState.closed.equals(state) || ServerState.closing.equals(state) || ServerState.none.equals(state)){
+			return false;
+		}
+		return true;
 	}
 
 	/**
@@ -153,7 +155,7 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 				listener.close();
 			} catch (Exception e) {
 			}
-			if(!closing)
+			if(!ServerState.closing.equals(state) && !ServerState.closed.equals(state))
 				this.close();
 		}
 	}

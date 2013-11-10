@@ -33,8 +33,5 @@ public class ZilchRulePanel extends RulePanel {
 		return null;
 	}
 
-	@Override
-	public void enableAction(boolean enable) {
-	}
 
 }

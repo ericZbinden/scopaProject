@@ -157,14 +157,14 @@ public class StartServerFrame extends JFrame implements ActionListener, KeyListe
 			this.remove(close);
 			this.add(start,BorderLayout.SOUTH);
 			this.add(center,BorderLayout.CENTER);			
-			repaintThis();
 			
 		} else {
 			
 			running.setText("Server crashed: "+arg0.getActionCommand());
 			this.closeServer();
-			repaintThis();
 		}
+		
+		repaintThis();
 	}
 	
 	@Override
@@ -183,19 +183,23 @@ public class StartServerFrame extends JFrame implements ActionListener, KeyListe
 	@Override
 	public void dispose(){
 		
-		Object[] options = { "Yes", "No" };
-	    int n = JOptionPane.showOptionDialog(new JFrame(),
-	    		"Server still running, are you sure you want to exit ?", "",
-	            JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null,
-	            options, options[1]);
-	    if(n ==JOptionPane.NO_OPTION){ // negative
-	        return;
-	    }
-	    if(n == JOptionPane.CLOSED_OPTION || n == JOptionPane.OK_OPTION){ // closed the dialog or ok
-			closeServer();
+		if(server.isRunning()){
+			
+			int choice = JOptionPane.showConfirmDialog(this, "Server still running, do you really want to exit ?");
+			switch(choice){
+			case JOptionPane.YES_OPTION:
+				closeServer();
+				super.dispose();
+				return;
+			case JOptionPane.NO_OPTION:
+			case JOptionPane.CANCEL_OPTION:
+			default:
+				return;
+			}
+			
+		} else {
 			super.dispose();
-	    }
-		
+		}
 	}
 	
 	private void setErrorText(String text){
