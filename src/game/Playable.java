@@ -2,7 +2,9 @@ package game;
 
 import java.util.List;
 
+import com.msg.MalformedMessageException;
 import com.msg.MsgMasterRule;
+import com.msg.MsgPlay;
 import com.server.IllegalInitialConditionException;
 import com.server.ServerApi;
 import com.server.wait.Config;
@@ -11,7 +13,7 @@ public interface Playable extends Cloneable{
 	
 
 	public GameType getGameType();
-	
+		
 	/**
 	 * Check the initial config
 	 * @param configs
@@ -34,4 +36,9 @@ public interface Playable extends Cloneable{
 	 */
 	public void start(ServerApi api);
 	
+	/**
+	 * Play a move
+	 * @throws MalformedMessageException when the game expected another msg type
+	 */
+	public void receiveMsgPlay(MsgPlay msg) throws MalformedMessageException;
 }

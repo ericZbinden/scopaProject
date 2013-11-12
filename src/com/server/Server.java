@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.msg.MalformedMessageException;
 import com.msg.Message;
 import com.msg.MsgChat;
 import com.msg.MsgConfig;
@@ -129,7 +130,7 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 	/**
 	 *  Interrupt the server
 	 */
-	public void shutDownServer() {
+	public synchronized void shutDownServer() {
 		state = ServerState.closing; //FIXME do not close correctly the listener
         close();
     } 
@@ -151,7 +152,7 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 	}
 	
 	/* ** ** ** UTIL METHODS  ** ** ** */
-	public boolean isRunning(){
+	public synchronized boolean isRunning(){
 		if(ServerState.closed.equals(state) || ServerState.closing.equals(state) || ServerState.none.equals(state)){
 			return false;
 		}
@@ -336,6 +337,17 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 		Logger.debug("Open slot left: "+openSlot+"\n"+msgCo.toString());
 		return msgCo;
 				
+	}
+	
+	public void play(MsgPlay msg){
+		try {
+			if(!game.getGameType().equals(msg.getGameType())){
+				throw new MalformedMessageException();
+			}		
+			game.receiveMsgPlay(msg);
+		} catch (MalformedMessageException e) {
+			// TODO Should inform player of error or just ignore ?
+		}
 	}
 
 	@Override

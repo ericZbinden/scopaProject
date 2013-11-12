@@ -120,7 +120,7 @@ public class ServerCSocket implements Runnable {
 				if(prequest instanceof MsgConnect){
 					MsgConnect conf = (MsgConnect) prequest;
 					connect(conf);
-				} else throw new MalformedMessageException();
+				} else throw new MalformedMessageException(type);
 				break;
 			case disconnect:
 				disconnect(prequest);
@@ -135,43 +135,43 @@ public class ServerCSocket implements Runnable {
 //				if(prequest instanceof MsgConfig){
 //					MsgConfig conf = (MsgConfig) prequest;
 //					config(conf);
-//				} else throw new MalformedMessageException();
+//				} else throw new MalformedMessageException(type);
 //				break;
 			case chat:
 				if(prequest instanceof MsgChat){
 					MsgChat chat = (MsgChat) prequest;
 					chat(chat);
-				} else throw new MalformedMessageException();
+				} else throw new MalformedMessageException(type);
 				break;
 			case wrSlot:
 				if(prequest instanceof MsgWRslot){
 					MsgWRslot wrSlot = (MsgWRslot) prequest;
 					Logger.debug(wrSlot.toString());
 					wrSlot(wrSlot);
-				} else throw new MalformedMessageException();
+				} else throw new MalformedMessageException(type);
 				break;
 			case masterGame:
 				if(prequest instanceof MsgMasterGame){
 					MsgMasterGame chat = (MsgMasterGame) prequest;
 					masterGame(chat);
-				} else throw new MalformedMessageException();
+				} else throw new MalformedMessageException(type);
 				break;
 			case masterRule:
 				if(prequest instanceof MsgMasterRule){
 					MsgMasterRule chat = (MsgMasterRule) prequest;
 					masterRule(chat);
-				} else throw new MalformedMessageException();
+				} else throw new MalformedMessageException(type);
 				break;
 			case play:
 				if(prequest instanceof MsgPlay){
 					MsgPlay play = (MsgPlay) prequest;
 					play(play);
-				} else throw new MalformedMessageException();
+				} else throw new MalformedMessageException(type);
 				break;
 			case start:
 				if(prequest instanceof MsgStart){
 					start(prequest);
-				}
+				} //else throw new MalformedMessageException(type);
 			default:
 				Logger.debug("Unknown msg type: "+type+". Packet is ignored.");
 			}
@@ -233,7 +233,7 @@ public class ServerCSocket implements Runnable {
 //	}
 	
 	private void play(MsgPlay play){
-		//TODO serverclient should contain a Playable or an acces to an interface
+		sc.play(play);
 	}
 	
 	private void reco(Message msg){

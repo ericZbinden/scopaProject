@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JCheckBox;
 
+import scopa.com.MalformedScopaMessageException;
 import scopa.com.MsgScopaRules;
 import util.PlayerName;
 

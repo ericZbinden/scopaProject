@@ -517,7 +517,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 		int emptyIndex = 0;
 		for(int i=0;;i++){
 			//Find the 1st empty slot non used
-			if (slots.containsKey(EmptyConf.EMPTY_CONF_NAME))
+			if (slots.containsKey(new PlayerName(EmptyConf.EMPTY_CONF_NAME.getName()+i)))
 				continue;
 					
 			emptyIndex = i;

@@ -5,6 +5,7 @@ import util.PlayerName;
 import com.msg.Message;
 import com.msg.MsgConnect;
 import com.msg.MsgMasterGame;
+import com.msg.MsgPlay;
 import com.server.wait.Config;
 
 public interface ServerConnect {
@@ -30,6 +31,12 @@ public interface ServerConnect {
 	 * @param scs the sender of this class
 	 */
 	public void updateWR(PlayerName impactedID, Config state, ServerCSocket scs);
+	
+	/**
+	 * Transfer the msgPlay to the playable game
+	 * @param play
+	 */
+	public void play(MsgPlay play);
 	
 	/**
 	 * Store the current rule of the game

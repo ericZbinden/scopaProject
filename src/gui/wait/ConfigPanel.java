@@ -74,14 +74,18 @@ public class ConfigPanel extends Box implements ActionListener{
 		}	
 		
 		JPanel teamPanel = new JPanel();
-		if(conf.isSelf()){
+		
+		/*if(conf instanceof EmptyConf || conf instanceof ClosedConf){
+			top.add(teamPanel);
+			//TODO hide team if empty or closed
+		} else*/ if(conf.isSelf()){
 			teamPanel.add(new JLabel("Team"));
 			teamPanel.add(team);
 			team.setEditable(false);
 			team.addActionListener(this);
 			top.add(teamPanel);
-		} else {
 			
+		} else {		
 			teamNumb = new JLabel("Team "+conf.getTeam());
 			teamPanel.add(teamNumb);
 			top.add(teamPanel);
