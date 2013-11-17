@@ -69,6 +69,7 @@ public abstract class RulePanel extends JPanel implements ActionListener, Clonea
 	/**
 	 * Generate a deep copy of this panel
 	 */
+	@Override
 	abstract public RulePanel clone();
 
 

@@ -5,34 +5,27 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.util.List;
 
-import javax.swing.ImageIcon;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
 
+import com.msg.MalformedMessageException;
+import com.msg.MsgCaster;
 import com.msg.MsgPlay;
 
 import scopa.com.MsgBaseConf;
 import scopa.com.MsgScopa;
-import scopa.com.MsgScopaAck;
 import scopa.com.MsgScopaHand;
 import scopa.com.MsgScopaPlay;
 import scopa.logic.EmptyHand;
 import scopa.logic.OffuscatedHand;
 import scopa.logic.ScopaCard;
-import scopa.logic.ScopaDeck;
-import scopa.logic.ScopaDeckImpl;
 import scopa.logic.ScopaFactory;
 import scopa.logic.ScopaGame;
 import scopa.logic.ScopaHand;
 import scopa.logic.ScopaTable;
-import scopa.logic.ScopaTableImpl;
 import util.Logger;
 import util.PlayerName;
 
 import game.GameType;
-import gui.ChatPanel;
-import gui.game.GameGui;
 import gui.game.GameGuiFrame;
 import gui.game.GamePanel;
 
@@ -127,12 +120,13 @@ public class ScopaGamePanel extends GamePanel {
 	@Override
 	public void update(MsgPlay msg) {
 		
-		if (msg.getGameType().equals(GameType.SCOPA)){
-			MsgScopa msgScopa = (MsgScopa) msg;
+		try{
+			
+			MsgScopa msgScopa = MsgCaster.castMsg(MsgScopa.class, msg);
 			nextPlayer = msgScopa.nextPlayerToPlayIs();
 			switch(msgScopa.getScopaType()){
 			case baseConf:
-				MsgBaseConf msgConf = (MsgBaseConf) msgScopa;
+				MsgBaseConf msgConf = MsgCaster.castMsg(MsgBaseConf.class, msgScopa);
 				PlayerName player = msgConf.getPlayerEast();
 				if(player.equals("")){
 					east.setHand(new EmptyHand());
@@ -157,7 +151,7 @@ public class ScopaGamePanel extends GamePanel {
 				table.putInitial(msgConf.getTable());
 				break;
 			case play:
-				MsgScopaPlay msgPlay = (MsgScopaPlay) msgScopa;
+				MsgScopaPlay msgPlay = MsgCaster.castMsg(MsgScopaPlay.class, msgScopa);
 				ScopaCard played = msgPlay.getPlayed(); //TODO display who played and the replay thing
 				List<ScopaCard> taken = msgPlay.getTaken();
 				List<ScopaCard> check = table.putCard(played, taken);
@@ -167,20 +161,21 @@ public class ScopaGamePanel extends GamePanel {
 				this.dudePlay(msgPlay.getSenderID());
 				break;
 			case hand:
-				MsgScopaHand msgHand = (MsgScopaHand) msgScopa;
+				MsgScopaHand msgHand = MsgCaster.castMsg(MsgScopaHand.class, msgScopa);
 				south.newHand(msgHand.getCards());
 				break;
 			case ack:
-				//MsgScopaAck msgAck = (MsgScopaAck) msgScopa;
+				//MsgScopaAck msgAck = MsgCaster.castMsg(MsgScopaAck.class, msgScopa);
+				//Nothing todo
 				break;
 			default:
 				Logger.debug("Unknown scopa type: "+msgScopa.getScopaType()+", ignoring it.");
 			}
 			this.revalidate();
 			this.repaint();
-		} else {
+		} catch (MalformedMessageException e){
 			Logger.debug("Malformed msg of type: "+msg.getGameType().getGameType()+". Ignoring it.");
-		}		
+		}
 	}
 	
 	public void sendMsgScopaPlay(ScopaCard played, List<ScopaCard> taken){

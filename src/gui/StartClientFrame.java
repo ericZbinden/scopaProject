@@ -24,6 +24,7 @@ import javax.swing.JTextField;
 
 import com.msg.MalformedMessageException;
 import com.msg.Message;
+import com.msg.MsgCaster;
 import com.msg.MsgConfig;
 import com.msg.MsgConnect;
 import com.msg.MsgMasterGame;
@@ -127,9 +128,9 @@ public class StartClientFrame extends JFrame implements ActionListener, KeyListe
 			sock.setSoTimeout(5000);
 			Message msg = (Message) in.readObject();
 			Logger.debug("Client answer received: "+msg.getType());
-			if(msg.getType().equals(MsgType.config)){
+			if(MsgType.config.equals(msg.getType())){
 				//Accepted
-				MsgConfig conf = (MsgConfig) msg;		
+				MsgConfig conf = MsgCaster.castMsg(MsgConfig.class, msg);		
 				sock.setSoTimeout(0);
 				WaitingFrame wf = new WaitingFrame(this.getLocation(),playerId,sock,out,in, conf.getConfigs());
 				if (conf.getRule() != null){
@@ -148,7 +149,7 @@ public class StartClientFrame extends JFrame implements ActionListener, KeyListe
 			} else {
 				//Else
 				Logger.debug(msg.toString());
-				throw new MalformedMessageException(MsgType.config);
+				throw new MalformedMessageException("Expected MsgConfig but exposed type: "+msg.getType());
 			}
 		} catch (NumberFormatException e){
 			setErrorText("port should be a number [1,...,65535]");
@@ -161,16 +162,19 @@ public class StartClientFrame extends JFrame implements ActionListener, KeyListe
 			try {
 				if(sock!=null && !ok) sock.close();
 			} catch (IOException e) {
+				//Die silently
 			}
 		}
 	}
 
 	@Override
-	public void keyPressed(KeyEvent arg0) {		
+	public void keyPressed(KeyEvent arg0) {	
+		//Nothing
 	}
 
 	@Override
-	public void keyReleased(KeyEvent arg0) {		
+	public void keyReleased(KeyEvent arg0) {	
+		//Nothing
 	}
 
 	@Override

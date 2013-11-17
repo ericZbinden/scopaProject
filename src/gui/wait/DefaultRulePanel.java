@@ -19,9 +19,8 @@ public class DefaultRulePanel extends RulePanel {
 	}
 
 	@Override
-	public void editRules(MsgMasterRule ruleMsg)
-			throws MalformedMessageException {
-
+	public void editRules(MsgMasterRule ruleMsg) throws MalformedMessageException {
+		//Do nothing
 	}
 
 	@Override

@@ -63,6 +63,7 @@ public class Config implements Serializable, Externalizable, Cloneable {
 		return false;
 	}
 	
+	@Override
 	public String toString(){
 		return "Config: "+clientID+(isMaster()?"(master)":"")+(self?"(self)":"")+" on team "+team+", is ready: "+ready;
 	}
@@ -110,6 +111,7 @@ public class Config implements Serializable, Externalizable, Cloneable {
 		arg0.writeInt(team);
 	}
 	
+	@Override
 	public Config clone(){
 		Config newConf = new Config(getClientID(),isSelf());
 		newConf.setReady(isReady());

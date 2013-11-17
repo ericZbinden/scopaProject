@@ -25,6 +25,7 @@ public class EmptyConf extends Config {
 		return true;
 	}
 	
+	@Override
 	public String toString(){
 		return "Empty"+super.toString();
 	}

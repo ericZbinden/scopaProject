@@ -6,8 +6,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.List;
 
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.TransferHandler;
 
@@ -29,11 +27,13 @@ public class PlayerBorderPanel extends BorderPanel implements MouseListener {
 
 	}
 	
+	@Override
 	protected void updateCardDisplay(){
 		this.revalidate();
 		this.repaint();
 	}
 	
+	@Override
 	public void newHand(List<ScopaCard> newCards){
 		hand.newHand(newCards);
 		cards.removeAll();
@@ -48,15 +48,18 @@ public class PlayerBorderPanel extends BorderPanel implements MouseListener {
 	}
 
 	@Override
-	public void mouseClicked(MouseEvent arg0) {		
+	public void mouseClicked(MouseEvent arg0) {	
+		//Nothing
 	}
 
 	@Override
 	public void mouseEntered(MouseEvent arg0) {		
+		//Nothing
 	}
 
 	@Override
-	public void mouseExited(MouseEvent arg0) {		
+	public void mouseExited(MouseEvent arg0) {
+		//Nothing
 	}
 
 	@Override
@@ -69,7 +72,8 @@ public class PlayerBorderPanel extends BorderPanel implements MouseListener {
 	}
 
 	@Override
-	public void mouseReleased(MouseEvent arg0) {		
+	public void mouseReleased(MouseEvent arg0) {
+		//Nothing
 	}
 
 }

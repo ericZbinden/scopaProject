@@ -91,6 +91,7 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 	 * start a Socket listening on the default TCP port. launch a new thread of
 	 * PorkutRequest for each new connections request.
 	 */
+	@Override
 	public void run() {
 		Logger.log("Server Listener launched");
 		try {
@@ -121,6 +122,7 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 			try {
 				listener.close();
 			} catch (Exception e) {
+				//Die silently
 			}
 			if(!ServerState.closing.equals(state) && !ServerState.closed.equals(state))
 				this.close();
@@ -159,6 +161,7 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 		return true;
 	}
 	
+	@Override
 	public synchronized void saveRule(MsgMasterGame rule){
 		this.rule = rule;
 	}
@@ -339,14 +342,20 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 				
 	}
 	
+	@Override
 	public void play(MsgPlay msg){
-		try {
-			if(!game.getGameType().equals(msg.getGameType())){
-				throw new MalformedMessageException();
-			}		
-			game.receiveMsgPlay(msg);
-		} catch (MalformedMessageException e) {
-			// TODO Should inform player of error or just ignore ?
+		
+		if(ServerState.playing.equals(state)){
+			try {
+				if(!game.getGameType().equals(msg.getGameType())){
+					throw new MalformedMessageException("Expected "+game.getGameType()+" game type but was: "+msg.getType());
+				}		
+				game.receiveMsgPlay(msg);
+			} catch (MalformedMessageException e) {
+				// TODO Should inform player of error or just ignore ?
+			}
+		} else {
+			Logger.debug("Game not started, ignore msgPlay: "+msg.toString());
 		}
 	}
 

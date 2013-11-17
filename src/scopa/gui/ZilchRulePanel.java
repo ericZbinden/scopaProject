@@ -20,7 +20,7 @@ public class ZilchRulePanel extends RulePanel {
 	@Override
 	public void editRules(MsgMasterRule ruleMsg)
 			throws MalformedMessageException {
-
+		//Do nothing
 	}
 
 	@Override

@@ -37,16 +37,18 @@ public class MsgWRslot extends Message {
 	
 	public Config getConf(){
 		switch(confType){
-		case 0: return new ClosedConf();
-		case 1: return new EmptyConf(new PlayerName(newId));
+		case 0: 
+			return new ClosedConf();
+		case 1: 
+			return new EmptyConf(new PlayerName(newId));
 		case 2: 
 			Config conf = new Config(new PlayerName(impactedId),false);
 			conf.setTeam(team);
 			conf.setReady(ready);
-			
-			return conf;
+			return conf;		
+		default:
+			throw new RuntimeException("Expected integer in [0;2] but was: "+confType);
 		}
-		return null;
 	}
 	
 	public boolean isReady(){
@@ -61,9 +63,11 @@ public class MsgWRslot extends Message {
 		return team;
 	}
 	
+	@Override
 	public String toString(){
 		return super.toString()+"\nid: "+this.getImpactedID()
 				+"is now "+newId+" ready: "+this.isReady()+", team: "+this.getTeam()+" / Conf:"+this.getConf();
 	}
+	
 
 }

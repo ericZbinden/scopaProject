@@ -46,6 +46,7 @@ public class Message implements Serializable {
 		return null;
 	}
 	
+	@Override
 	public String toString(){
 		
 		String msg = "Message:\n\tType: "+type

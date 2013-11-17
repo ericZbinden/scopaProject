@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import scopa.com.MalformedScopaMessageException;
 import scopa.com.MsgBaseConf;
 import scopa.com.MsgScopa;
 import scopa.com.MsgScopaAck;
@@ -18,14 +17,13 @@ import scopa.com.MsgScopaNack;
 import scopa.com.MsgScopaPlay;
 import scopa.com.MsgScopaRules;
 import scopa.com.MsgScopaScore;
-import scopa.com.ScopaMsgType;
 import util.Logger;
 import util.PlayerName;
 
 import com.msg.MalformedMessageException;
+import com.msg.MsgCaster;
 import com.msg.MsgMasterRule;
 import com.msg.MsgPlay;
-import com.msg.MsgType;
 import com.server.IllegalInitialConditionException;
 import com.server.Server;
 import com.server.ServerApi;
@@ -88,13 +86,19 @@ public class ScopaGame implements Playable {
 		ScopaHand hand2 =  new ScopaHand(conf.getClientID(),conf.getTeam());
 		ScopaHand hand3 = null;
 		ScopaHand hand4 = null;
-		if(nPlayer > 2){
-			conf = configs.get(2);
-			hand3 =  new ScopaHand(conf.getClientID(),conf.getTeam());
-		}
+		
 		if(nPlayer > 3){
 			conf = configs.get(3);
-			hand4 =  new ScopaHand(conf.getClientID(),conf.getTeam());
+			hand4 =  new ScopaHand(conf.getClientID(),conf.getTeam());	
+			conf = configs.get(2);
+			hand3 =  new ScopaHand(conf.getClientID(),conf.getTeam());
+		} else if(nPlayer > 2){
+			conf = configs.get(2);
+			hand3 =  new ScopaHand(conf.getClientID(),conf.getTeam());
+			hand4 = new EmptyHand();			
+		} else {
+			hand3 = new EmptyHand();
+			hand4 = new EmptyHand();
 		}
 
 		if(nbTeam == nPlayer){
@@ -196,8 +200,7 @@ public class ScopaGame implements Playable {
 		}
 		
 		if(teams.size()<2){
-			throw new IllegalInitialConditionException(
-					"Need at least 2 teams");
+			throw new IllegalInitialConditionException("Need at least 2 teams");
 		}
 		
 		int p=0;
@@ -320,34 +323,32 @@ public class ScopaGame implements Playable {
 
 	@Override
 	public void receiveMsgPlay(MsgPlay msg) throws MalformedMessageException{
-		if(!this.getGameType().equals(msg.getGameType()) || !(msg instanceof MsgScopa)){					
-			throw new MalformedMessageException();	
+		if(!this.getGameType().equals(msg.getGameType())){					
+			throw new MalformedMessageException("Expected "+this.getGameType()+" game type but was: "+msg.getGameType());	
 		}
 		
-		MsgScopa msgScopa = (MsgScopa) msg;
-		
-		ScopaMsgType scopaType = msgScopa.getScopaType();
-			
+		MsgScopa msgScopa = MsgCaster.castMsg(MsgScopa.class, msg);
+					
 			switch(msgScopa.getScopaType()){
 			case play:
-				if (!(msgScopa instanceof MsgScopaPlay)){
-					throw new MalformedScopaMessageException(scopaType);
-				}
 				
-				MsgScopaPlay msgPlay = (MsgScopaPlay) msgScopa;
-				if (play(msgPlay.getSenderID(),msgPlay.getPlayed(),msgPlay.getTaken())){
+				MsgScopaPlay msgPlay = MsgCaster.castMsg(MsgScopaPlay.class, msgScopa);
+				PlayerName sender = msgPlay.getSenderID();
+				if (play(sender,msgPlay.getPlayed(),msgPlay.getTaken())){
 					PlayerName nextPlayer = this.getNextPlayer();
-					api.sendMsgTo(msgPlay.getSenderID(), new MsgScopaAck(nextPlayer));
-					api.sendMsgToAllExcept(msgPlay.getSenderID(), new MsgScopaPlay(msgPlay.getSenderID(),msgPlay.getPlayed(),msgPlay.getTaken(),nextPlayer));
+					api.sendMsgTo(sender, new MsgScopaAck(nextPlayer));
+					api.sendMsgToAllExcept(sender, new MsgScopaPlay(sender,msgPlay.getPlayed(),msgPlay.getTaken(),nextPlayer));
 					
 					if(nextPlayer.equals(SRV_NAME)){
 						switch(state){									
 						case takeAll:
 							takeAll();
+							//$FALL-THROUGH$
 						case endSet:
 							if(sendScore()){
 								break; //winner, we don't do a new set
 							} 
+							//$FALL-THROUGH$
 						case giveNewHand:
 							giveNewHands();
 							break;	
@@ -360,8 +361,8 @@ public class ScopaGame implements Playable {
 					this.closeGameDueToError("Unauthorized play: "+msgPlay.toString()+
 							"\nwhile on table: "+Arrays.toString(table.cardsOnTable().toArray()));
 				} else {
-					Logger.debug("Player "+msgPlay.getSenderID()+" tried to play at "+this.getNextPlayer()+" turn. Ignoring this msg");
-					api.sendMsgTo(msgPlay.getSenderID(), new MsgScopaNack(this.getNextPlayer()));
+					Logger.debug("Player "+sender+" tried to play at "+this.getNextPlayer()+" turn. Ignoring this msg");
+					api.sendMsgTo(sender, new MsgScopaNack(this.getNextPlayer()));
 				}
 				break;
 			default:

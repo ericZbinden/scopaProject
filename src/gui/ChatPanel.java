@@ -71,9 +71,11 @@ public class ChatPanel extends JPanel implements MouseListener, KeyListener {
 		try {
 			chat.getHighlighter().addHighlight(textSize, textSize+8, serverHighlight);
 		} catch (BadLocationException e1) {
+			//
 		}
 	}
 	
+	@Override
 	public void setPreferredSize(Dimension size){
 		super.setPreferredSize(size);
 		chat.setPreferredSize(new Dimension(size.width-10, size.height-10-30));
@@ -89,26 +91,32 @@ public class ChatPanel extends JPanel implements MouseListener, KeyListener {
 
 	@Override
 	public void mouseEntered(MouseEvent arg0) {		
+		//Nothing
 	}
 
 	@Override
-	public void mouseExited(MouseEvent arg0) {		
+	public void mouseExited(MouseEvent arg0) {	
+		//Nothing
 	}
 
 	@Override
-	public void mousePressed(MouseEvent arg0) {		
+	public void mousePressed(MouseEvent arg0) {
+		//Nothing
 	}
 
 	@Override
-	public void mouseReleased(MouseEvent arg0) {		
+	public void mouseReleased(MouseEvent arg0) {
+		//Nothing
 	}
 
 	@Override
-	public void keyPressed(KeyEvent arg0) {		
+	public void keyPressed(KeyEvent arg0) {	
+		//Nothing
 	}
 
 	@Override
-	public void keyReleased(KeyEvent arg0) {		
+	public void keyReleased(KeyEvent arg0) {
+		//Nothing
 	}
 
 	@Override

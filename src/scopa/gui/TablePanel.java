@@ -91,6 +91,7 @@ public class TablePanel extends JPanel implements MouseListener, ScopaTable {
 		return selected;
 	}
 	
+	@Override
 	public void paint(Graphics g){
 		if(emptyToAdd < 0){
 			removeEmptyPanel(0-emptyToAdd);
@@ -139,18 +140,22 @@ public class TablePanel extends JPanel implements MouseListener, ScopaTable {
 
 	@Override
 	public void mouseEntered(MouseEvent arg0) {		
+		//Nothing
 	}
 
 	@Override
 	public void mouseExited(MouseEvent arg0) {		
+		//Nothing
 	}
 
 	@Override
 	public void mousePressed(MouseEvent arg0) {      
+		//Nothing
 	}
 	
 	@Override
 	public void mouseReleased(MouseEvent arg0) {		
+		//Nothing
 	}
 	
 	@Override

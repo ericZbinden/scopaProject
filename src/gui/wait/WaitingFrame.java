@@ -217,8 +217,6 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 			startGame.addActionListener(this);
 			middle.add(startGame,BorderLayout.EAST);
 
-		} else {
-
 		}
 	}
 	
@@ -258,6 +256,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 		return slots.get(clientID).getConfig().isReady();
 	}
 	
+	@Override
 	public void update(Message msg){
 		switch(msg.getType()){
 		case wrSlot:
@@ -398,13 +397,15 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 				ParentAction pa = null;
 				try{
 					pa = ParentAction.valueOf(e.getActionCommand());
-				} catch(Exception ex){}
+				} catch(Exception ex){
+					//Die silently
+				}
 				if(pa != null){
 					switch(pa){
 					case ready:
 						startGame.invalidate(); 
 						this.enableAction(!cp.getConfig().isReady());
-						//no break statement (that's normal)
+						//$FALL-THROUGH$
 					case teamEdit:
 						clientSocket.sendWrSlotMsg(cp.getConfig(), cp.getConfig().getClientID());
 						break;
@@ -576,10 +577,12 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 		super.dispose();
 	}
 	
+	@Override
 	public PlayerName getClientID(){
 		return clientID;
 	}
 	
+	@Override
 	public void serverDown(){
 		this.disposeWithMsgDialog("Server connection closed");
 		super.dispose();

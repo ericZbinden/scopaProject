@@ -28,6 +28,7 @@ public abstract class MsgScopa extends MsgPlay {
 	}
 	
 	
+	@Override
 	public String toString(){
 		return super.toString()+"\n\tType: "+scopaType+"\tNextPlayerIs: "+nextPlayerToPlay;
 	}

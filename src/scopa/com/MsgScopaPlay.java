@@ -30,6 +30,7 @@ public class MsgScopaPlay extends MsgScopa {
 	}
 	
 	
+	@Override
 	public String toString(){
 		return super.toString()+"\n\tplayed: "+played+"\n\ttaken: "+StringUtils.join(taken.toArray());
 	}

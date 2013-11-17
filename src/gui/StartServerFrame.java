@@ -93,6 +93,7 @@ public class StartServerFrame extends JFrame implements ActionListener, KeyListe
 		}
 	}
 
+	@SuppressWarnings("unused")
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
 		
@@ -144,6 +145,7 @@ public class StartServerFrame extends JFrame implements ActionListener, KeyListe
 					try {
 						sock.close();
 					} catch (IOException e) {
+						//Die silently
 					}
 				}
 			}
@@ -168,10 +170,12 @@ public class StartServerFrame extends JFrame implements ActionListener, KeyListe
 	
 	@Override
 	public void keyPressed(KeyEvent arg0) {		
+		//Nothing
 	}
 
 	@Override
-	public void keyReleased(KeyEvent arg0) {		
+	public void keyReleased(KeyEvent arg0) {	
+		//Nothing
 	}
 
 	@Override

@@ -28,10 +28,10 @@ public class MsgScopaScore extends MsgScopa {
 	public MsgScopaScore(ScopaScore score){
 		super(ScopaMsgType.score, ScopaGame.SRV_NAME);
 		//TODO complete me
-		this.scoreT1=scoreT1;
-		this.scoreT2=scoreT2;
-		this.scoreT3=scoreT3;
-		this.scoreT4=scoreT4;
+		//this.scoreT1=scoreT1;
+		//this.scoreT2=scoreT2;
+		//this.scoreT3=scoreT3;
+		//this.scoreT4=scoreT4;
 		this.finish= score.checkWinner();
 		
 	}

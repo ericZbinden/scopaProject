@@ -31,6 +31,7 @@ public class MsgConfig extends Message {
 		return configs;
 	}
 	
+	@Override
 	public String toString(){
 		return super.toString()+",\n\t"+configs.toString();
 	}

@@ -153,8 +153,9 @@ public class ConfigPanel extends Box implements ActionListener{
 					this.invalidate();
 					parentListener.actionPerformed(new ActionEvent(this,4,ParentAction.open.toString()));
 				}
+				break;
 			default:
-				
+				//No nothing
 			}
 			slot.setSelectedIndex(0);
 			

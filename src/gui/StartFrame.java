@@ -42,6 +42,7 @@ public class StartFrame extends JFrame implements ActionListener {
 		this.setVisible(true);
 	}
 
+	@SuppressWarnings("unused")
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
 		if(arg0.getSource().equals(createServer)){			
@@ -59,6 +60,7 @@ public class StartFrame extends JFrame implements ActionListener {
 	/**
 	 * Unlike super.dispose, this call System.exit if no server is running or if client confirm his choice.
 	 */
+	@Override
 	public void dispose(){
 		if(canExit()){
 			System.exit(0);

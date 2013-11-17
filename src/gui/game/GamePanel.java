@@ -61,6 +61,7 @@ public abstract class GamePanel extends JPanel implements ActionListener, Clonea
 	/**
 	 * Generate a deep copy of this panel
 	 */
+	@Override
 	abstract public GamePanel clone();
 	
 	public void showWarningToPlayer(String message){

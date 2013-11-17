@@ -8,11 +8,11 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JCheckBox;
 
-import scopa.com.MalformedScopaMessageException;
 import scopa.com.MsgScopaRules;
 import util.PlayerName;
 
 import com.msg.MalformedMessageException;
+import com.msg.MsgCaster;
 import com.msg.MsgMasterRule;
 
 public class ScopaRulePanel extends RulePanel implements ActionListener {
@@ -41,6 +41,7 @@ public class ScopaRulePanel extends RulePanel implements ActionListener {
 		this.setEdit(canEdit);
 	}
 	
+	@Override
 	public void setEdit(boolean canEdit){
 		super.setEdit(canEdit);
 		
@@ -49,10 +50,11 @@ public class ScopaRulePanel extends RulePanel implements ActionListener {
 		napoli.setEnabled(canEdit);	
 	}
 	
+	@Override
 	public void editRules(MsgMasterRule ruleMsg) throws MalformedMessageException{
-		if(ruleMsg.getGameType().equals(GameType.SCOPA) && ruleMsg instanceof MsgScopaRules){
+		if(GameType.SCOPA.equals(ruleMsg.getGameType())){
 			
-			MsgScopaRules scopaMsg = (MsgScopaRules) ruleMsg;
+			MsgScopaRules scopaMsg = MsgCaster.castMsg(MsgScopaRules.class, ruleMsg);
 			
 			scopa.setSelected(scopaMsg.getScopa());
 			reverse.setSelected(scopaMsg.getReverse());
@@ -61,7 +63,7 @@ public class ScopaRulePanel extends RulePanel implements ActionListener {
 			this.invalidate();
 			
 		} else
-			throw new MalformedMessageException();
+			throw new MalformedMessageException("Expected "+GameType.SCOPA+" game type but was: "+ruleMsg.getGameType());
 	}
 
 	@Override

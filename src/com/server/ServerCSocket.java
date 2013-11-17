@@ -10,6 +10,7 @@ import util.PlayerName;
 
 import com.msg.MalformedMessageException;
 import com.msg.Message;
+import com.msg.MsgCaster;
 import com.msg.MsgChat;
 import com.msg.MsgConfig;
 import com.msg.MsgConnect;
@@ -60,6 +61,7 @@ public class ServerCSocket implements Runnable {
 	 * method in charge of handling the actual request from the peer. call the
 	 * processPacket method if the packet is correct.
 	 */
+	@Override
 	public void run() {
 
 		boolean running = true;
@@ -117,10 +119,7 @@ public class ServerCSocket implements Runnable {
 		try{
 			switch(type){
 			case connect:
-				if(prequest instanceof MsgConnect){
-					MsgConnect conf = (MsgConnect) prequest;
-					connect(conf);
-				} else throw new MalformedMessageException(type);
+				connect(MsgCaster.castMsg(MsgConnect.class, prequest));
 				break;
 			case disconnect:
 				disconnect(prequest);
@@ -138,40 +137,23 @@ public class ServerCSocket implements Runnable {
 //				} else throw new MalformedMessageException(type);
 //				break;
 			case chat:
-				if(prequest instanceof MsgChat){
-					MsgChat chat = (MsgChat) prequest;
-					chat(chat);
-				} else throw new MalformedMessageException(type);
+				chat(MsgCaster.castMsg(MsgChat.class, prequest));
 				break;
 			case wrSlot:
-				if(prequest instanceof MsgWRslot){
-					MsgWRslot wrSlot = (MsgWRslot) prequest;
-					Logger.debug(wrSlot.toString());
-					wrSlot(wrSlot);
-				} else throw new MalformedMessageException(type);
+				wrSlot(MsgCaster.castMsg(MsgWRslot.class,prequest));
 				break;
 			case masterGame:
-				if(prequest instanceof MsgMasterGame){
-					MsgMasterGame chat = (MsgMasterGame) prequest;
-					masterGame(chat);
-				} else throw new MalformedMessageException(type);
+				masterGame(MsgCaster.castMsg(MsgMasterGame.class,prequest));
 				break;
 			case masterRule:
-				if(prequest instanceof MsgMasterRule){
-					MsgMasterRule chat = (MsgMasterRule) prequest;
-					masterRule(chat);
-				} else throw new MalformedMessageException(type);
+				masterRule(MsgCaster.castMsg(MsgMasterRule.class,prequest));
 				break;
 			case play:
-				if(prequest instanceof MsgPlay){
-					MsgPlay play = (MsgPlay) prequest;
-					play(play);
-				} else throw new MalformedMessageException(type);
+				play(MsgCaster.castMsg(MsgPlay.class, prequest));
 				break;
 			case start:
-				if(prequest instanceof MsgStart){
-					start(prequest);
-				} //else throw new MalformedMessageException(type);
+				start(MsgCaster.castMsg(MsgStart.class,prequest));
+				break;
 			default:
 				Logger.debug("Unknown msg type: "+type+". Packet is ignored.");
 			}
@@ -246,23 +228,30 @@ public class ServerCSocket implements Runnable {
 			this.clientID=msg.getSenderID();
 			Message respond = sc.connect(msg, this);
 			
-			if(respond instanceof MsgReset){
+			switch(respond.getType()){
+			case reset:
 				try {
 					this.sendToThisClient(respond);
 					Logger.debug("Connection reset: "+((MsgReset)respond).getReason());
 				} catch (IOException e) {
+					//Die silently
 				}
 				this.close(false);
-			} else {
+				return;
+			case config:
 				try {
-					MsgConfig mc = (MsgConfig) respond;
+					MsgConfig mc = MsgCaster.castMsg(MsgConfig.class, respond);
 					this.sendToThisClient(respond);
 					Logger.debug("Connection accepted");
 					sc.transferMsgToAll(new MsgNewPlayer(clientID,mc.getImpactedID()), msg.getSenderID());
 
-				} catch (IOException e) {
+				} catch (IOException | MalformedMessageException e) {
+					Logger.error(e.getMessage());
 					this.close(false);
 				}
+				return;
+			default:
+				throw new RuntimeException("Unexpected msg type: "+respond.getType());
 			}
 		} else {
 			Logger.debug("Received msg but was ignored: "+msg.toString());
@@ -273,19 +262,18 @@ public class ServerCSocket implements Runnable {
 		sc.transferMsgToAll(msg, msg.getSenderID());
 	}
 	
+	@Override
 	public boolean equals(Object that){
 		if(that instanceof ServerCSocket){
 			ServerCSocket scc = (ServerCSocket) that;
 			if(scc.getClientID().equals(this.getClientID())){
-				//return scc.getSocket().equals(this.getSocket());
 				return true;
 			}
 		}
 		return false;
 	}
 	
-	public void sendToThisClient(Message msg) throws IOException{
-		
+	public void sendToThisClient(Message msg) throws IOException{		
 		out.writeObject(msg);				
 	}
 	
@@ -301,9 +289,12 @@ public class ServerCSocket implements Runnable {
 			out.close();
 			srv.close();
 			
-		} catch (IOException e) {}
+		} catch (IOException e) {
+			//Die silently
+		}
 	}
 	
+	@Override
 	public String toString(){
 		return "ServerClientSocket:\n" +
 				"\tServerState:"+sc.getServerState()+"\n"

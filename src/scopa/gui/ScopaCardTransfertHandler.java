@@ -27,6 +27,7 @@ public class ScopaCardTransfertHandler extends TransferHandler {
 		this.sgp=sgp;
 	}
 	
+	@Override
 	protected Transferable createTransferable(JComponent c) { 
 		if (c instanceof CardLabel){
 			CardLabel cardPanel = (CardLabel) c;
@@ -36,12 +37,14 @@ public class ScopaCardTransfertHandler extends TransferHandler {
 			return null;
   }
 
-  public int getSourceActions(JComponent c) {
+  @Override
+public int getSourceActions(JComponent c) {
         return MOVE;
   }
   
 
-  public boolean canImport(JComponent c, DataFlavor[] flavors) {
+  @Override
+public boolean canImport(JComponent c, DataFlavor[] flavors) {
 	  for (DataFlavor flavor : flavors) {
 		  if (flavor.equals(ScopaFactory.getScopaCardDataFlavor())) {
 			  return canImportOn(c);
@@ -55,6 +58,7 @@ public class ScopaCardTransfertHandler extends TransferHandler {
 	  return (c instanceof TablePanel) || (c instanceof CardLabel && c.getParent() instanceof TablePanel);
   }
 
+  @Override
   public boolean importData(JComponent c, Transferable t) {
       if (canImport(c,t.getTransferDataFlavors())) {
           try {

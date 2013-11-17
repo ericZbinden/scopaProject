@@ -22,6 +22,7 @@ public abstract class MsgPlay extends Message {
 		return GameType.valueOf(gameType);
 	}
 	
+	@Override
 	public String toString(){
 		return super.toString()+"\n\tGame: "+gameType;
 	}

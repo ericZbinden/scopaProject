@@ -14,24 +14,28 @@ public class OffuscatedHand extends ScopaHand {
 		nbCards = 0;
 	}
 	
-	
+	@Override
 	public List<ScopaCard> getHand(){
 		return Arrays.asList();
 	}
 	
+	@Override
 	public int getNumberCardInHand(){
 		return nbCards;
 	}
 	
+	@Override
 	public void newHand(List<ScopaCard> hand){
 		nbCards = hand.size();
 	}
 	
+	@Override
 	public boolean playCard(ScopaCard card){
 		nbCards --;
 		return true;
 	}
 	
+	@Override
 	public boolean isEmpty(){
 		return nbCards == 0;
 	}

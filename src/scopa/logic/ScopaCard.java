@@ -2,8 +2,6 @@ package scopa.logic;
 
 import java.io.Serializable;
 
-import util.Logger;
-
 public class ScopaCard implements Serializable {
 
 	private static final long serialVersionUID = -7448441193550564666L;
@@ -16,6 +14,7 @@ public class ScopaCard implements Serializable {
 		this.color = color;
 	}
 	
+	@Override
 	public String toString(){
 		return value + " of " +color;
 	}
