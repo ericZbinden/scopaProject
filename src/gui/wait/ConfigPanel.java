@@ -26,7 +26,6 @@ public class ConfigPanel extends Box implements ActionListener{
 	private final String CLOSED = "Closed";
 	//private final String KICK = "kick";
 
-	
 	private Config conf;
 	private boolean isMaster;
 	/** Used to give action back to parent*/
@@ -42,13 +41,13 @@ public class ConfigPanel extends Box implements ActionListener{
 	private JButton ready = new JButton("Ready!"){
 		@Override
 		public void paintComponent(Graphics g){
-			super.paintComponent(g);
 			if(conf != null){
 				if(conf instanceof ClosedConf || conf instanceof EmptyConf)
 					this.setBackground(Color.GRAY);
 				else
 					this.setBackground(conf.isReady()? Color.GREEN : Color.RED);
 			}
+			super.paintComponent(g);
 		}
 	};
 	

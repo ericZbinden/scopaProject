@@ -2,6 +2,7 @@ package gui.game;
 
 import util.PlayerName;
 
+import com.msg.MsgChat;
 import com.msg.MsgPlay;
 
 import game.GameType;
@@ -16,5 +17,7 @@ public interface GameGui extends PlayMsgSender {
 	public void start(PlayerName client, GameType gameType, PlayMsgSender playSender);
 		
 	public void setVisibleToFalse();
+	
+	public void chat(MsgChat msg);
 
 }

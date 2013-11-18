@@ -2,6 +2,7 @@ package gui.wait;
 
 import util.PlayerName;
 
+import com.msg.MalformedMessageException;
 import com.msg.Message;
 
 public interface ControlPanel {
@@ -9,7 +10,7 @@ public interface ControlPanel {
 	/** Update the control panel with the received message  
 	 * @param msg
 	 */
-	public void update(Message msg);
+	public void update(Message msg) throws MalformedMessageException;
 	
 	public PlayerName getClientID();
 	

@@ -40,16 +40,19 @@ import util.PlayerName;
 import com.client.ClientSocket;
 import com.msg.MalformedMessageException;
 import com.msg.Message;
+import com.msg.MsgCaster;
 import com.msg.MsgChat;
 import com.msg.MsgDeco;
 import com.msg.MsgMasterGame;
 import com.msg.MsgMasterRule;
 import com.msg.MsgNewPlayer;
 import com.msg.MsgPlay;
+import com.msg.MsgReco;
 import com.msg.MsgReset;
 import com.msg.MsgStartAck;
 import com.msg.MsgStartNack;
 import com.msg.MsgWRslot;
+import com.server.ServerState;
 import com.server.wait.ClosedConf;
 import com.server.wait.Config;
 import com.server.wait.EmptyConf;
@@ -57,8 +60,9 @@ import com.server.wait.EmptyConf;
 public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSender, PlayMsgSender, ControlPanel{
 	
 	//SRV
-	ClientSocket clientSocket;
+	private ClientSocket clientSocket;
 	boolean msgStartSend = false;
+	private ServerState state;
 	
 	//CLIENT
 	private PlayerName clientID;
@@ -73,26 +77,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 	private Box bottom = new Box(BoxLayout.X_AXIS);
 	private GameType lastGame;
 	private GameGui gameGui;
-	private JButton startGame = new JButton("Start Game!"){ //FIXME should be new class
-		boolean ready = true;
-		@Override
-		public void paintComponent(Graphics g){
-			super.paintComponent(g);
-			
-			if(isReady()) this.setBackground(Color.GREEN);
-			else this.setBackground(Color.RED);
-		}
-		public boolean isReady(){
-			ready = true;
-			for(ConfigPanel cp : slots.values()){
-				if(!cp.getConfig().isReady()){
-					ready = false;
-					break;
-				}
-			}
-			return ready;
-		}
-	};
+	private ReadyButton startGame = new ReadyButton("Start Game!");
 	private JComboBox<GameType> gameChoice = new JComboBox<>(GameType.values());
 
 	/**
@@ -127,6 +112,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 	private WaitingFrame(Point coordinate, PlayerName clientID, boolean master, Socket sock, ObjectOutputStream out, ObjectInputStream in, List<Config> configs){
 		this.clientID=clientID;
 		this.isMaster=master;
+		this.state = ServerState.waiting;
 		
 		gameGui = new GameGuiFrame(this);
 		slots = new HashMap<>();
@@ -256,139 +242,192 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 		return slots.get(clientID).getConfig().isReady();
 	}
 	
+	private boolean areAllPlayersReady(){
+		for(ConfigPanel conf : slots.values()){
+			if(!conf.getConfig().isReady()){
+				return false;
+			}
+		}
+		return true;
+	}
+	
 	@Override
-	public void update(Message msg){
+	public void update(Message msg) throws MalformedMessageException {
+		Logger.debug(msg.toString());
+
 		switch(msg.getType()){
 		case wrSlot:
-			MsgWRslot slot = (MsgWRslot) msg;
-			Logger.debug(slot.toString());
-			PlayerName impactedID = slot.getImpactedID();
-			ConfigPanel prev = slots.get(impactedID);	
-				if(prev != null){
-						if(slot.getConf() instanceof ClosedConf){
-							//closing a slot
-							ConfigPanel cp = slots.remove(impactedID);
-							conf.remove(cp);
-							if (!(cp.getConfig() instanceof EmptyConf)){
-								chat.writeIntoChatFromServer(impactedID+" haz been kicked");
-							}
-						} else if (slot.getConf() instanceof EmptyConf){
-							//a player disconnected or kicked
-							ConfigPanel cp = slots.remove(impactedID);
-							conf.remove(cp);
-							ConfigPanel newCP = new ConfigPanel(slot.getConf(), isMaster, this);
-							slots.put(slot.getConf().getClientID(), newCP);
-							conf.add(newCP,conf.getComponentCount()-1);
-							chat.writeIntoChatFromServer(impactedID+" haz left");
-						} else {
-							//Updating a player conf
-							Config c = slot.getConf();
-							this.updateSlot(prev, c);
-						}	
-				} else {
-					Logger.debug("new open slot: "+slot.getImpactedID());
-					if (slot.getConf() instanceof EmptyConf){
-						ConfigPanel cp = new ConfigPanel(slot.getConf(),isMaster,this);
-						slots.put(impactedID, cp);
-						conf.add(cp,conf.getComponentCount()-((isMaster)?0:1));
-					} else {
-						Logger.debug("Unknown client: "+impactedID);
-					}
-				}
-			conf.invalidate();
-			this.pack();
-			this.repaint();
+			wrSlot(MsgCaster.castMsg(MsgWRslot.class, msg));		
 			break;
 		case masterGame:
-			MsgMasterGame masterGame = (MsgMasterGame) msg;
-			GameType gType = masterGame.getGameType();
-			lastGame = gType;
-			gameChoice.setSelectedItem(gType);
-			this.updateGameChoice(gType);
+			masterGame(MsgCaster.castMsg(MsgMasterGame.class,msg));
 			break;
 		case masterRule:
-			MsgMasterRule masterRule = (MsgMasterRule) msg;
-			try {
-				rulePanel.editRules(masterRule);
-				rulePanel.invalidate();
-				rulePanel.repaint();
-			} catch (MalformedMessageException e) {
-				Logger.debug("failed to update panel: "+e.getMessage());
-			}
+			masterRule(MsgCaster.castMsg(MsgMasterRule.class,msg));
 			break;
-//		case newPlayer:
-//		case config:
-//			//talk to srv
-//			break;
-//		case start:
 		case startNack:
-			MsgStartNack startNack = (MsgStartNack) msg;
-			chat.writeIntoChatFromServer("Game can not start: "+startNack.getReason());
-			this.msgStartSend = false;
-			ConfigPanel clientConf = slots.get(clientID);
-			clientConf.getConfig().setReady(false);
-			this.enableAction(true);
-			clientConf.invalidate();
-			startGame.invalidate();
-			this.repaint();
-			this.setVisible(true);
-			gameGui.setVisibleToFalse();
+			startNack(MsgCaster.castMsg(MsgStartNack.class,msg));
 			break;
 		case chat:
-			MsgChat chatMsg = (MsgChat) msg;
-			chat.writeIntoChat(chatMsg.getSenderID(),chatMsg.getText());
+			chat(MsgCaster.castMsg(MsgChat.class,msg));		
 			break;		
 		case startAck:
-			//start a game
-			MsgStartAck startAck = (MsgStartAck) msg;
-			GameType gameType = startAck.getGameType();
-			gameGui.start(clientID, gameType, this);		
-			this.setVisible(false);
+			startAck(MsgCaster.castMsg(MsgStartAck.class,msg));
 			break;			
 		case play:
-			MsgPlay play = (MsgPlay) msg;
-			gameGui.update(play);
+			play(MsgCaster.castMsg(MsgPlay.class,msg));
 			break;
 		case newPlayer:
-			//a new player just connect
-			MsgNewPlayer co = (MsgNewPlayer) msg;
-			chat.writeIntoChat(co.getNewPlayerID(),"haz connect");
-			ConfigPanel cpNew = slots.remove(co.getOpenID());
-			cpNew.setStatusToOccupied(new Config(co.getNewPlayerID()));
-			slots.put(co.getNewPlayerID(), cpNew);
-			cpNew.invalidate();
-			this.repaint();
+			newPlayer(MsgCaster.castMsg(MsgNewPlayer.class,msg));
 			break;
 		case reco:
-			//TODO implement reco
+			reco(MsgCaster.castMsg(MsgReco.class, msg));
 			break;
 		case reset:
-			MsgReset reset = (MsgReset) msg;
-			//Only warn client of the reset, connection will be closed by server
-			clientSocket.setClosing();
-			JOptionPane.showMessageDialog(this, "Connection reset: "+reset.getReason());
-			this.setVisible(false);
+			reset(MsgCaster.castMsg(MsgReset.class,msg));
 			break;
 		case disconnect:
-			MsgDeco deco = (MsgDeco) msg;
-			ConfigPanel cpDeco = slots.get(deco.getDecoClient());
-			if (cpDeco != null){
-				chat.writeIntoChat(deco.getDecoClient(),"haz quit");
-				slots.remove(deco.getDecoClient());
-				cpDeco.setStatusToEmpty(new EmptyConf(deco.getEmptyID()));
-				slots.put(cpDeco.getConfig().getClientID(), cpDeco);
-				cpDeco.invalidate();
-				this.repaint();			
-			} else {
-				Logger.error("Unknown user "+deco.getDecoClient()+" haz quit");
-			}
+			disconnect(MsgCaster.castMsg(MsgDeco.class,msg));
 			break;
 		case refresh:
 		default:
-			Logger.error("Unknown msg: "+msg.toString());
+			String error = "Unknown msg type: "+msg.getType();
+			Logger.error(error);
+			throw new MalformedMessageException(error);
 		}
 	}
 
+	private void chat(MsgChat msg){
+		if(ServerState.playing.equals(state)){
+			gameGui.chat(msg); //transfer msg to game chat
+		} else {
+			chat.writeIntoChat(msg.getSenderID(),msg.getText());
+		}
+	}
+	
+	private void wrSlot(MsgWRslot msg){
+		PlayerName impactedID = msg.getImpactedID();
+		ConfigPanel prev = slots.get(impactedID);	
+		Config newConf = msg.getConf();
+			if(prev != null){
+					if(newConf instanceof ClosedConf){
+						//closing a slot
+						ConfigPanel cp = slots.remove(impactedID);
+						conf.remove(cp);
+						if (!(cp.getConfig() instanceof EmptyConf)){
+							chat.writeIntoChatFromServer(impactedID+" haz been kicked");
+						}
+					} else if (newConf instanceof EmptyConf){
+						//a player disconnected or kicked
+						ConfigPanel cp = slots.remove(impactedID);
+						conf.remove(cp);
+						ConfigPanel newCP = new ConfigPanel(newConf, isMaster, this);
+						slots.put(newConf.getClientID(), newCP);
+						conf.add(newCP,conf.getComponentCount()-1);
+						chat.writeIntoChatFromServer(impactedID+" haz left");
+					} else {
+						//Updating a player conf
+						Config c = newConf;
+						this.updateSlot(prev, c);
+					}	
+			} else {
+				Logger.debug("new open slot: "+impactedID);
+				if (newConf instanceof EmptyConf){
+					ConfigPanel cp = new ConfigPanel(newConf,isMaster,this);
+					slots.put(impactedID, cp);
+					conf.add(cp,conf.getComponentCount()-((isMaster)?0:1));
+				} else {
+					Logger.debug("Unknown client: "+impactedID);
+				}
+			}
+		conf.invalidate();
+		startGame.setReady(areAllPlayersReady());
+		this.pack();
+		this.repaint();
+	}
+	
+	private void masterGame(MsgMasterGame msg){
+		GameType gType = msg.getGameType();
+		lastGame = gType;
+		gameChoice.setSelectedItem(gType);
+		this.updateGameChoice(gType);
+	}
+	
+	private void masterRule(MsgMasterRule msg){
+		try {
+			rulePanel.editRules(msg);
+			rulePanel.invalidate();
+			rulePanel.repaint();
+		} catch (MalformedMessageException e) {
+			Logger.debug("failed to update panel: "+e.getMessage());
+		}
+	}
+	
+	private void startNack(MsgStartNack msg){
+		state = ServerState.waiting;
+		chat.writeIntoChatFromServer("Game can not start: "+msg.getReason());
+		this.msgStartSend = false;
+		ConfigPanel clientConf = slots.get(clientID);
+		clientConf.getConfig().setReady(false);
+		this.enableAction(true);
+		clientConf.invalidate();
+		startGame.invalidate();
+		this.repaint();
+		this.setVisible(true);
+		gameGui.setVisibleToFalse();
+	}
+	
+	private void startAck(MsgStartAck msg){
+		//start a game
+		GameType gameType = msg.getGameType();
+		gameGui.start(clientID, gameType, this);		
+		this.setVisible(false);
+		state = ServerState.playing;
+	}
+	
+	private void play(MsgPlay msg){
+		gameGui.update(msg);
+	}
+	
+	private void newPlayer(MsgNewPlayer msg){
+		//a new player just connect
+		PlayerName newP = msg.getNewPlayerID();
+		chat.writeIntoChat(newP,"haz connect");
+		ConfigPanel cpNew = slots.remove(msg.getOpenID());
+		cpNew.setStatusToOccupied(new Config(newP));
+		slots.put(newP, cpNew);
+		startGame.setReady(false);
+		cpNew.invalidate();
+		this.repaint();
+	}
+	
+	private void reco(MsgReco msg){
+		//TODO implement me: reco
+	}
+
+	private void reset(MsgReset msg){
+		//Only warn client of the reset, connection will be closed by server
+		clientSocket.setClosing();
+		JOptionPane.showMessageDialog(this, "Connection reset: "+msg.getReason());
+		this.setVisible(false); //TODO try to dispose here
+	}
+	
+	private void disconnect(MsgDeco msg){
+		PlayerName decoClient = msg.getDecoClient();
+		ConfigPanel cpDeco = slots.get(decoClient);
+		if (cpDeco != null){
+			chat.writeIntoChat(decoClient,"haz quit");
+			slots.remove(decoClient);
+			cpDeco.setStatusToEmpty(new EmptyConf(msg.getEmptyID()));
+			slots.put(cpDeco.getConfig().getClientID(), cpDeco);
+			startGame.setReady(areAllPlayersReady());
+			cpDeco.invalidate();
+			this.repaint();			
+		} else {
+			Logger.error("Unknown user "+decoClient+" haz quit");
+		}
+	}
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		
@@ -402,8 +441,8 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 				}
 				if(pa != null){
 					switch(pa){
-					case ready:
-						startGame.invalidate(); 
+					case ready:					
+						startGame.setReady(this.areAllPlayersReady()); 
 						this.enableAction(!cp.getConfig().isReady());
 						//$FALL-THROUGH$
 					case teamEdit:
@@ -418,7 +457,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 						slots.remove(closedID);
 						//cp.getConfig().setReady(true); //hack to avoid kicked player doesn't allow to start the game
 						conf.remove(cp);
-						startGame.invalidate();
+						startGame.setReady(areAllPlayersReady());
 						clientSocket.sendWrSlotMsg(new ClosedConf(),closedID);					
 						break;
 //					case kick:

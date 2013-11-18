@@ -17,6 +17,8 @@ import javax.swing.JSplitPane;
 import util.Logger;
 import util.PlayerName;
 
+import com.msg.MalformedMessageException;
+import com.msg.MsgChat;
 import com.msg.MsgPlay;
 
 public class GameGuiFrame extends JFrame implements GameGui {
@@ -95,8 +97,12 @@ public class GameGuiFrame extends JFrame implements GameGui {
 
 	@Override
 	public void sendMsgPlay(MsgPlay msg) {
-		playSender.sendMsgPlay(msg);
-		
+		playSender.sendMsgPlay(msg);	
+	}
+	
+	@Override
+	public void chat(MsgChat msg) {
+		chatPanel.writeIntoChat(msg.getSenderID(), msg.getText());
 	}
 
 	@Override
@@ -108,5 +114,7 @@ public class GameGuiFrame extends JFrame implements GameGui {
 	public void setVisibleToFalse() {
 		this.setVisible(false);		
 	}
+
+
 
 }

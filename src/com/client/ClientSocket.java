@@ -11,6 +11,7 @@ import java.net.Socket;
 import util.Logger;
 import util.PlayerName;
 
+import com.msg.MalformedMessageException;
 import com.msg.Message;
 import com.msg.MsgChat;
 import com.msg.MsgMasterGame;
@@ -138,7 +139,11 @@ public class ClientSocket implements Runnable{
 				Message msg = (Message) in.readObject();
 				MsgType type = msg.getType();
 				Logger.debug("client "+cp.getClientID().getName()+" received msg: "+type);			
-				cp.update(msg);
+				try{
+					cp.update(msg);
+				} catch (MalformedMessageException mme){
+					Logger.error("Error during processing msg, just ignoring it: "+mme.getMessage());
+				}
 									
 			} catch (ClassNotFoundException cnfe) {
 				Logger.error("Malformed msg: "+cnfe.getMessage());
