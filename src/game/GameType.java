@@ -4,7 +4,7 @@ import scopa.gui.ScopaGamePanel;
 import scopa.gui.ScopaRulePanel;
 import scopa.gui.ZilchRulePanel;
 import scopa.logic.ScopaGame;
-import gui.RulePanel;
+import gui.api.RulePanel;
 import gui.game.GamePanel;
 
 

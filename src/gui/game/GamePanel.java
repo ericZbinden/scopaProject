@@ -1,5 +1,6 @@
 package gui.game;
 
+import gui.api.GameGui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -13,18 +14,19 @@ import util.PlayerName;
 
 import com.msg.MsgPlay;
 
-public abstract class GamePanel extends JPanel implements ActionListener, Cloneable {
-	
+public abstract class GamePanel extends JPanel implements ActionListener,
+		Cloneable {
+
 	private Set<ActionListener> listeners = new HashSet<ActionListener>();
-	
+
 	private GameGui gameGui;
 
 	public GamePanel() {
 		listeners = new HashSet<ActionListener>();
 	}
-	
+
 	public abstract void update(MsgPlay msg);
-	
+
 	public void addActionListener(ActionListener listener) {
 		listeners.add(listener);
 	}
@@ -32,40 +34,41 @@ public abstract class GamePanel extends JPanel implements ActionListener, Clonea
 	public void removeActionListener(ActionListener listener) {
 		listeners.remove(listener);
 	}
-	
+
 	/**
-	 * Collect all action from children. Update the source as this panel
-	 * and return to all subscribed listeners
+	 * Collect all action from children. Update the source as this panel and
+	 * return to all subscribed listeners
 	 */
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
 		arg0.setSource(this);
-		for(ActionListener listener : listeners){
+		for (ActionListener listener : listeners) {
 			listener.actionPerformed(arg0);
 		}
 	}
-	
-	void setGameGui(GameGui gameGui){
-		this.gameGui=gameGui;
+
+	// package protected
+	void setGameGui(GameGui gameGui) {
+		this.gameGui = gameGui;
 	}
-	
-	protected void sendMsgPlay(MsgPlay msg){
-		//TODO add frame when send fails
+
+	protected void sendMsgPlay(MsgPlay msg) {
+		// TODO add frame when send fails
 		gameGui.sendMsgPlay(msg);
 	}
-	
-	public PlayerName getLocalClient(){
+
+	public PlayerName getLocalClient() {
 		return gameGui.getLocalClient();
 	}
-	
+
 	/**
 	 * Generate a deep copy of this panel
 	 */
 	@Override
 	abstract public GamePanel clone();
-	
-	public void showWarningToPlayer(String message){
-		JOptionPane.showMessageDialog(this,message); 
+
+	public void showWarningToPlayer(String message) {
+		JOptionPane.showMessageDialog(this, message);
 	}
 
 }

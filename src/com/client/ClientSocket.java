@@ -1,7 +1,7 @@
 package com.client;
 
 import game.GameType;
-import gui.wait.ControlPanel;
+import gui.api.ControlPanel;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

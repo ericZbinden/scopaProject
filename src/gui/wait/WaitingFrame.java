@@ -1,12 +1,15 @@
 package gui.wait;
 
 import game.GameType;
-import gui.ChatMsgSender;
-import gui.ChatPanel;
-import gui.PlayMsgSender;
-import gui.RulePanel;
-import gui.game.GameGui;
+import gui.api.ChatMsgSender;
+import gui.api.ControlPanel;
+import gui.api.GameGui;
+import gui.api.PlayMsgSender;
+import gui.api.RulePanel;
 import gui.game.GameGuiFrame;
+import gui.util.ChatPanel;
+import gui.util.DefaultRulePanel;
+import gui.util.ReadyButton;
 import gui.wait.ConfigPanel.ParentAction;
 
 import java.awt.BorderLayout;

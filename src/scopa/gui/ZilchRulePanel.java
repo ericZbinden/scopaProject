@@ -7,7 +7,7 @@ import util.PlayerName;
 import com.msg.MalformedMessageException;
 import com.msg.MsgMasterRule;
 
-import gui.RulePanel;
+import gui.api.RulePanel;
 
 public class ZilchRulePanel extends RulePanel {
 

@@ -1,9 +1,10 @@
 package gui.game;
 
 import game.GameType;
-import gui.ChatMsgSender;
-import gui.ChatPanel;
-import gui.PlayMsgSender;
+import gui.api.ChatMsgSender;
+import gui.api.GameGui;
+import gui.api.PlayMsgSender;
+import gui.util.ChatPanel;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;

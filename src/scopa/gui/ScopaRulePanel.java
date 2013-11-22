@@ -1,7 +1,7 @@
 package scopa.gui;
 
 import game.GameType;
-import gui.RulePanel;
+import gui.api.RulePanel;
 
 import java.awt.GridLayout;
 import java.awt.event.ActionListener;
