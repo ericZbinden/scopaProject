@@ -28,7 +28,7 @@ import util.PlayerName;
 import util.ReservedName;
 
 import com.msg.MsgConnect;
-import com.server.Server;
+import com.server.impl.Server;
 
 public class StartServerFrame extends JFrame implements ActionListener, KeyListener {
 	

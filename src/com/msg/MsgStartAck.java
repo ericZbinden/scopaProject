@@ -1,6 +1,6 @@
 package com.msg;
 
-import com.server.Server;
+import com.server.impl.Server;
 
 import game.GameType;
 

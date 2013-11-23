@@ -5,8 +5,8 @@ import java.util.List;
 import com.msg.MalformedMessageException;
 import com.msg.MsgMasterRule;
 import com.msg.MsgPlay;
-import com.server.IllegalInitialConditionException;
-import com.server.ServerApi;
+import com.server.api.ServerApi;
+import com.server.exceptions.IllegalInitialConditionException;
 import com.server.wait.Config;
 
 public interface Playable extends Cloneable{

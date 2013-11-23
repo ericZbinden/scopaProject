@@ -24,9 +24,9 @@ import com.msg.MalformedMessageException;
 import com.msg.MsgCaster;
 import com.msg.MsgMasterRule;
 import com.msg.MsgPlay;
-import com.server.IllegalInitialConditionException;
-import com.server.Server;
-import com.server.ServerApi;
+import com.server.api.ServerApi;
+import com.server.exceptions.IllegalInitialConditionException;
+import com.server.impl.Server;
 import com.server.wait.Config;
 
 import game.GameType;

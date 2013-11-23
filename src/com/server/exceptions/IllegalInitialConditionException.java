@@ -1,4 +1,4 @@
-package com.server;
+package com.server.exceptions;
 
 public class IllegalInitialConditionException extends Exception {
 

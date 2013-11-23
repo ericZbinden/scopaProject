@@ -18,52 +18,49 @@ import javax.swing.JSplitPane;
 import util.Logger;
 import util.PlayerName;
 
-import com.msg.MalformedMessageException;
 import com.msg.MsgChat;
 import com.msg.MsgPlay;
 
 public class GameGuiFrame extends JFrame implements GameGui {
-	
+
 	private PlayMsgSender playSender;
 	private PlayerName client;
-	
+
 	private JPanel gPanel = new JPanel();
 	private JPanel scorePanel = new JPanel();
-	private ChatPanel chatPanel ;
-	
+	private ChatPanel chatPanel;
+
 	private GamePanel gamePanel;
 
-
-
 	public GameGuiFrame(ChatMsgSender chatMsgSender) {
-		
+
 		GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 		int width = gd.getDisplayMode().getWidth();
 		int height = gd.getDisplayMode().getHeight();
-		
+
 		chatPanel = new ChatPanel(chatMsgSender);
 
 		JSplitPane split = new JSplitPane();
 		split.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
 		split.add(gPanel, JSplitPane.LEFT);
 		gPanel.setLayout(new BorderLayout());
-		
+
 		JSplitPane split2 = new JSplitPane();
 		split2.setOrientation(JSplitPane.VERTICAL_SPLIT);
 		split.add(split2, JSplitPane.RIGHT);
 		split2.add(scorePanel, JSplitPane.TOP);
 		split2.add(chatPanel, JSplitPane.BOTTOM);
-		
-		//TODO scorePanel.add(...)
-		//if(gamePanel != null){
-		//	gamePanel.add(gameType.getGamePanel());
-		//}
-			
+
+		// TODO scorePanel.add(...)
+		// if(gamePanel != null){
+		// gamePanel.add(gameType.getGamePanel());
+		// }
+
 		this.add(split);
-		this.setPreferredSize(new Dimension(width,height));
-		//this.setResizable(false);
+		this.setPreferredSize(new Dimension(width, height));
+		// this.setResizable(false);
 		this.pack();
-		//this.setVisible(true); called by WaitingFrame
+		// this.setVisible(true); called by WaitingFrame
 	}
 
 	@Override
@@ -80,11 +77,11 @@ public class GameGuiFrame extends JFrame implements GameGui {
 
 	@Override
 	public void update(MsgPlay msg) {
-		try{
-			//Protect from anything bad that could happen
+		try {
+			// Protect from anything bad that could happen
 			gamePanel.update(msg);
-		} catch (Exception e){
-			Logger.error(e.getClass().toString()+": "+e.getMessage()+"\nCaused by msg: "+msg.toString());
+		} catch (Exception e) {
+			Logger.error(e.getClass().toString() + ": " + e.getMessage() + "\nCaused by msg: " + msg.toString());
 		}
 	}
 
@@ -93,17 +90,17 @@ public class GameGuiFrame extends JFrame implements GameGui {
 		this.playSender = null;
 		this.gamePanel = null;
 		gPanel.removeAll();
-		this.setVisibleToFalse();	
+		this.setVisibleToFalse();
 	}
 
 	@Override
 	public void sendMsgPlay(MsgPlay msg) {
-		playSender.sendMsgPlay(msg);	
+		playSender.sendMsgPlay(msg);
 	}
-	
+
 	@Override
 	public void chat(MsgChat msg) {
-		chatPanel.writeIntoChat(msg.getSenderID(), msg.getText());
+		this.writeIntoChat(msg.getSenderID(), msg.getText());
 	}
 
 	@Override
@@ -113,9 +110,12 @@ public class GameGuiFrame extends JFrame implements GameGui {
 
 	@Override
 	public void setVisibleToFalse() {
-		this.setVisible(false);		
+		this.setVisible(false);
 	}
 
-
+	@Override
+	public void writeIntoChat(PlayerName sender, String txt) {
+		chatPanel.writeIntoChat(sender, txt);
+	}
 
 }

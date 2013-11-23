@@ -30,7 +30,7 @@ import com.msg.MsgConnect;
 import com.msg.MsgMasterGame;
 import com.msg.MsgReset;
 import com.msg.MsgType;
-import com.server.Server;
+import com.server.impl.Server;
 
 import util.Logger;
 import util.PlayerName;
