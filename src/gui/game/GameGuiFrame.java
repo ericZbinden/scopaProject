@@ -12,6 +12,7 @@ import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 
@@ -58,6 +59,7 @@ public class GameGuiFrame extends JFrame implements GameGui {
 
 		this.add(split);
 		this.setPreferredSize(new Dimension(width, height));
+		this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		// this.setResizable(false);
 		this.pack();
 		// this.setVisible(true); called by WaitingFrame
@@ -80,8 +82,11 @@ public class GameGuiFrame extends JFrame implements GameGui {
 		try {
 			// Protect from anything bad that could happen
 			gamePanel.update(msg);
+			gamePanel.revalidate();
+			gamePanel.repaint();
 		} catch (Exception e) {
 			Logger.error(e.getClass().toString() + ": " + e.getMessage() + "\nCaused by msg: " + msg.toString());
+			// TODO remonter l'info à l'UI
 		}
 	}
 
@@ -116,6 +121,28 @@ public class GameGuiFrame extends JFrame implements GameGui {
 	@Override
 	public void writeIntoChat(PlayerName sender, String txt) {
 		chatPanel.writeIntoChat(sender, txt);
+	}
+
+	@Override
+	public void dispose() {
+
+		int choice = JOptionPane.showConfirmDialog(this, "Game is still on, do you want to exit ?");
+		switch (choice) {
+		case JOptionPane.YES_OPTION:
+			disconnect();
+			return;
+		case JOptionPane.NO_OPTION:
+		case JOptionPane.CANCEL_OPTION:
+		default:
+			return;
+		}
+	}
+
+	@Override
+	public void disconnect() {
+		playSender.disconnect();
+		super.dispose();
+
 	}
 
 }

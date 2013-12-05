@@ -100,8 +100,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 	 * @param clientID
 	 * @param configs
 	 */
-	public WaitingFrame(Point coordinate, PlayerName clientID, Socket sock, ObjectOutputStream out, ObjectInputStream in,
-			List<Config> configs) {
+	public WaitingFrame(Point coordinate, PlayerName clientID, Socket sock, ObjectOutputStream out, ObjectInputStream in, List<Config> configs) {
 		this(coordinate, clientID, false, sock, out, in, configs);
 	}
 
@@ -130,11 +129,9 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 	/**
 	 * Build the complete frame
 	 * 
-	 * @param coordinate
-	 *            where to print the frame
-	 * @param initialConfs
-	 *            configuration of player already in the WR. Null if first
-	 *            player to join
+	 * @param coordinate where to print the frame
+	 * @param initialConfs configuration of player already in the WR. Null if
+	 *            first player to join
 	 */
 	public void build(Point coordinate, List<Config> initialConfs) {
 		this.setTitle("Scopa Project waiting server");
@@ -470,6 +467,11 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 	}
 
 	@Override
+	public void disconnect() {
+		this.dispose();
+	}
+
+	@Override
 	public void actionPerformed(ActionEvent e) {
 
 		for (ConfigPanel cp : slots.values()) {
@@ -588,8 +590,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 	 * The config panel is replaced by an emptyConfig
 	 * 
 	 * @param kicked
-	 * @param sendToSrv
-	 *            need to tell other players
+	 * @param sendToSrv need to tell other players
 	 */
 	// private void kickSlot(ConfigPanel kicked, boolean sendToSrv){
 	//

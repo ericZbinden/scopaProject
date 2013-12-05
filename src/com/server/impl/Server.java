@@ -247,6 +247,7 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 			throw new IllegalInitialConditionException(reason);
 		}
 
+		state = ServerState.playing;
 		game.start(this);
 	}
 
@@ -358,16 +359,12 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 	@Override
 	public void play(MsgPlay msg) {
 
-		if (ServerState.playing.equals(state)) {
-			try {
-				if (!game.getGameType().equals(msg.getGameType()))
-					throw new MalformedMessageException("Expected " + game.getGameType() + " game type but was: " + msg.getType());
-				game.receiveMsgPlay(msg);
-			} catch (MalformedMessageException e) {
-				// TODO Should inform player of error or just ignore ?
-			}
-		} else {
-			Logger.debug("Game not started, ignore msgPlay: " + msg.toString());
+		try {
+			if (!game.getGameType().equals(msg.getGameType()))
+				throw new MalformedMessageException("Expected " + game.getGameType() + " game type but was: " + msg.getType());
+			game.receiveMsgPlay(msg);
+		} catch (MalformedMessageException e) {
+			// TODO Should inform player of error or just ignore ?
 		}
 	}
 

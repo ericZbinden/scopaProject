@@ -13,31 +13,31 @@ import scopa.logic.ScopaCard;
 import scopa.logic.ScopaHand;
 
 public class PlayerBorderPanel extends BorderPanel implements MouseListener {
-	
-	private JPanel cards;	 //player cards
-	private ScopaGamePanel parent;
 
+	private JPanel cards; // player cards
+	private ScopaGamePanel parent;
 
 	public PlayerBorderPanel(ScopaHand hand, ScopaGamePanel parent) {
 		super(hand, BorderLayout.SOUTH);
-		this.parent=parent;
-		
+		this.parent = parent;
+
 		cards = new JPanel();
-		cards.setLayout(new GridLayout(1,3));			
+		cards.setLayout(new GridLayout(1, 3));
 
 	}
-	
+
 	@Override
-	protected void updateCardDisplay(){
+	protected void updateCardDisplay() {
 		this.revalidate();
 		this.repaint();
 	}
-	
+
 	@Override
-	public void newHand(List<ScopaCard> newCards){
+	public void newHand(List<ScopaCard> newCards) {
+
 		hand.newHand(newCards);
 		cards.removeAll();
-		for(ScopaCard card : hand.getHand()){
+		for (ScopaCard card : hand.getHand()) {
 			CardLabel clabel = new CardLabel(card);
 			clabel.addMouseListener(this);
 			clabel.setTransferHandler(new ScopaCardTransfertHandler(parent));
@@ -48,32 +48,32 @@ public class PlayerBorderPanel extends BorderPanel implements MouseListener {
 	}
 
 	@Override
-	public void mouseClicked(MouseEvent arg0) {	
-		//Nothing
+	public void mouseClicked(MouseEvent arg0) {
+		// Nothing
 	}
 
 	@Override
-	public void mouseEntered(MouseEvent arg0) {		
-		//Nothing
+	public void mouseEntered(MouseEvent arg0) {
+		// Nothing
 	}
 
 	@Override
 	public void mouseExited(MouseEvent arg0) {
-		//Nothing
+		// Nothing
 	}
 
 	@Override
 	public void mousePressed(MouseEvent arg0) {
 		Object src = arg0.getSource();
-		if(src instanceof CardLabel){
+		if (src instanceof CardLabel) {
 			CardLabel source = (CardLabel) src;
 			source.getTransferHandler().exportAsDrag(source, arg0, TransferHandler.MOVE);
-		} 		
+		}
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent arg0) {
-		//Nothing
+		// Nothing
 	}
 
 }
