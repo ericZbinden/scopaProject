@@ -24,6 +24,8 @@ import com.msg.MsgPlay;
 
 public class GameGuiFrame extends JFrame implements GameGui {
 
+	private final String TITLE = "ScopaProject";
+
 	private PlayMsgSender playSender;
 	private PlayerName client;
 
@@ -61,7 +63,7 @@ public class GameGuiFrame extends JFrame implements GameGui {
 		this.setPreferredSize(new Dimension(width, height));
 		this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		// this.setResizable(false);
-		this.pack();
+		this.setTitle(TITLE);
 		// this.setVisible(true); called by WaitingFrame
 	}
 
@@ -69,11 +71,13 @@ public class GameGuiFrame extends JFrame implements GameGui {
 	public void start(PlayerName client, GameType gameType, PlayMsgSender playSender) {
 		this.client = client;
 		this.playSender = playSender;
+		this.setTitle(TITLE + ": " + gameType.toString());
 		gamePanel = gameType.getGamePanel();
 		gamePanel.setGameGui(this);
 		gPanel.removeAll();
 		gPanel.add(gamePanel, BorderLayout.CENTER);
 		gPanel.revalidate();
+		this.pack();
 		this.setVisible(true);
 	}
 
@@ -83,7 +87,9 @@ public class GameGuiFrame extends JFrame implements GameGui {
 			// Protect from anything bad that could happen
 			gamePanel.update(msg);
 			gamePanel.revalidate();
-			gamePanel.repaint();
+			// gamePanel.repaint();
+			// this.pack();
+			this.revalidate();
 		} catch (Exception e) {
 			Logger.error(e.getClass().toString() + ": " + e.getMessage() + "\nCaused by msg: " + msg.toString());
 			// TODO remonter l'info à l'UI
@@ -126,6 +132,7 @@ public class GameGuiFrame extends JFrame implements GameGui {
 	@Override
 	public void dispose() {
 
+		// TODO if game is finished, do not ask confirmation and exit
 		int choice = JOptionPane.showConfirmDialog(this, "Game is still on, do you want to exit ?");
 		switch (choice) {
 		case JOptionPane.YES_OPTION:

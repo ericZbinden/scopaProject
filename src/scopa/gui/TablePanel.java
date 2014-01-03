@@ -2,7 +2,6 @@ package scopa.gui;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -10,7 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.swing.JPanel;
 
@@ -34,10 +32,25 @@ public class TablePanel extends JPanel implements MouseListener, ScopaTable {
 		cards = new HashMap<>();
 		biggerThan11 = false;
 		emptyToAdd = 12;
+		fillEmptyPanels();
+
 		table = ScopaFactory.getNewScopaTable();
 
 		this.setLayout(defaultLayout);
-		this.setBackground(Color.GREEN);
+		this.setBackground(Color.MAGENTA);
+	}
+
+	private void fillEmptyPanels() {
+		if (emptyToAdd < 0) {
+			removeEmptyPanel(0 - emptyToAdd);
+		} else if (emptyToAdd > 0) {
+			do {
+				CardLabel ecl = new CardLabel(null);
+				// ecl.addMouseListener(this);
+				this.add(ecl);
+				emptyToAdd--;
+			} while (emptyToAdd != 0);
+		}
 	}
 
 	/* ------------- GUI METHODS ----------- */
@@ -55,16 +68,16 @@ public class TablePanel extends JPanel implements MouseListener, ScopaTable {
 		}
 	}
 
-	private void removeCardsFromGui(Set<ScopaCard> cards) {
+	private void removeCardsFromGui(List<ScopaCard> cards) {
 		for (ScopaCard card : cards) {
 			removeCardFromGui(card);
 		}
+		fillEmptyPanels();
+		this.invalidate();
 	}
 
 	private void removeAllCardsFromGui() {
-		Set<ScopaCard> allCardsOnTable = cards.keySet();
-		this.removeCardsFromGui(allCardsOnTable);
-		this.invalidate();
+		this.removeCardsFromGui(new ArrayList<ScopaCard>(cards.keySet()));
 	}
 
 	private void removeEmptyPanel(int nb) {
@@ -87,7 +100,7 @@ public class TablePanel extends JPanel implements MouseListener, ScopaTable {
 		Logger.error("Unable to remove enough emptyPanel. Left: " + nb);
 	}
 
-	private void addCardToGui(ScopaCard card) {
+	private void addCardToGui(ScopaCard card, boolean removeBlank) {
 		CardLabel cLabel = new CardLabel(card);
 		cLabel.addMouseListener(this);
 		cards.put(card, cLabel);
@@ -99,13 +112,20 @@ public class TablePanel extends JPanel implements MouseListener, ScopaTable {
 
 		this.add(cLabel/* ,size */); // TODO insérer before blank
 		emptyToAdd--;
+
+		if (removeBlank) {
+			removeEmptyPanel(1);
+		}
+
 		this.invalidate();
 	}
 
 	private void addCardsToGui(List<ScopaCard> cards) {
 		for (ScopaCard card : cards) {
-			addCardToGui(card);
+			addCardToGui(card, false);
 		}
+		removeEmptyPanel(cards.size());
+		this.invalidate();
 	}
 
 	public List<ScopaCard> getSelectedCards() {
@@ -119,8 +139,10 @@ public class TablePanel extends JPanel implements MouseListener, ScopaTable {
 	}
 
 	public void addAndRemoveCardsFromGui(ScopaCard playedCard, List<ScopaCard> takenCards) {
-		if (takenCards.isEmpty()) {
-			this.addCardToGui(playedCard);
+		if (takenCards == null)
+			return;
+		else if (takenCards.isEmpty()) {
+			this.addCardToGui(playedCard, true);
 		} else {
 			for (ScopaCard card : takenCards) {
 				if (!card.equals(playedCard)) {
@@ -183,22 +205,6 @@ public class TablePanel extends JPanel implements MouseListener, ScopaTable {
 	@Override
 	public List<ScopaCard> cardsOnTable() {
 		return table.cardsOnTable();
-	}
-
-	@Override
-	public void paint(Graphics g) {
-		if (emptyToAdd < 0) {
-			removeEmptyPanel(0 - emptyToAdd);
-		} else if (emptyToAdd > 0) {
-			do {
-				CardLabel ecl = new CardLabel(null);
-				ecl.addMouseListener(this);
-
-				this.add(ecl);
-				emptyToAdd--;
-			} while (emptyToAdd != 0);
-		}
-		super.paint(g);
 	}
 
 	@Override

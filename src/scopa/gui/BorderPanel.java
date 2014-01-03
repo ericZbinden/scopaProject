@@ -19,29 +19,32 @@ import util.Logger;
 import util.PlayerName;
 
 public class BorderPanel extends JPanel {
-	
-	protected String borderLayoutProperty; //region du board
-	protected ScopaHand hand; //the player hand
-	
+
+	protected String borderLayoutProperty; // region du board
+	protected ScopaHand hand; // the player hand
+
 	protected JLabel playerName;
-	private JLabel guiCards; //other player cards image
-	
-	public BorderPanel(String borderLayoutProperty){
-		this((ScopaHand)new EmptyHand(),borderLayoutProperty);
+	private JLabel guiCards; // other player cards image
+	private int nbCards = 0;
+
+	public BorderPanel(String borderLayoutProperty) {
+		this(new EmptyHand(), borderLayoutProperty);
 	}
-	
-	public BorderPanel(PlayerName otherPlayer, int team, String borderLayoutProperty){
-		this((ScopaHand)new OffuscatedHand(otherPlayer,team), borderLayoutProperty);
+
+	public BorderPanel(PlayerName otherPlayer, int team, String borderLayoutProperty) {
+		this(new OffuscatedHand(otherPlayer, team), borderLayoutProperty);
 	}
-	
-	public BorderPanel(ScopaHand hand, String borderLayoutProperty){
+
+	public BorderPanel(ScopaHand hand, String borderLayoutProperty) {
 		this.hand = hand;
 		this.borderLayoutProperty = borderLayoutProperty;
 
-		switch(borderLayoutProperty){
+		switch (borderLayoutProperty) {
 		case BorderLayout.NORTH:
 			this.setBackground(Color.blue);
-			this.setPreferredSize(new Dimension(400, 200)); //TODO handle resizable dimension
+			this.setPreferredSize(new Dimension(400, 200)); // TODO handle
+															// resizable
+															// dimension
 			break;
 		case BorderLayout.SOUTH:
 			this.setBackground(Color.GREEN);
@@ -56,63 +59,71 @@ public class BorderPanel extends JPanel {
 			this.setPreferredSize(new Dimension(200, 400));
 			break;
 		default:
-			throw new IllegalArgumentException("BorderLayoutProperty should be BorderLayout.[NORTH/EAST/SOUTH/WEST], but was: "+borderLayoutProperty);
+			throw new IllegalArgumentException("BorderLayoutProperty should be BorderLayout.[NORTH/EAST/SOUTH/WEST], but was: "
+					+ borderLayoutProperty);
 		}
 		this.setMinimumSize(this.getPreferredSize());
 		this.setMaximumSize(this.getPreferredSize());
-		
-		Box panel = new Box(BoxLayout.X_AXIS);
-		
-		playerName = new JLabel();
-		//playerName.setPreferredSize(new Dimension(200,50));
-		panel.add(playerName);
 
-		if(!borderLayoutProperty.equals(BorderLayout.SOUTH)){
-			this.guiCards= new JLabel();
-			guiCards.setPreferredSize(new Dimension(157,97));
-			panel.add(guiCards);
-		}		
-		
-		this.add(panel);
+		Box panel = new Box(BoxLayout.X_AXIS);
+
+		playerName = new JLabel();
+		guiCards = new JLabel();
+		// playerName.setPreferredSize(new Dimension(200,50));
+		panel.add(playerName);
+		panel.add(guiCards);
+
+		// if (!borderLayoutProperty.equals(BorderLayout.SOUTH)) {
+		// this.guiCards = new JLabel();
+		// guiCards.setPreferredSize(new Dimension(157, 97));
+		// panel.add(guiCards);
+		// }
+
+		this.add(panel, BorderLayout.CENTER);
 	}
-	
-	public void setHand(ScopaHand hand){
-		this.hand=hand;
-		playerName = new JLabel("    "+hand.getPlayer());
+
+	public void setHand(ScopaHand hand) {
+		this.hand = hand;
+		playerName.setText("    " + hand.getPlayerName());
 		playerName.revalidate();
-		updateCardDisplay();
+		displayInGuiNewHand();
 	}
-	
-	public PlayerName getPlayerName(){
-		return hand.getPlayer();
+
+	public PlayerName getPlayerName() {
+		return hand.getPlayerName();
 	}
-	
-	public void newHand(List<ScopaCard> newCards){
-		
+
+	public void newHand(List<ScopaCard> newCards) {
+
 		hand.newHand(newCards);
-		this.updateCardDisplay();
-	}	
-	
-	public boolean playCard(ScopaCard playedCard){
+		this.displayInGuiNewHand();
+	}
+
+	public boolean playCard(ScopaCard playedCard) {
 		boolean ok = hand.playCard(playedCard);
-		if(!ok){
-			Logger.error("Unable to play card "+playedCard.toString());
+		if (!ok) {
+			Logger.error("Unable to play card " + playedCard.toString());
 			return ok;
 		}
-		
-		this.updateCardDisplay();
+
+		removeCard();
 		return ok;
 	}
-	
-	protected void updateCardDisplay(){
-		
-		if (hand instanceof EmptyHand){
-			guiCards.removeAll();
-		} else if (hand instanceof OffuscatedHand){
-			guiCards.setIcon(new ImageIcon("resources/img/gui/carte"+hand.getNumberCardInHand()+".png"));
+
+	protected void displayInGuiNewHand() {
+		if (hand instanceof OffuscatedHand) {
+			nbCards = 3;
+			guiCards.setIcon(new ImageIcon("resources/img/gui/carte" + nbCards + ".png"));
 			guiCards.revalidate();
-			this.repaint();			
-		} 
+		}
 	}
-	
+
+	protected void removeCard() {
+		if (hand instanceof OffuscatedHand) {
+			nbCards--;
+			guiCards.setIcon(new ImageIcon("resources/img/gui/carte" + nbCards + ".png"));
+			guiCards.revalidate();
+		}
+	}
+
 }
