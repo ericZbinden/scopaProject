@@ -35,7 +35,7 @@ public class ScopaCard implements Serializable {
 		return ScopaValue.smaller(value, card.getValue());
 	}
 	
-	public boolean isEqual(ScopaCard card){
+	public boolean isEqualInValue(ScopaCard card){
 		return ScopaValue.isEqual(value, card.getValue());
 	}
 	

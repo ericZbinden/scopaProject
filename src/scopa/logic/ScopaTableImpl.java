@@ -19,7 +19,7 @@ public class ScopaTableImpl extends ArrayList<ScopaCard> implements ScopaTable {
 
 	@Override
 	public List<ScopaCard> putCard(ScopaCard card, List<ScopaCard> cards) {
-		List<ArrayList<ScopaCard>> takes = allPossibleTakeWith(card);
+		List<List<ScopaCard>> takes = allPossibleTakeWith(card);
 
 		if (cards == null) {
 			cards = Arrays.asList(); // avoid null
@@ -30,7 +30,7 @@ public class ScopaTableImpl extends ArrayList<ScopaCard> implements ScopaTable {
 			return new ArrayList<ScopaCard>();
 		}
 
-		for (ArrayList<ScopaCard> t : takes) {
+		for (List<ScopaCard> t : takes) {
 			if (t.size() == cards.size() && t.containsAll(cards)) {
 				this.removeAll(t);
 				t.add(card);
@@ -46,7 +46,7 @@ public class ScopaTableImpl extends ArrayList<ScopaCard> implements ScopaTable {
 		int king = 0;
 		for (ScopaCard c : cards) {
 			value += ScopaValue.val(c);
-			if (c.getValue().equals(ScopaValue.king)) {
+			if (ScopaValue.king.equals(c.getValue())) {
 				king++;
 			}
 		}
@@ -74,40 +74,39 @@ public class ScopaTableImpl extends ArrayList<ScopaCard> implements ScopaTable {
 	}
 
 	@Override
-	public List<ArrayList<ScopaCard>> allPossibleTakeWith(ScopaCard card) {
-
-		List<ArrayList<ScopaCard>> constructPossible = new ArrayList<ArrayList<ScopaCard>>();
-		boolean onlyOne = containsSameValueThan(card);
+	public List<List<ScopaCard>> allPossibleTakeWith(ScopaCard card) {
+		int cardValue = ScopaValue.val(card);
+		List<ScopaSum> constructPossible = new ArrayList<>();
+		boolean sameValue = containsSameValueThan(card);
 
 		for (ScopaCard c : this) {
-			if (c.isEqual(card)) {
-				ArrayList<ScopaCard> one = new ArrayList<ScopaCard>();
-				one.add(card);
-				constructPossible.add(one);
-			} else if (c.isSmaller(card) && !onlyOne) {
-				ArrayList<ScopaCard> one = new ArrayList<ScopaCard>();
-				one.add(card);
-				for (ArrayList<ScopaCard> cards : constructPossible) {
-					int sum = 0;
-					for (ScopaCard c2 : cards) {
-						sum += ScopaValue.val(c2);
-					}
-					if (sum == ScopaValue.val(card) || sum < ScopaValue.val(card)) {
-						cards.add(card);
+
+			if (c.isEqualInValue(card)) {
+				constructPossible.add(new ScopaSum(Arrays.asList(c)));
+
+			} else if (c.isSmaller(card) && !sameValue) {
+				int cValue = ScopaValue.val(c);
+				List<ScopaSum> newSums = new ArrayList<>();
+
+				for (ScopaSum sum : constructPossible) {
+					int total = sum.getSum() + cValue;
+					if (total <= cardValue) {
+						ScopaSum newSum = new ScopaSum(sum);
+						newSum.addCard(c);
+						newSums.add(newSum);
 					}
 				}
-				constructPossible.add(one);
+				ScopaSum newCurrent = new ScopaSum();
+				newCurrent.addCard(c);
+				newSums.add(newCurrent);
+				constructPossible.addAll(newSums);
 			}
 		}
 
-		List<ArrayList<ScopaCard>> possible = new ArrayList<ArrayList<ScopaCard>>();
-		for (ArrayList<ScopaCard> cards : constructPossible) {
-			int sum = 0;
-			for (ScopaCard c2 : cards) {
-				sum += ScopaValue.val(c2);
-			}
-			if (sum == ScopaValue.val(card)) {
-				possible.add(cards);
+		List<List<ScopaCard>> possible = new ArrayList<>();
+		for (ScopaSum sum : constructPossible) {
+			if (sum.getSum() == cardValue) {
+				possible.add(sum.getCardList());
 			}
 		}
 
@@ -116,7 +115,7 @@ public class ScopaTableImpl extends ArrayList<ScopaCard> implements ScopaTable {
 
 	private boolean containsSameValueThan(ScopaCard card) {
 		for (ScopaCard c : this) {
-			if (c.getValue() == card.getValue())
+			if (c.isEqualInValue(card))
 				return true;
 		}
 		return false;

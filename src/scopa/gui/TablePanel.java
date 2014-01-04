@@ -198,7 +198,7 @@ public class TablePanel extends JPanel implements MouseListener, ScopaTable {
 	/* ------------- OTHERS ----------- */
 
 	@Override
-	public List<ArrayList<ScopaCard>> allPossibleTakeWith(ScopaCard card) {
+	public List<List<ScopaCard>> allPossibleTakeWith(ScopaCard card) {
 		return table.allPossibleTakeWith(card);
 	}
 

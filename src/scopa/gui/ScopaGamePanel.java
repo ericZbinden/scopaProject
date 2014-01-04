@@ -170,6 +170,18 @@ public class ScopaGamePanel extends GamePanel {
 		return table.getSelectedCards();
 	}
 
+	public List<List<ScopaCard>> allPossibleTakeWith(ScopaCard card) {
+		return table.allPossibleTakeWith(card);
+	}
+
+	public PlayerName getNextPlayerToPlay() {
+		return nextPlayer;
+	}
+
+	public boolean isLocalClientNextPlayer() {
+		return south.getPlayerName().equals(nextPlayer);
+	}
+
 	public boolean play(ScopaCard playedCard, List<ScopaCard> taken) {
 		List<ScopaCard> cards = table.putCard(playedCard, taken);
 

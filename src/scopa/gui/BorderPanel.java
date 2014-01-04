@@ -69,7 +69,11 @@ public class BorderPanel extends JPanel {
 
 		playerName = new JLabel();
 		guiCards = new JLabel();
-		// playerName.setPreferredSize(new Dimension(200,50));
+		playerName.setPreferredSize(new Dimension(200, 50));
+		playerName.setBackground(Color.white);
+		guiCards.setPreferredSize(new Dimension(154, 100));
+		guiCards.setBackground(Color.black);
+		panel.setPreferredSize(new Dimension(354, 150));
 		panel.add(playerName);
 		panel.add(guiCards);
 

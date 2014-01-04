@@ -20,7 +20,11 @@ public abstract class MsgScopa extends MsgPlay {
 	protected MsgScopa(ScopaMsgType scopaType, PlayerName nextPlayer, PlayerName senderID, PlayerName receiverID) {
 		super(GameType.SCOPA, senderID, receiverID);
 		this.scopaType = scopaType;
-		this.nextPlayerToPlay = nextPlayer.getName();
+		if (nextPlayer != null) {
+			this.nextPlayerToPlay = nextPlayer.getName();
+		} else {
+			this.nextPlayerToPlay = null;
+		}
 	}
 
 	public ScopaMsgType getScopaType() {
@@ -33,6 +37,9 @@ public abstract class MsgScopa extends MsgPlay {
 	}
 
 	public PlayerName nextPlayerToPlayIs() {
+		if (nextPlayerToPlay == null)
+			return null;
+
 		return new PlayerName(nextPlayerToPlay);
 	}
 

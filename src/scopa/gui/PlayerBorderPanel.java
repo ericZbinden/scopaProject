@@ -77,18 +77,42 @@ public class PlayerBorderPanel extends BorderPanel implements MouseListener {
 		displayInGuiNewHand();
 	}
 
+	private void tryPlay(ScopaCard playedCard, List<ScopaCard> selectedOnTable) {
+		if (parent.play(playedCard, selectedOnTable)) {
+			playCard(playedCard);
+		} else {
+			parent.showWarningToPlayer("Invalid move");
+		}
+	}
+
+	public boolean isLocalClientNextPlayer() {
+		return parent.getNextPlayerToPlay().equals(this.getPlayerName());
+	}
+
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
+
+		if (!isLocalClientNextPlayer()) {
+			Logger.debug("Not your time to play dear " + getPlayerName());
+			return;
+		}
+
 		Object src = arg0.getSource();
 		if (src instanceof CardLabel) {
 			CardLabel source = (CardLabel) src;
+			ScopaCard playedCard = source.getCard();
 
 			List<ScopaCard> selectedOnTable = parent.getSelectedCardsOnTable();
 
-			if (parent.play(source.getCard(), selectedOnTable)) {
-				playCard(source.getCard());
+			if (selectedOnTable.isEmpty()) {
+				List<List<ScopaCard>> possibleOutcome = parent.allPossibleTakeWith(playedCard);
+				if (possibleOutcome.size() == 1) {
+					tryPlay(playedCard, possibleOutcome.get(0));
+				} else {
+					parent.showWarningToPlayer("Multiple choice, please select one.");
+				}
 			} else {
-				parent.showWarningToPlayer("Invalid move");
+				tryPlay(playedCard, selectedOnTable);
 			}
 
 		}

@@ -331,6 +331,7 @@ public class ScopaGame implements Playable {
 
 	@Override
 	public void receiveMsgPlay(MsgPlay msg) throws MalformedMessageException {
+
 		if (!this.getGameType().equals(msg.getGameType()))
 			throw new MalformedMessageException("Expected " + this.getGameType() + " game type but was: " + msg.getGameType());
 
@@ -341,7 +342,11 @@ public class ScopaGame implements Playable {
 
 			MsgScopaPlay msgPlay = MsgCaster.castMsg(MsgScopaPlay.class, msgScopa);
 			PlayerName sender = msgPlay.getSenderID();
-			if (play(sender, msgPlay.getPlayed(), msgPlay.getTaken())) {
+
+			if (!sender.equals(this.getNextPlayer())) {
+				Logger.debug("Player " + sender + " tried to play at " + this.getNextPlayer() + " turn. Ignoring this msg");
+				api.sendMsgTo(sender, new MsgScopaNack(this.getNextPlayer()));
+			} else if (play(sender, msgPlay.getPlayed(), msgPlay.getTaken())) {
 				PlayerName nextPlayer = this.getNextPlayer();
 				api.sendMsgTo(sender, new MsgScopaAck(nextPlayer));
 				api.sendMsgToAllExcept(sender, new MsgScopaPlay(sender, msgPlay.getPlayed(), msgPlay.getTaken(), nextPlayer));
@@ -368,7 +373,7 @@ public class ScopaGame implements Playable {
 				this.closeGameDueToError("Unauthorized play: " + msgPlay.toString() + "\nwhile on table: "
 						+ Arrays.toString(table.cardsOnTable().toArray()));
 			} else {
-				Logger.debug("Player " + sender + " tried to play at " + this.getNextPlayer() + " turn. Ignoring this msg");
+				Logger.debug("Invalid play, ignoring this msg");
 				api.sendMsgTo(sender, new MsgScopaNack(this.getNextPlayer()));
 			}
 			break;
