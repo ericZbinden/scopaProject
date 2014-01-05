@@ -187,4 +187,9 @@ public class ScopaHandImpl implements ScopaHand {
 		return player;
 	}
 
+	@Override
+	public boolean isOffuscated() {
+		return false;
+	}
+
 }

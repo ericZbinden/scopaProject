@@ -1,5 +1,5 @@
 package scopa.logic;
 
 public enum ScopaColor {
-gold,stick,sword,cup
+	gold, stick, sword, cup, offuscated
 }

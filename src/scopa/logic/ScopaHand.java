@@ -20,4 +20,6 @@ public interface ScopaHand {
 
 	public void addCardsToHeap(List<ScopaCard> taken);
 
+	public boolean isOffuscated();
+
 }

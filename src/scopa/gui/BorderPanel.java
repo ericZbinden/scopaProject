@@ -1,13 +1,10 @@
 package scopa.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.util.List;
 
-import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -20,77 +17,74 @@ import util.PlayerName;
 
 public class BorderPanel extends JPanel {
 
-	protected String borderLayoutProperty; // region du board
-	protected ScopaHand hand; // the player hand
-
-	protected JLabel playerName;
-	private JLabel guiCards; // other player cards image
-	private int nbCards = 0;
-
-	public BorderPanel(String borderLayoutProperty) {
-		this(new EmptyHand(), borderLayoutProperty);
-	}
+	private String borderLayoutProperty; // region du board
+	private ScopaHand hand;
+	private JLabel playerName;
 
 	public BorderPanel(PlayerName otherPlayer, int team, String borderLayoutProperty) {
 		this(new OffuscatedHand(otherPlayer, team), borderLayoutProperty);
 	}
 
-	public BorderPanel(ScopaHand hand, String borderLayoutProperty) {
-		this.hand = hand;
+	/**
+	 * Default constructor for default properties
+	 * @param hand
+	 * @param borderLayoutProperty
+	 */
+	private BorderPanel(String borderLayoutProperty) {
 		this.borderLayoutProperty = borderLayoutProperty;
 
 		switch (borderLayoutProperty) {
 		case BorderLayout.NORTH:
-			this.setBackground(Color.blue);
-			this.setPreferredSize(new Dimension(400, 200)); // TODO handle
-															// resizable
-															// dimension
-			break;
-		case BorderLayout.SOUTH:
-			this.setBackground(Color.GREEN);
 			this.setPreferredSize(new Dimension(400, 200));
 			break;
 		case BorderLayout.EAST:
-			this.setBackground(Color.RED);
 			this.setPreferredSize(new Dimension(200, 400));
 			break;
 		case BorderLayout.WEST:
-			this.setBackground(Color.cyan);
 			this.setPreferredSize(new Dimension(200, 400));
 			break;
 		default:
-			throw new IllegalArgumentException("BorderLayoutProperty should be BorderLayout.[NORTH/EAST/SOUTH/WEST], but was: "
-					+ borderLayoutProperty);
+			throw new IllegalArgumentException("BorderLayoutProperty should be BorderLayout.[NORTH/EAST/WEST], but was: " + borderLayoutProperty);
 		}
-		this.setMinimumSize(this.getPreferredSize());
-		this.setMaximumSize(this.getPreferredSize());
 
-		Box panel = new Box(BoxLayout.X_AXIS);
-
-		playerName = new JLabel();
-		guiCards = new JLabel();
-		playerName.setPreferredSize(new Dimension(200, 50));
-		playerName.setBackground(Color.white);
-		guiCards.setPreferredSize(new Dimension(154, 100));
-		guiCards.setBackground(Color.black);
-		panel.setPreferredSize(new Dimension(354, 150));
-		panel.add(playerName);
-		panel.add(guiCards);
-
-		// if (!borderLayoutProperty.equals(BorderLayout.SOUTH)) {
-		// this.guiCards = new JLabel();
-		// guiCards.setPreferredSize(new Dimension(157, 97));
-		// panel.add(guiCards);
-		// }
-
-		this.add(panel, BorderLayout.CENTER);
+		this.setBackground(ScopaGuiConstant.backgroundColor);
 	}
 
-	public void setHand(ScopaHand hand) {
+	/**
+	 * Empty border panel
+	 * @param hand
+	 * @param borderLayoutProperty
+	 */
+	public BorderPanel(EmptyHand hand, String borderLayoutProperty) {
+		this(borderLayoutProperty);
 		this.hand = hand;
-		playerName.setText("    " + hand.getPlayerName());
-		playerName.revalidate();
-		displayInGuiNewHand();
+	}
+
+	/**
+	 * Default public constructor with an offuscated hand
+	 * @param hand
+	 * @param borderLayoutProperty
+	 */
+	public BorderPanel(OffuscatedHand hand, String borderLayoutProperty) {
+		this(borderLayoutProperty);
+
+		if (BorderLayout.NORTH.equals(this.borderLayoutProperty)) {
+			this.hand = new ScopaHandPanel(hand, ScopaHandPanel.Orientation.horizontal);
+		} else {
+			this.hand = new ScopaHandPanel(hand, ScopaHandPanel.Orientation.vertical);
+		}
+
+		playerName = new JLabel(hand.getPlayerName().getName());
+
+		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+
+		if (BorderLayout.NORTH.equals(this.borderLayoutProperty)) {
+			this.add((ScopaHandPanel) this.hand);
+			this.add(playerName);
+		} else {
+			this.add(playerName);
+			this.add((ScopaHandPanel) this.hand);
+		}
 	}
 
 	public PlayerName getPlayerName() {
@@ -98,36 +92,16 @@ public class BorderPanel extends JPanel {
 	}
 
 	public void newHand(List<ScopaCard> newCards) {
-
 		hand.newHand(newCards);
-		this.displayInGuiNewHand();
+		this.revalidate();
 	}
 
 	public boolean playCard(ScopaCard playedCard) {
 		boolean ok = hand.playCard(playedCard);
 		if (!ok) {
 			Logger.error("Unable to play card " + playedCard.toString());
-			return ok;
 		}
-
-		removeCard();
 		return ok;
-	}
-
-	protected void displayInGuiNewHand() {
-		if (hand instanceof OffuscatedHand) {
-			nbCards = 3;
-			guiCards.setIcon(new ImageIcon("resources/img/gui/carte" + nbCards + ".png"));
-			guiCards.revalidate();
-		}
-	}
-
-	protected void removeCard() {
-		if (hand instanceof OffuscatedHand) {
-			nbCards--;
-			guiCards.setIcon(new ImageIcon("resources/img/gui/carte" + nbCards + ".png"));
-			guiCards.revalidate();
-		}
 	}
 
 }

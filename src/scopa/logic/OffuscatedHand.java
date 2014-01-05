@@ -1,6 +1,6 @@
 package scopa.logic;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 import util.PlayerName;
@@ -15,13 +15,19 @@ public class OffuscatedHand implements ScopaHand {
 	public OffuscatedHand(PlayerName playerName, int team) {
 		this.playerName = playerName;
 		this.team = team;
-		nbCards = 0;
+		nbCards = 3;
 		cardsTaken = 0;
 	}
 
 	@Override
 	public List<ScopaCard> getHand() {
-		return Arrays.asList();
+
+		List<ScopaCard> cards = new ArrayList<>(nbCards);
+
+		for (int i = 1; i <= nbCards; i++) {
+			cards.add(new OffuscatedScopaCard());
+		}
+		return cards;
 	}
 
 	@Override
@@ -53,5 +59,10 @@ public class OffuscatedHand implements ScopaHand {
 	@Override
 	public void addCardsToHeap(List<ScopaCard> taken) {
 		cardsTaken += taken.size();
+	}
+
+	@Override
+	public boolean isOffuscated() {
+		return true;
 	}
 }

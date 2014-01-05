@@ -55,18 +55,18 @@ public boolean canImport(JComponent c, DataFlavor[] flavors) {
   
   /** If c instance of TablePanel return true else return false */
   private boolean canImportOn(JComponent c){
-	  return (c instanceof TablePanel) || (c instanceof CardLabel && c.getParent() instanceof TablePanel);
+	  return (c instanceof ScopaTablePanel) || (c instanceof CardLabel && c.getParent() instanceof ScopaTablePanel);
   }
 
   @Override
   public boolean importData(JComponent c, Transferable t) {
       if (canImport(c,t.getTransferDataFlavors())) {
           try {
-        	  TablePanel table;
-        	  if(c instanceof TablePanel){
-        		  table = (TablePanel) c;  
-        	  } else if (c.getParent() instanceof TablePanel){
-        		  table = (TablePanel) c.getParent();
+        	  ScopaTablePanel table;
+        	  if(c instanceof ScopaTablePanel){
+        		  table = (ScopaTablePanel) c;  
+        	  } else if (c.getParent() instanceof ScopaTablePanel){
+        		  table = (ScopaTablePanel) c.getParent();
         	  } else {
         		  return false;
         	  }

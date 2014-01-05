@@ -54,4 +54,9 @@ public class EmptyHand implements ScopaHand {
 		// Do nothing
 	}
 
+	@Override
+	public boolean isOffuscated() {
+		return false;
+	}
+
 }

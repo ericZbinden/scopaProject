@@ -12,6 +12,8 @@ import scopa.com.MsgBaseConf;
 import scopa.com.MsgScopa;
 import scopa.com.MsgScopaHand;
 import scopa.com.MsgScopaPlay;
+import scopa.logic.EmptyHand;
+import scopa.logic.OffuscatedScopaCard;
 import scopa.logic.ScopaCard;
 import scopa.logic.ScopaGame;
 import scopa.logic.ScopaHand;
@@ -30,11 +32,11 @@ public class ScopaGamePanel extends GamePanel {
 
 	private PlayerName nextPlayer;
 
-	private BorderPanel south;
+	private PlayerBorderPanel south;
 	private BorderPanel west;
 	private BorderPanel east;
 	private BorderPanel north;
-	private TablePanel table;
+	private ScopaTablePanel table;
 
 	public ScopaGamePanel() {
 		// logic
@@ -54,12 +56,26 @@ public class ScopaGamePanel extends GamePanel {
 		this.setPreferredSize(minSize);
 		this.setMinimumSize(this.getPreferredSize());
 		this.setLayout(new BorderLayout());
-		// TODO retrieve correct team
+
+		// TODO retrieve correct team (if needed)
 		this.south = new PlayerBorderPanel(playerHand, this);
-		this.west = new BorderPanel(westPlayer, 0, BorderLayout.WEST);
-		this.east = new BorderPanel(eastPlayer, 0, BorderLayout.EAST);
-		this.north = new BorderPanel(northPlayer, 0, BorderLayout.NORTH);
-		this.table = new TablePanel();
+		if (eastPlayer == null) {
+			this.east = new BorderPanel(new EmptyHand(), BorderLayout.EAST);
+		} else {
+			this.east = new BorderPanel(eastPlayer, 0, BorderLayout.EAST);
+		}
+		if (westPlayer == null) {
+			this.west = new BorderPanel(new EmptyHand(), BorderLayout.WEST);
+		} else {
+			this.west = new BorderPanel(westPlayer, 0, BorderLayout.WEST);
+		}
+		if (northPlayer == null) {
+			this.north = new BorderPanel(new EmptyHand(), BorderLayout.NORTH);
+		} else {
+			this.north = new BorderPanel(northPlayer, 0, BorderLayout.NORTH);
+		}
+
+		this.table = new ScopaTablePanel();
 
 		this.add(south, BorderLayout.SOUTH);
 		this.add(west, BorderLayout.WEST);
@@ -82,15 +98,15 @@ public class ScopaGamePanel extends GamePanel {
 	}
 
 	public void northPlay() {
-		north.playCard(null);
+		north.playCard(new OffuscatedScopaCard());
 	}
 
 	public void eastPlay() {
-		east.playCard(null);
+		east.playCard(new OffuscatedScopaCard());
 	}
 
 	public void westPlay() {
-		west.playCard(null);
+		west.playCard(new OffuscatedScopaCard());
 	}
 
 	public void dudePlay(PlayerName name) {
@@ -151,6 +167,9 @@ public class ScopaGamePanel extends GamePanel {
 				// msgScopa);
 				// Nothing todo
 				break;
+			case nack:
+				this.showWarningToPlayer("The server refused your last play");
+				break;
 			default:
 				Logger.debug("Unknown scopa type: " + msgScopa.getScopaType() + ", ignoring it.");
 			}
@@ -206,10 +225,11 @@ public class ScopaGamePanel extends GamePanel {
 		ScopaGamePanel sgp = new ScopaGamePanel();
 
 		if (built) {
-			sgp.build(south.hand, east.getPlayerName(), north.getPlayerName(), west.getPlayerName());
-			// FIXME does not take into account "other player" hands
-			sgp.table.putCards(table.cardsOnTable());
-			sgp.nextPlayer = new PlayerName(nextPlayer.getName());
+			// FIXME does not clone properly
+			// sgp.build(south.getHand(), east.getPlayerName(),
+			// north.getPlayerName(), west.getPlayerName());
+			// sgp.table.putCards(table.cardsOnTable());
+			// sgp.nextPlayer = new PlayerName(nextPlayer.getName());
 		}
 
 		return sgp;

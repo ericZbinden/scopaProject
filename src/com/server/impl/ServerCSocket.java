@@ -157,7 +157,7 @@ public class ServerCSocket implements Runnable {
 				start(MsgCaster.castMsg(MsgStart.class, prequest));
 				break;
 			default:
-				Logger.debug("Unknown msg type: " + type + ". Packet is ignored.");
+				Logger.debug("Unknown msg type: " + type + ". Packet is ignored.\n\t" + prequest.toString());
 			}
 
 		} catch (MalformedMessageException e2) {

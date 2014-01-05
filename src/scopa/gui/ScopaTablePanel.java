@@ -1,7 +1,8 @@
 package scopa.gui;
 
-import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -17,7 +18,7 @@ import scopa.logic.ScopaFactory;
 import scopa.logic.ScopaTable;
 import util.Logger;
 
-public class TablePanel extends JPanel implements MouseListener, ScopaTable {
+public class ScopaTablePanel extends JPanel implements MouseListener, ScopaTable {
 
 	private final GridLayout defaultLayout;
 	private boolean biggerThan11;
@@ -27,7 +28,7 @@ public class TablePanel extends JPanel implements MouseListener, ScopaTable {
 
 	private ScopaTable table;
 
-	public TablePanel() {
+	public ScopaTablePanel() {
 		defaultLayout = new GridLayout(2, 6);
 		cards = new HashMap<>();
 		biggerThan11 = false;
@@ -37,7 +38,7 @@ public class TablePanel extends JPanel implements MouseListener, ScopaTable {
 		table = ScopaFactory.getNewScopaTable();
 
 		this.setLayout(defaultLayout);
-		this.setBackground(Color.MAGENTA);
+		this.setBackground(ScopaGuiConstant.backgroundColor);
 	}
 
 	private void fillEmptyPanels() {
@@ -45,7 +46,7 @@ public class TablePanel extends JPanel implements MouseListener, ScopaTable {
 			removeEmptyPanel(0 - emptyToAdd);
 		} else if (emptyToAdd > 0) {
 			do {
-				CardLabel ecl = new CardLabel(null);
+				CardLabel ecl = new CardLabel();
 				// ecl.addMouseListener(this);
 				this.add(ecl);
 				emptyToAdd--;
@@ -241,6 +242,14 @@ public class TablePanel extends JPanel implements MouseListener, ScopaTable {
 	@Override
 	public boolean isEmpty() {
 		return table.isEmpty();
+	}
+
+	@Override
+	public void paint(Graphics g) {
+		super.paint(g);
+
+		Dimension size = this.getSize();
+		g.drawRect(1, 1, size.width - 2, size.height - 2);
 	}
 
 	// TEST

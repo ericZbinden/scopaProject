@@ -31,7 +31,7 @@ public class MsgBaseConf extends MsgScopa {
 			this.playerWest = playerWest.getName();
 		}
 
-		if (playerWest != null) {
+		if (playerEast != null) {
 			this.playerEast = playerEast.getName();
 		}
 

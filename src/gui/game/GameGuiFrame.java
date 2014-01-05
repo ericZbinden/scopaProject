@@ -92,6 +92,7 @@ public class GameGuiFrame extends JFrame implements GameGui {
 			this.revalidate();
 		} catch (Exception e) {
 			Logger.error(e.getClass().toString() + ": " + e.getMessage() + "\nCaused by msg: " + msg.toString());
+			e.printStackTrace();
 			// TODO remonter l'info à l'UI
 		}
 	}

@@ -82,6 +82,17 @@ public class ScopaTableImplTest {
 	}
 
 	@Test
+	public void testNoCombinaison() {
+		table = ScopaFactory.getNewScopaTable();
+		table.putCards(Arrays.asList(fiveOfCup, fiveOfGold, kingOfCup));
+
+		List<List<ScopaCard>> possibleOutcome = table.allPossibleTakeWith(sevenOfGold);
+		// System.out.println(Arrays.toString(possibleOutcome.toArray()));
+
+		assertTrue(possibleOutcome.isEmpty());
+	}
+
+	@Test
 	public void testPutInitialLessThan10() {
 		table = ScopaFactory.getNewScopaTable();
 

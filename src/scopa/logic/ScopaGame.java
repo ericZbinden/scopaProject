@@ -345,7 +345,7 @@ public class ScopaGame implements Playable {
 
 			if (!sender.equals(this.getNextPlayer())) {
 				Logger.debug("Player " + sender + " tried to play at " + this.getNextPlayer() + " turn. Ignoring this msg");
-				api.sendMsgTo(sender, new MsgScopaNack(this.getNextPlayer()));
+				api.sendMsgTo(sender, new MsgScopaNack(this.getNextPlayer(), "Time to play to " + this.getNextPlayer() + ", not you"));
 			} else if (play(sender, msgPlay.getPlayed(), msgPlay.getTaken())) {
 				PlayerName nextPlayer = this.getNextPlayer();
 				api.sendMsgTo(sender, new MsgScopaAck(nextPlayer));
@@ -373,8 +373,9 @@ public class ScopaGame implements Playable {
 				this.closeGameDueToError("Unauthorized play: " + msgPlay.toString() + "\nwhile on table: "
 						+ Arrays.toString(table.cardsOnTable().toArray()));
 			} else {
-				Logger.debug("Invalid play, ignoring this msg");
-				api.sendMsgTo(sender, new MsgScopaNack(this.getNextPlayer()));
+				String errorReason = "Invalid play, ignoring this msg";
+				Logger.debug(errorReason);
+				api.sendMsgTo(sender, new MsgScopaNack(this.getNextPlayer(), errorReason));
 			}
 			break;
 		default:

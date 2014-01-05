@@ -8,18 +8,25 @@ public class ScopaDeckImpl extends ArrayList<ScopaCard> implements ScopaDeck {
 
 	private static final long serialVersionUID = 7062358612411467718L;
 
-	ScopaDeckImpl(){
+	ScopaDeckImpl() {
 		super();
-		
-		for(ScopaColor color : ScopaColor.values()){
-			for(ScopaValue value : ScopaValue.values()){
-				ScopaCard card = new ScopaCard(value,color);
+
+		for (ScopaColor color : ScopaColor.values()) {
+			if (ScopaColor.offuscated.equals(color)) {
+				continue;
+			}
+
+			for (ScopaValue value : ScopaValue.values()) {
+				if (ScopaValue.offuscated.equals(value)) {
+					continue;
+				}
+
+				ScopaCard card = new ScopaCard(value, color);
 				this.add(card);
 			}
 		}
 	}
-	
-	
+
 	@Override
 	public void shuffle() {
 		Collections.shuffle(this);
@@ -28,29 +35,29 @@ public class ScopaDeckImpl extends ArrayList<ScopaCard> implements ScopaDeck {
 
 	@Override
 	public ScopaCard drawCard() {
+		if (this.isEmpty())
+			throw new IllegalStateException("can not draw card from an empty deck");
+
 		return this.remove(0);
+	}
+
+	private List<ScopaCard> drawNCards(int n) {
+		List<ScopaCard> cards = new ArrayList<ScopaCard>(n);
+		for (int i = 1; i <= n; i++) {
+			cards.add(this.drawCard());
+		}
+		return cards;
+
 	}
 
 	@Override
 	public List<ScopaCard> draw3Cards() {
-		List<ScopaCard> cards = new ArrayList<ScopaCard>(3);
-		cards.add(this.drawCard());
-		cards.add(this.drawCard());
-		cards.add(this.drawCard());
-		return cards;
+		return drawNCards(3);
 	}
-	
-	@Override
-	public boolean isEmpty(){
-		return super.isEmpty();
-	}
-
 
 	@Override
 	public List<ScopaCard> drawInitialCards() {
-		List<ScopaCard> cards = draw3Cards();
-		cards.add(drawCard());
-		return cards;
+		return drawNCards(4);
 	}
 
 }
