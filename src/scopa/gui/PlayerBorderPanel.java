@@ -1,10 +1,8 @@
 package scopa.gui;
 
-import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.util.List;
 
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -21,11 +19,10 @@ public class PlayerBorderPanel extends JPanel {
 
 		handPanel = new ScopaHandPanel(hand, parent, ScopaHandPanel.Orientation.horizontal);
 
-		Box panel = new Box(BoxLayout.Y_AXIS);
-		panel.setOpaque(false);
-		panel.add(new JLabel(hand.getPlayerName().getName()));
-		panel.add(handPanel);
-		this.add(panel, BorderLayout.CENTER);
+		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+
+		this.add(new JLabel(hand.getPlayerName().getName()));
+		this.add(handPanel);
 
 		this.setPreferredSize(new Dimension(400, 200));
 		this.setBackground(ScopaGuiConstant.backgroundColor);

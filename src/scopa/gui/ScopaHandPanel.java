@@ -6,9 +6,8 @@ import java.awt.GridLayout;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.JPanel;
 
@@ -27,8 +26,6 @@ public class ScopaHandPanel extends JPanel implements ScopaHand, MouseListener {
 	private ScopaGamePanel parent; // FIXME should be an interface
 	private boolean hasEventHandler = false;
 
-	private Map<ScopaCard, CardLabel> cards;
-
 	private CardLabel card1;
 	private CardLabel card2;
 	private CardLabel card3;
@@ -39,7 +36,6 @@ public class ScopaHandPanel extends JPanel implements ScopaHand, MouseListener {
 	 */
 	public ScopaHandPanel(ScopaHand hand, Orientation orientation) {
 		this.hand = hand;
-		cards = new HashMap<>();
 
 		card1 = new CardLabel();
 		card2 = new CardLabel();
@@ -87,15 +83,12 @@ public class ScopaHandPanel extends JPanel implements ScopaHand, MouseListener {
 		if (handy.size() == 3) {
 			card1.setCard(handy.get(0));
 			card1.setTransferHandler(new ScopaCardTransfertHandler(parent));
-			cards.put(handy.get(0), card1);
 
 			card2.setCard(handy.get(1));
 			card2.setTransferHandler(new ScopaCardTransfertHandler(parent));
-			cards.put(handy.get(1), card2);
 
 			card3.setCard(handy.get(2));
 			card3.setTransferHandler(new ScopaCardTransfertHandler(parent));
-			cards.put(handy.get(2), card3);
 
 			this.revalidate();
 		} else {
@@ -119,9 +112,31 @@ public class ScopaHandPanel extends JPanel implements ScopaHand, MouseListener {
 	public boolean playCard(ScopaCard card) {
 		boolean ok = hand.playCard(card);
 		if (ok) {
-			CardLabel playedCardLabel = cards.remove(card);
-			playedCardLabel.setCard(null);
-			playedCardLabel.revalidate();
+
+			if (hand.isOffuscated()) {
+				if (!card1.isEmpty()) {
+					card1.setCard(null);
+				} else if (!card2.isEmpty()) {
+					card2.setCard(null);
+				} else if (!card3.isEmpty()) {
+					card3.setCard(null);
+				} else {
+					Logger.error("oh oh, tried to play more than expected number of cards");
+				}
+			} else {
+				if (card.equals(card1.getCard())) {
+					card1.setCard(null);
+				} else if (card.equals(card2.getCard())) {
+					card2.setCard(null);
+				} else if (card.equals(card3.getCard())) {
+					card3.setCard(null);
+				} else {
+					Logger.error("You played a card you don't have.\n\tPlayed: " + card.toString() + "\n\tHave: "
+							+ Arrays.toString(hand.getHand().toArray()));
+				}
+			}
+
+			this.repaint();
 		} else {
 			Logger.debug("Move not valid, ignore it");
 		}
@@ -178,8 +193,11 @@ public class ScopaHandPanel extends JPanel implements ScopaHand, MouseListener {
 		Object src = arg0.getSource();
 		if (src instanceof CardLabel) {
 			CardLabel source = (CardLabel) src;
-			ScopaCard playedCard = source.getCard();
 
+			if (source.isEmpty())
+				return;
+
+			ScopaCard playedCard = source.getCard();
 			List<ScopaCard> selectedOnTable = parent.getSelectedCardsOnTable();
 
 			if (selectedOnTable.isEmpty()) {
@@ -194,7 +212,6 @@ public class ScopaHandPanel extends JPanel implements ScopaHand, MouseListener {
 			} else {
 				tryPlay(playedCard, selectedOnTable);
 			}
-
 		}
 	}
 
