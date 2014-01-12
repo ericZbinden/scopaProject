@@ -21,6 +21,7 @@ import scopa.com.MsgScopaNack;
 import scopa.com.MsgScopaPlay;
 import scopa.com.MsgScopaRules;
 import scopa.com.MsgScopaScore;
+import scopa.com.ScopaMsgType;
 import util.Logger;
 import util.PlayerName;
 
@@ -31,7 +32,9 @@ import com.msg.MsgPlay;
 import com.server.api.ServerApi;
 import com.server.exceptions.IllegalInitialConditionException;
 import com.server.impl.Server;
+import com.server.wait.ClosedConf;
 import com.server.wait.Config;
+import com.server.wait.EmptyConf;
 
 public class ScopaGame implements Playable {
 
@@ -185,21 +188,20 @@ public class ScopaGame implements Playable {
 	@Override
 	public void checkInitialConfig(List<Config> configs, MsgMasterRule rules) throws IllegalInitialConditionException {
 
-		List<Config> playableConfig = new ArrayList<>(configs);
-		// TODO List<Config> playableConfig = new ArrayList<>(configs.size());
-		//
-		// for (Config conf : configs) {
-		// if (conf instanceof EmptyConf) {
-		// continue;
-		// } else if (conf instanceof ClosedConf) {
-		// continue;
-		// } else {
-		// playableConfig.add(conf);
-		// }
-		// }
+		// List<Config> playableConfig = new ArrayList<>(configs);
+		List<Config> playableConfig = new ArrayList<>(configs.size());
 
-		if (playableConfig.size() < 2 || playableConfig.size() > 4)
+		for (Config conf : configs) {
+			if (conf instanceof EmptyConf || conf instanceof ClosedConf) {
+				continue;
+			} else {
+				playableConfig.add(conf);
+			}
+		}
+
+		if (playableConfig.size() < 2 || playableConfig.size() > 4) {
 			throw new IllegalInitialConditionException("Too much or too less player: " + playableConfig.size() + ". Need [2,3,4] players");
+		}
 
 		Map<Integer, Integer> teams = new HashMap<Integer, Integer>(playableConfig.size());
 
@@ -214,8 +216,9 @@ public class ScopaGame implements Playable {
 			}
 		}
 
-		if (teams.size() < 2)
+		if (teams.size() < 2) {
 			throw new IllegalInitialConditionException("Need at least 2 teams");
+		}
 
 		int p = 0;
 		for (Entry<Integer, Integer> players : teams.entrySet()) {
@@ -225,12 +228,14 @@ public class ScopaGame implements Playable {
 				continue;
 			} else if (p == players.getValue()) {
 				continue;
-			} else
+			} else {
 				throw new IllegalInitialConditionException("Each team should have same number of players");
+			}
 		}
 
-		if (!(rules instanceof MsgScopaRules))
+		if (!(rules instanceof MsgScopaRules)) {
 			throw new IllegalInitialConditionException("The msgRules should be MsgScopaRules type but was: " + rules.getClass());
+		}
 
 		state = nextState();
 	}
@@ -275,8 +280,9 @@ public class ScopaGame implements Playable {
 
 	private ScopaHand getHandByPlayerName(PlayerName name) {
 		ScopaHand hand = hands.get(name);
-		if (hand != null)
+		if (hand != null) {
 			return hand;
+		}
 
 		Logger.debug("Unable to recover the hand of player " + name + ".\n" + "Available hands are: " + Arrays.toString(hands.keySet().toArray()));
 		return null;
@@ -285,8 +291,9 @@ public class ScopaGame implements Playable {
 
 	private ScopaHand getHandByPlayerState(State playerId) {
 		PlayerName playerName = players.get(playerId);
-		if (playerName != null)
+		if (playerName != null) {
 			return getHandByPlayerName(playerName);
+		}
 		Logger.debug("Unable to recover the hand of player id " + playerId + ".\n" + "Available hands are: "
 				+ Arrays.toString(players.keySet().toArray()));
 		return null;
@@ -320,20 +327,21 @@ public class ScopaGame implements Playable {
 
 		} while (!ok);
 
+		state = nextState();
+
 		for (ScopaHand hand : hands.values()) {
 			assert hand.isEmpty() : "Hand is not empty ";
 			hand.newHand(deck.draw3Cards());
 			api.sendMsgTo(hand.getPlayerName(), this.getMsgGameBaseConf(hand));
 		}
-
-		state = nextState();
 	}
 
 	@Override
 	public void receiveMsgPlay(MsgPlay msg) throws MalformedMessageException {
 
-		if (!this.getGameType().equals(msg.getGameType()))
+		if (!this.getGameType().equals(msg.getGameType())) {
 			throw new MalformedMessageException("Expected " + this.getGameType() + " game type but was: " + msg.getGameType());
+		}
 
 		MsgScopa msgScopa = MsgCaster.castMsg(MsgScopa.class, msg);
 
@@ -344,9 +352,11 @@ public class ScopaGame implements Playable {
 			PlayerName sender = msgPlay.getSenderID();
 
 			if (!sender.equals(this.getNextPlayer())) {
+				// Refused because not your time to play
 				Logger.debug("Player " + sender + " tried to play at " + this.getNextPlayer() + " turn. Ignoring this msg");
 				api.sendMsgTo(sender, new MsgScopaNack(this.getNextPlayer(), "Time to play to " + this.getNextPlayer() + ", not you"));
 			} else if (play(sender, msgPlay.getPlayed(), msgPlay.getTaken())) {
+				// Msg accepted
 				PlayerName nextPlayer = this.getNextPlayer();
 				api.sendMsgTo(sender, new MsgScopaAck(nextPlayer));
 				api.sendMsgToAllExcept(sender, new MsgScopaPlay(sender, msgPlay.getPlayed(), msgPlay.getTaken(), nextPlayer));
@@ -370,16 +380,18 @@ public class ScopaGame implements Playable {
 					}
 				}
 			} else if (state.equals(State.unknown)) {
+				// Unexpected error
 				this.closeGameDueToError("Unauthorized play: " + msgPlay.toString() + "\nwhile on table: "
 						+ Arrays.toString(table.cardsOnTable().toArray()));
 			} else {
+				// Msg refused because is invalid
 				String errorReason = "Invalid play, ignoring this msg";
 				Logger.debug(errorReason);
 				api.sendMsgTo(sender, new MsgScopaNack(this.getNextPlayer(), errorReason));
 			}
 			break;
 		default:
-			Logger.debug("Invalid scopaType: " + msgScopa.getScopaType());
+			Logger.debug("Invalid scopaType: " + msgScopa.getScopaType() + ". Expected " + ScopaMsgType.play);
 			throw new MalformedMessageException();
 			// api.sendMsgTo(msgPlay.getSenderID(), new
 			// MsgScopaNack(this.getNextPlayer())); ??
@@ -395,9 +407,11 @@ public class ScopaGame implements Playable {
 		case p3:
 		case p4:
 			hand = this.getHandByPlayerState(state);
-			// Not good player //Selected card not in hand
-			if (!player.equals(hand.getPlayerName()) || !!hand.playCard(playedCard))
+			// Not good player or Selected card not in hand
+			if (hand == null || !hand.playCard(playedCard)) {
+				closeGameDueToError("Move invalid. " + (hand == null ? "hand null" : hand.toString()));
 				return false;
+			}
 			break;
 		default:
 			closeGameDueToError("Player " + player.getName() + " played but at " + getNextPlayer().getName() + " to play");
@@ -470,35 +484,131 @@ public class ScopaGame implements Playable {
 	 */
 
 	private State nextState() {
+		Logger.debug("State was: " + state);
 		switch (state) {
 		case notStarted:
 			return State.readyToStart;
 		case readyToStart:
-			return donour;
+			if (donour.equals(State.p1)) {
+				return State.p2;
+			} else if (donour.equals(State.p2)) {
+				if (nPlayer > 2) {
+					return State.p3;
+				} else {
+					return State.p1;
+				}
+			} else if (donour.equals(State.p3)) {
+				if (nPlayer > 3) {
+					return State.p4;
+				} else {
+					return State.p1;
+				}
+			} else if (donour.equals(State.p4)) {
+				return State.p1;
+			} else {
+				throw new IllegalStateException();
+			}
 		case p1:
+			if (donour.equals(State.p1)) {
+				if (this.getHandByPlayerState(State.p1).isEmpty()) {
+					if (deck.isEmpty()) {
+						return State.takeAll;
+					} else {
+						return State.giveNewHand;
+					}
+				} else {
+					return State.p2;
+				}
+			} else {
+				return State.p2;
+			}
 		case p2:
+			if (donour.equals(State.p2)) {
+				if (this.getHandByPlayerState(State.p2).isEmpty()) {
+					if (deck.isEmpty()) {
+						return State.takeAll;
+					} else {
+						return State.giveNewHand;
+					}
+				} else {
+					if (nPlayer > 2) {
+						return State.p3;
+					} else {
+						return State.p1;
+					}
+				}
+			} else {
+				if (nPlayer > 2) {
+					return State.p3;
+				} else {
+					return State.p1;
+				}
+			}
 		case p3:
+			if (donour.equals(State.p3)) {
+				if (this.getHandByPlayerState(State.p3).isEmpty()) {
+					if (deck.isEmpty()) {
+						return State.takeAll;
+					} else {
+						return State.giveNewHand;
+					}
+				} else {
+					if (nPlayer > 3) {
+						return State.p4;
+					} else {
+						return State.p1;
+					}
+				}
+			} else {
+				if (nPlayer > 3) {
+					return State.p4;
+				} else {
+					return State.p1;
+				}
+			}
 		case p4:
-			// FIXME state machine completely wrong
-			// Previous logic Kept for idea
-			// case p4:
-			// if(this.getHandByPlayerState(state).isEmpty()) {
-			// if(deck.isEmpty())
-			// return State.takeAll;
-			// else
-			// return State.giveNewHand;
-			// } else
-			// return State.p1;
+			if (donour.equals(State.p4)) {
+				if (this.getHandByPlayerState(State.p4).isEmpty()) {
+					if (deck.isEmpty()) {
+						return State.takeAll;
+					} else {
+						return State.giveNewHand;
+					}
+				} else {
+					return State.p1;
+				}
+			} else {
+				return State.p1;
+			}
 
 		case giveNewHand:
-			return donour;
+			if (donour.equals(State.p1)) {
+				return State.p2;
+			} else if (donour.equals(State.p2)) {
+				if (nPlayer > 2) {
+					return State.p3;
+				} else {
+					return State.p1;
+				}
+			} else if (donour.equals(State.p3)) {
+				if (nPlayer > 3) {
+					return State.p4;
+				} else {
+					return State.p1;
+				}
+			} else if (donour.equals(State.p4)) {
+				return State.p1;
+			} else {
+				throw new IllegalStateException();
+			}
 		case takeAll:
 			return State.endSet;
 		case endSet:
-			if (score.checkWinner())
+			if (score.checkWinner()) {
 				return State.endMatch;
-			else
+			} else {
 				return State.readyToStart;
+			}
 		case endMatch:
 			return State.endMatch; // TODO might be different
 		default:

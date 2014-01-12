@@ -160,7 +160,16 @@ public class ScopaGamePanel extends GamePanel {
 				break;
 			case hand:
 				MsgScopaHand msgHand = MsgCaster.castMsg(MsgScopaHand.class, msgScopa);
+				List<? extends ScopaCard> offuscatedHand = Arrays
+						.asList(new OffuscatedScopaCard(), new OffuscatedScopaCard(), new OffuscatedScopaCard());
 				south.newHand(msgHand.getCards());
+				north.newHand((List<ScopaCard>) offuscatedHand);
+				east.newHand((List<ScopaCard>) offuscatedHand);
+				west.newHand((List<ScopaCard>) offuscatedHand);
+				south.invalidate();
+				north.invalidate();
+				east.invalidate();
+				west.invalidate();
 				break;
 			case ack:
 				// MsgScopaAck msgAck = MsgCaster.castMsg(MsgScopaAck.class,
@@ -169,12 +178,13 @@ public class ScopaGamePanel extends GamePanel {
 				break;
 			case nack:
 				this.showWarningToPlayer("The server refused your last play");
+				// TODO Recover lastMove and undo it
 				break;
 			default:
 				Logger.debug("Unknown scopa type: " + msgScopa.getScopaType() + ", ignoring it.");
 			}
 			this.invalidate();
-			// this.repaint();
+			this.repaint();
 		} catch (MalformedMessageException e) {
 			Logger.debug("Malformed msg of type: " + msg.getGameType().getGameType() + ". Ignoring it.");
 		}
@@ -204,10 +214,10 @@ public class ScopaGamePanel extends GamePanel {
 	public boolean play(ScopaCard playedCard, List<ScopaCard> taken) {
 		List<ScopaCard> cards = table.putCard(playedCard, taken);
 
-		if (cards == null)
+		if (cards == null) {
 			return false;
-
-		this.sendMsgScopaPlay(playedCard, taken);
+		}
+		this.nextPlayer = ScopaGame.SRV_NAME; // avoid double play
 		return true;
 	}
 

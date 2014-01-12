@@ -34,6 +34,7 @@ public class PlayerBorderPanel extends JPanel {
 
 	public void newHand(List<ScopaCard> newCards) {
 		handPanel.newHand(newCards);
+		this.invalidate();
 	}
 
 	public PlayerName getPlayerName() {

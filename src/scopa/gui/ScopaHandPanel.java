@@ -121,7 +121,7 @@ public class ScopaHandPanel extends JPanel implements ScopaHand, MouseListener {
 				} else if (!card3.isEmpty()) {
 					card3.setCard(null);
 				} else {
-					Logger.error("oh oh, tried to play more than expected number of cards");
+					Logger.error(hand.getPlayerName() + " tried to play " + card.toString() + " but was not in player hand");
 				}
 			} else {
 				if (card.equals(card1.getCard())) {
@@ -163,9 +163,10 @@ public class ScopaHandPanel extends JPanel implements ScopaHand, MouseListener {
 		hand.addCardsToHeap(taken);
 	}
 
-	private void tryPlay(ScopaCard playedCard, List<ScopaCard> selectedOnTable) {
-		if (parent.play(playedCard, selectedOnTable)) {
+	private void tryPlay(ScopaCard playedCard, List<ScopaCard> takenCards) {
+		if (parent.play(playedCard, takenCards)) {
 			playCard(playedCard);
+			parent.sendMsgScopaPlay(playedCard, takenCards);
 		} else {
 			parent.showWarningToPlayer("Invalid move");
 		}
@@ -182,8 +183,9 @@ public class ScopaHandPanel extends JPanel implements ScopaHand, MouseListener {
 
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
-		if (!hasEventHandler)
+		if (!hasEventHandler) {
 			return;
+		}
 
 		if (!isLocalClientNextPlayer()) {
 			Logger.debug("Not your time to play dear " + getPlayerName());
@@ -194,8 +196,9 @@ public class ScopaHandPanel extends JPanel implements ScopaHand, MouseListener {
 		if (src instanceof CardLabel) {
 			CardLabel source = (CardLabel) src;
 
-			if (source.isEmpty())
+			if (source.isEmpty()) {
 				return;
+			}
 
 			ScopaCard playedCard = source.getCard();
 			List<ScopaCard> selectedOnTable = parent.getSelectedCardsOnTable();

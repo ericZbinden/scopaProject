@@ -192,4 +192,9 @@ public class ScopaHandImpl implements ScopaHand {
 		return false;
 	}
 
+	@Override
+	public String toString() {
+		return "hand=" + hand + "\nplayer=" + player;
+	}
+
 }

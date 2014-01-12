@@ -93,7 +93,7 @@ public class BorderPanel extends JPanel {
 
 	public void newHand(List<ScopaCard> newCards) {
 		hand.newHand(newCards);
-		this.revalidate();
+		this.invalidate();
 	}
 
 	public boolean playCard(ScopaCard playedCard) {

@@ -111,7 +111,7 @@ public class ScopaTablePanel extends JPanel implements MouseListener, ScopaTable
 			biggerThan11 = true;
 		}
 
-		this.add(cLabel/* ,size */); // TODO insérer before blank
+		this.addBeforeEmptyPanel(cLabel);
 		emptyToAdd--;
 
 		if (removeBlank) {
@@ -119,6 +119,17 @@ public class ScopaTablePanel extends JPanel implements MouseListener, ScopaTable
 		}
 
 		this.invalidate();
+	}
+
+	private void addBeforeEmptyPanel(CardLabel clabel) {
+		Component[] compo = this.getComponents();
+		for (int i = 0; i < compo.length; i++) {
+			CardLabel card = (CardLabel) compo[i];
+			if (card.isEmpty()) {
+				this.add(clabel, i);
+				return;
+			}
+		}
 	}
 
 	private void addCardsToGui(List<ScopaCard> cards) {
@@ -140,14 +151,15 @@ public class ScopaTablePanel extends JPanel implements MouseListener, ScopaTable
 	}
 
 	public void addAndRemoveCardsFromGui(ScopaCard playedCard, List<ScopaCard> takenCards) {
-		if (takenCards == null)
+		if (takenCards == null) {
 			return;
-		else if (takenCards.isEmpty()) {
+		} else if (takenCards.isEmpty()) {
 			this.addCardToGui(playedCard, true);
 		} else {
 			for (ScopaCard card : takenCards) {
 				if (!card.equals(playedCard)) {
 					this.removeCardFromGui(card);
+					fillEmptyPanels();
 				}
 			}
 		}
