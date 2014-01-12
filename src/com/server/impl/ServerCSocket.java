@@ -108,8 +108,9 @@ public class ServerCSocket implements Runnable {
 	 */
 	public void processPacket(Message prequest) {
 
-		if (filter.filter(prequest, sc.getServerState()))
+		if (filter.filter(prequest, sc.getServerState())) {
 			return; // msg type is not expected during this state
+		}
 
 		MsgType type = prequest.getType();
 		PlayerName senderID = prequest.getSenderID();
@@ -169,7 +170,9 @@ public class ServerCSocket implements Runnable {
 		try {
 			sc.startGame();
 		} catch (IllegalInitialConditionException e) {
-			sc.transfertMsgTo(prequest.getSenderID(), new MsgStartNack(e.getLocalizedMessage()));
+			String errorReason = "Game can not start: " + e.getLocalizedMessage();
+			sc.transfertMsgTo(prequest.getSenderID(), new MsgStartNack(errorReason));
+			sc.transferMsgToAll(new MsgChat(Server.SERVER_NAME, errorReason), prequest.getSenderID());
 		}
 	}
 
@@ -260,8 +263,9 @@ public class ServerCSocket implements Runnable {
 	public boolean equals(Object that) {
 		if (that != null && that instanceof ServerCSocket) {
 			ServerCSocket scc = (ServerCSocket) that;
-			if (this.getClientID().equals(scc.getClientID()))
+			if (this.getClientID().equals(scc.getClientID())) {
 				return true;
+			}
 		}
 		return false;
 	}

@@ -1,4 +1,4 @@
-package scopa.gui;
+package zilch.gui;
 
 import javax.swing.JLabel;
 

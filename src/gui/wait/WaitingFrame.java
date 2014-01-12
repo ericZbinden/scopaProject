@@ -248,14 +248,11 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 
 	}
 
-	private boolean currentPlayerIsReady() {
-		return slots.get(clientID).getConfig().isReady();
-	}
-
 	private boolean areAllPlayersReady() {
 		for (ConfigPanel conf : slots.values()) {
-			if (!conf.getConfig().isReady())
+			if (!conf.getConfig().isReady()) {
 				return false;
+			}
 		}
 		return true;
 	}
@@ -399,13 +396,13 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 
 	private void startNack(MsgStartNack msg) {
 		state = ServerState.waiting;
-		chat.writeIntoChatFromServer("Game can not start: " + msg.getReason());
+		chat.writeIntoChatFromServer(msg.getReason());
 		this.msgStartSend = false;
 		ConfigPanel clientConf = slots.get(clientID);
-		clientConf.getConfig().setReady(false);
+		clientConf.setReady(false);
+		clientSocket.sendWrSlotMsg(clientConf.getConfig(), clientConf.getConfig().getClientID());
 		this.enableAction(true);
-		clientConf.invalidate();
-		startGame.invalidate();
+		startGame.setReady(false);
 		this.repaint();
 		this.setVisible(true);
 		gameGui.setVisibleToFalse();
@@ -544,10 +541,10 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 	}
 
 	private void askGameStart() {
-		if (startGame.getBackground().equals(Color.GREEN)) {
+		if (startGame.isReady()) {
 			if (!this.msgStartSend) { // send msg only once
-				clientSocket.sendStartMsg();
 				msgStartSend = true;
+				clientSocket.sendStartMsg();
 			}
 			chat.writeIntoChatFromServer("Game will start");
 		} else {

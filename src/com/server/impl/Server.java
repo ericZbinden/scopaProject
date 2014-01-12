@@ -170,8 +170,9 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 
 	/* ** ** ** UTIL METHODS ** ** ** */
 	public synchronized boolean isRunning() {
-		if (ServerState.closed.equals(state) || ServerState.closing.equals(state) || ServerState.none.equals(state))
+		if (ServerState.closed.equals(state) || ServerState.closing.equals(state) || ServerState.none.equals(state)) {
 			return false;
+		}
 		return true;
 	}
 
@@ -184,8 +185,9 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 	public synchronized boolean areAllPlayersReady() {
 
 		for (Config conf : confs.values()) {
-			if (!conf.isReady())
+			if (!conf.isReady()) {
 				return false;
+			}
 		}
 
 		return true;
@@ -212,8 +214,9 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 	/* ** ** ** PROCESS METHODS ** ** ** */
 	@Override
 	public synchronized void startGame() throws IllegalInitialConditionException {
-		if (!areAllPlayersReady())
+		if (!areAllPlayersReady()) {
 			throw new IllegalInitialConditionException("All players are not ready!");
+		}
 
 		GameType gameToStart = rule.getGameType();
 		game = gameToStart.getGame();
@@ -234,8 +237,6 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 			for (ServerCSocket player : clients.values()) {
 				current = player;
 				MsgStartAck msg = new MsgStartAck(gameToStart);
-				// MsgGameBaseConf msg =
-				// game.getMsgGameBaseConf(player.getClientID());
 				player.sendToThisClient(msg);
 			}
 		} catch (IOException e) {
@@ -327,8 +328,9 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 			return new MsgReset("Wrong password");
 		}
 
-		if (!acceptPlayerName(player))
+		if (!acceptPlayerName(player)) {
 			return new MsgReset("PlayerName is already taken, choose another");
+		}
 
 		// Connection accepted
 		openSlot--;
@@ -360,8 +362,9 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 	public void play(MsgPlay msg) {
 
 		try {
-			if (!game.getGameType().equals(msg.getGameType()))
+			if (!game.getGameType().equals(msg.getGameType())) {
 				throw new MalformedMessageException("Expected " + game.getGameType() + " game type but was: " + msg.getType());
+			}
 			game.receiveMsgPlay(msg);
 		} catch (MalformedMessageException e) {
 			// TODO Should inform player of error or just ignore ?
@@ -389,8 +392,9 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 
 	private Config getOpenSlot() {
 		for (Config s : confs.values()) {
-			if (s instanceof EmptyConf)
+			if (s instanceof EmptyConf) {
 				return s;
+			}
 		}
 		Logger.debug("srv> No open slot left");
 		return null;

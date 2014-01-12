@@ -1,15 +1,14 @@
 package gui.wait;
 
-import java.awt.Color;
+import gui.util.ReadyButton;
+
 import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -19,16 +18,16 @@ import com.server.wait.ClosedConf;
 import com.server.wait.Config;
 import com.server.wait.EmptyConf;
 
-public class ConfigPanel extends Box implements ActionListener{
+public class ConfigPanel extends Box implements ActionListener {
 
-	//action in kick box
+	// action in kick box
 	private final String OPEN = "Open";
 	private final String CLOSED = "Closed";
-	//private final String KICK = "kick";
+	// private final String KICK = "kick";
 
 	private Config conf;
 	private boolean isMaster;
-	/** Used to give action back to parent*/
+	/** Used to give action back to parent */
 	private ActionListener parentListener;
 	/** Pseudo of the user */
 	private JLabel pseudo = new JLabel();
@@ -36,212 +35,219 @@ public class ConfigPanel extends Box implements ActionListener{
 	/** Option given to master */
 	private JComboBox<String> slot = new JComboBox<>();
 	/** Choose your team */
-	private JComboBox<Integer> team = new JComboBox<>(new Integer[]{1,2,3,4,5,6});
+	private JComboBox<Integer> team = new JComboBox<>(new Integer[]{1, 2, 3, 4, 5, 6});
 	/** Ready button */
-	private JButton ready = new JButton("Ready!"){
-		@Override
-		public void paintComponent(Graphics g){
-			if(conf != null){
-				if(conf instanceof ClosedConf || conf instanceof EmptyConf)
-					this.setBackground(Color.GRAY);
-				else
-					this.setBackground(conf.isReady()? Color.GREEN : Color.RED);
-			}
-			super.paintComponent(g);
-		}
-	};
-	
-	public ConfigPanel(Config conf, boolean isMaster, ActionListener parentListener){
+	private ReadyButton ready = new ReadyButton("Ready!");
+
+	public ConfigPanel(Config conf, boolean isMaster, ActionListener parentListener) {
 		super(BoxLayout.Y_AXIS);
-		this.conf=conf;
-		this.parentListener=parentListener;
-		this.isMaster=isMaster;
-		
+		this.conf = conf;
+		this.parentListener = parentListener;
+		this.isMaster = isMaster;
+
 		JPanel top = new JPanel();
-		this.setPreferredSize(new Dimension(600,ready.getPreferredSize().height+15));
+		this.setPreferredSize(new Dimension(600, ready.getPreferredSize().height + 15));
 		this.setMaximumSize(this.getPreferredSize());
-		top.setLayout(new GridLayout(1,3));
-			
-		if(isMaster){
+		top.setLayout(new GridLayout(1, 3));
+
+		if (isMaster) {
 			top.add(slot);
-			slot.addItem("  "+conf.getClientID());
+			slot.addItem("  " + conf.getClientID());
 			slot.addActionListener(this);
 			slot.setEditable(false);
 		} else {
 			top.add(pseudo);
-			pseudo.setText("  "+conf.getClientID());
-		}	
-		
+			pseudo.setText("  " + conf.getClientID());
+		}
+
 		JPanel teamPanel = new JPanel();
-		
-		/*if(conf instanceof EmptyConf || conf instanceof ClosedConf){
-			top.add(teamPanel);
-			//TODO hide team if empty or closed
-		} else*/ if(conf.isSelf()){
+
+		/*
+		 * if(conf instanceof EmptyConf || conf instanceof ClosedConf){
+		 * top.add(teamPanel); //TODO hide team if empty or closed } else
+		 */if (conf.isSelf()) {
 			teamPanel.add(new JLabel("Team"));
 			teamPanel.add(team);
 			team.setEditable(false);
 			team.addActionListener(this);
 			top.add(teamPanel);
-			
-		} else {		
-			teamNumb = new JLabel("Team "+conf.getTeam());
+
+		} else {
+			teamNumb = new JLabel("Team " + conf.getTeam());
 			teamPanel.add(teamNumb);
 			top.add(teamPanel);
-		}		
-		
+		}
+
 		JPanel button = new JPanel();
 		button.add(ready);
 		top.add(button);
-		
+
 		this.add(top);
-		this.add(new JSeparator(JSeparator.HORIZONTAL));		
-		
-		if(conf instanceof ClosedConf){
+		this.add(new JSeparator(JSeparator.HORIZONTAL));
+
+		if (conf instanceof ClosedConf) {
 			slot.addItem(OPEN);
-		} else if(conf instanceof EmptyConf){			
+			ready.setDisable(true);
+		} else if (conf instanceof EmptyConf) {
 			slot.addItem(CLOSED);
+			ready.setDisable(true);
 		} else {
-			
-			if(conf.isSelf()){			
-				ready.setBorderPainted(true);	
+			ready.setReady(conf.isReady());
+
+			if (conf.isSelf()) {
+				ready.setBorderPainted(true);
 				ready.addActionListener(this);
 			} else {
 				slot.addItem(CLOSED);
-				//kick.addItem(KICK);
+				// kick.addItem(KICK);
 			}
-			
-		}		
+
+		}
+	}
+
+	public void setReady(boolean ready) {
+		conf.setReady(ready);
+		this.ready.setReady(ready);
+		this.invalidate();
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
-		
-		if(arg0.getSource().equals(ready)){
-			
-			if(conf.isReady()){
+
+		if (arg0.getSource().equals(ready)) {
+
+			if (conf.isReady()) {
 				conf.setReady(false);
-				
+				ready.setReady(false);
+
 			} else {
 				conf.setReady(true);
+				ready.setReady(true);
 			}
 			ready.invalidate();
-			parentListener.actionPerformed(new ActionEvent(this,1,ParentAction.ready.toString()));
-			
-		} else if(arg0.getSource().equals(slot)){
+			parentListener.actionPerformed(new ActionEvent(this, 1, ParentAction.ready.toString()));
+
+		} else if (arg0.getSource().equals(slot)) {
 			String selected = (String) slot.getSelectedItem();
-			
-			switch(selected){
-//			case KICK:
-//				if(!(conf instanceof EmptyConf) && !(conf instanceof ClosedConf)){
-//					conf = new EmptyConf();
-//					this.invalidate();
-//					parentListener.actionPerformed(new ActionEvent(this,2,ParentAction.kick.toString()));
-//					
-//				}
-//				break;
+
+			switch (selected) {
+			// case KICK:
+			// if(!(conf instanceof EmptyConf) && !(conf instanceof
+			// ClosedConf)){
+			// conf = new EmptyConf();
+			// this.invalidate();
+			// parentListener.actionPerformed(new
+			// ActionEvent(this,2,ParentAction.kick.toString()));
+			//
+			// }
+			// break;
 			case CLOSED:
-				if(!(conf instanceof ClosedConf)){
-						this.invalidate();
-						parentListener.actionPerformed(new ActionEvent(this,3,ParentAction.close.toString()));
+				if (!(conf instanceof ClosedConf)) {
+					this.invalidate();
+					parentListener.actionPerformed(new ActionEvent(this, 3, ParentAction.close.toString()));
 				}
 				break;
 			case OPEN:
-				if(conf instanceof ClosedConf){
+				if (conf instanceof ClosedConf) {
 					slot.setSelectedItem(CLOSED);
 					this.invalidate();
-					parentListener.actionPerformed(new ActionEvent(this,4,ParentAction.open.toString()));
+					parentListener.actionPerformed(new ActionEvent(this, 4, ParentAction.open.toString()));
 				}
 				break;
 			default:
-				//No nothing
+				// No nothing
 			}
 			slot.setSelectedIndex(0);
-			
-		} else if(arg0.getSource().equals(team)){
-			conf.setTeam((Integer)team.getSelectedItem());
-			parentListener.actionPerformed(new ActionEvent(this,5,ParentAction.teamEdit.toString()));
+
+		} else if (arg0.getSource().equals(team)) {
+			conf.setTeam((Integer) team.getSelectedItem());
+			parentListener.actionPerformed(new ActionEvent(this, 5, ParentAction.teamEdit.toString()));
 		}
-		
+
 	}
-	
-	public Config getConfig(){
+
+	public Config getConfig() {
 		return conf;
 	}
-	
-	public boolean isOpen(){
+
+	public boolean isOpen() {
 		return conf instanceof EmptyConf;
 	}
-	
-	public void updateConfig(Config config){
+
+	public void updateConfig(Config config) {
 		conf.setReady(config.isReady());
-		conf.setTeam(config.getTeam());		
-		teamNumb.setText("Team "+config.getTeam());
-		
-		teamNumb.invalidate();	
+		conf.setTeam(config.getTeam());
+		teamNumb.setText("Team " + config.getTeam());
+
+		teamNumb.invalidate();
+		ready.setReady(conf.isReady());
 		ready.invalidate();
 		ready.repaint();
 		this.invalidate();
 	}
-	
-	public void setStatusToClose(){
+
+	public void setStatusToClose() {
 		slot.removeActionListener(this);
 		conf = new ClosedConf();
 		slot.setSelectedItem(CLOSED);
 		slot.addActionListener(this);
+		ready.setDisable(true);
+		ready.setReady(false);
 		ready.invalidate();
 		this.invalidate();
 	}
-	
-	public void setStatusToEmpty(Config c){
-		if (isMaster){
+
+	public void setStatusToEmpty(Config c) {
+		if (isMaster) {
 			slot.removeActionListener(this);
 			slot.removeAllItems();
-			slot.addItem("  "+c.getClientID());
+			slot.addItem("  " + c.getClientID());
 			slot.addItem(CLOSED);
-			slot.setSelectedItem("  "+c.getClientID());
+			slot.setSelectedItem("  " + c.getClientID());
 			slot.addActionListener(this);
-		}		
+		}
 		conf = c.clone();
-		pseudo.setText("  "+conf.getClientID());
-		teamNumb.setText("Team "+conf.getTeam());
+		pseudo.setText("  " + conf.getClientID());
+		teamNumb.setText("Team " + conf.getTeam());
+		ready.setDisable(true);
+		ready.setReady(false);
 		ready.invalidate();
 		teamNumb.invalidate();
 		pseudo.invalidate();
 	}
-	
-	public void setStatusToOccupied(Config c){
+
+	public void setStatusToOccupied(Config c) {
 		conf = c.clone();
-		if(isMaster){
+		if (isMaster) {
 			slot.removeActionListener(this);
 			slot.removeAllItems();
-			slot.addItem("  "+conf.getClientID());
-			//kick.addItem(KICK);
+			slot.addItem("  " + conf.getClientID());
+			// kick.addItem(KICK);
 			slot.addItem(CLOSED);
 			slot.setSelectedItem(conf.getClientID());
 			slot.addActionListener(this);
-		} else {		
-			pseudo.setText("  "+conf.getClientID());
-			teamNumb.setText("Team "+conf.getTeam());
+		} else {
+			pseudo.setText("  " + conf.getClientID());
+			teamNumb.setText("Team " + conf.getTeam());
 			pseudo.invalidate();
 			teamNumb.invalidate();
 		}
+		ready.setDisable(false);
+		ready.setReady(false);
 		ready.invalidate();
-		
+
 	}
-	
-	public enum ParentAction{
-		ready,/*kick,*/close,open,teamEdit
+
+	public enum ParentAction {
+		ready, /* kick, */close, open, teamEdit
 	}
-	
+
 	/**
 	 * Set enable properties to all action field
 	 * @param enable
 	 */
-	public void enableAction(boolean enable){
+	public void enableAction(boolean enable) {
 		team.setEnabled(enable);
 	}
-	
 
 }
-
