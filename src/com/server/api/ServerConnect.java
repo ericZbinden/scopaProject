@@ -5,6 +5,7 @@ import util.PlayerName;
 import com.msg.Message;
 import com.msg.MsgConnect;
 import com.msg.MsgMasterGame;
+import com.msg.MsgMasterRule;
 import com.msg.MsgPlay;
 import com.server.exceptions.IllegalInitialConditionException;
 import com.server.impl.ServerCSocket;
@@ -41,10 +42,16 @@ public interface ServerConnect {
 	public void play(MsgPlay play);
 
 	/**
-	 * Store the current rule of the game
+	 * Store the game default rule
 	 * @param rule
 	 */
 	public void saveRule(MsgMasterGame rule);
+
+	/**
+	 * Store the current rule of the game
+	 * @param rule
+	 */
+	public void saveRule(MsgMasterRule rule);
 
 	/**
 	 * @return is all players connected are ready

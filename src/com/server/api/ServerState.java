@@ -1,5 +1,5 @@
 package com.server.api;
 
-public enum ServerState{
-	none,waiting,playing,closing,closed
+public enum ServerState {
+	none, waiting, starting, playing, closing, closed
 }

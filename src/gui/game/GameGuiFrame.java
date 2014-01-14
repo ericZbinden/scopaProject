@@ -19,7 +19,6 @@ import javax.swing.JSplitPane;
 import util.Logger;
 import util.PlayerName;
 
-import com.msg.MsgChat;
 import com.msg.MsgPlay;
 
 public class GameGuiFrame extends JFrame implements GameGui {
@@ -87,13 +86,11 @@ public class GameGuiFrame extends JFrame implements GameGui {
 			// Protect from anything bad that could happen
 			gamePanel.update(msg);
 			gamePanel.revalidate();
-			// gamePanel.repaint();
-			// this.pack();
 			this.revalidate();
 		} catch (Exception e) {
 			Logger.error(e.getClass().toString() + ": " + e.getMessage() + "\nCaused by msg: " + msg.toString());
+			JOptionPane.showMessageDialog(this, e.getMessage() + " caused by msg:\n\t" + msg.toString());
 			e.printStackTrace();
-			// TODO remonter l'info à l'UI
 		}
 	}
 
@@ -111,8 +108,8 @@ public class GameGuiFrame extends JFrame implements GameGui {
 	}
 
 	@Override
-	public void chat(MsgChat msg) {
-		this.writeIntoChat(msg.getSenderID(), msg.getText());
+	public void chat(PlayerName sender, String txt) {
+		this.writeIntoChat(sender, txt);
 	}
 
 	@Override
@@ -134,7 +131,7 @@ public class GameGuiFrame extends JFrame implements GameGui {
 	public void dispose() {
 
 		// TODO if game is finished, do not ask confirmation and exit
-		int choice = JOptionPane.showConfirmDialog(this, "Game is still on, do you want to exit ?");
+		int choice = showConfirmDialog("Game is still on, do you want to exit ?");
 		switch (choice) {
 		case JOptionPane.YES_OPTION:
 			disconnect();
@@ -151,6 +148,16 @@ public class GameGuiFrame extends JFrame implements GameGui {
 		playSender.disconnect();
 		super.dispose();
 
+	}
+
+	@Override
+	public int showConfirmDialog(String messageToClient) {
+		return JOptionPane.showConfirmDialog(this, messageToClient);
+	}
+
+	@Override
+	public void showMessageDialog(String messageToClient) {
+		JOptionPane.showMessageDialog(this, messageToClient);
 	}
 
 }

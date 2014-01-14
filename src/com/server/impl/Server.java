@@ -63,7 +63,7 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 	private Map<PlayerName, Config> confs;
 
 	// ref to game. Here declared default game
-	private MsgMasterGame rule = new MsgMasterGame(GameType.SCOPA, SERVER_NAME);
+	private MsgMasterRule rule = GameType.SCOPA.getRulePanel().getMsgRule(SERVER_NAME);
 	private Playable game;
 
 	/**
@@ -177,7 +177,12 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 	}
 
 	@Override
-	public synchronized void saveRule(MsgMasterGame rule) {
+	public void saveRule(MsgMasterGame rule) {
+		saveRule(rule.getGameType().getRulePanel().getMsgRule(SERVER_NAME));
+	}
+
+	@Override
+	public synchronized void saveRule(MsgMasterRule rule) {
 		this.rule = rule;
 	}
 
@@ -221,15 +226,8 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 		GameType gameToStart = rule.getGameType();
 		game = gameToStart.getGame();
 
-		MsgMasterRule rules;
-
-		if (rule instanceof MsgMasterRule) {
-			rules = (MsgMasterRule) rule;
-		} else {
-			rules = gameToStart.getRulePanel().getMsgRule(SERVER_NAME);
-		}
 		// try to generate the game
-		game.initGame(new ArrayList<Config>(confs.values()), rules);
+		game.initGame(new ArrayList<Config>(confs.values()), rule);
 
 		ServerCSocket current = null;
 		try {

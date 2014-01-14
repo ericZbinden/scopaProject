@@ -166,8 +166,11 @@ public class ServerCSocket implements Runnable {
 		}
 	}
 
-	private void start(Message prequest) {
+	private void start(MsgStart prequest) {
 		try {
+			// FIXME Should store number of player participating and fail if one
+			// of them quit
+			sc.transferMsgToAll(prequest, prequest.getSenderID());
 			sc.startGame();
 		} catch (IllegalInitialConditionException e) {
 			String errorReason = "Game can not start: " + e.getLocalizedMessage();
