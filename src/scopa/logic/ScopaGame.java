@@ -7,11 +7,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import scopa.com.MsgBaseConf;
 import scopa.com.MsgScopa;
@@ -58,6 +56,7 @@ public class ScopaGame implements Playable {
 	private Map<ScopaRule, Boolean> rules;
 
 	public ScopaGame() {
+		// CURRENT MAX PLAYER = 4
 		this.state = State.notStarted;
 		hands = new HashMap<>(4);
 		rules = new HashMap<ScopaRule, Boolean>();
@@ -67,37 +66,49 @@ public class ScopaGame implements Playable {
 	@Override
 	public void initGame(List<Config> configs, MsgMasterRule rules) throws IllegalInitialConditionException {
 		/** check condition **/
-		checkInitialConfig(configs, rules);
+		List<Config> playableConfig = new ArrayList<>(configs.size());
+		Map<Integer, Integer> teams = new HashMap<Integer, Integer>();
+		for (Config conf : configs) {
+			if (conf instanceof EmptyConf || conf instanceof ClosedConf) {
+				continue;
+			} else {
+				playableConfig.add(conf);
+				int team = conf.getTeam();
+				Integer teamMate = teams.get(team);
+				if (teamMate == null) {
+					teams.put(team, 1);
+				} else {
+					teams.put(team, teamMate + 1);
+				}
+			}
+		}
+		checkInitialConfig(playableConfig, rules);
 
 		/** players **/
-		nPlayer = configs.size();
+		nPlayer = playableConfig.size();
 
 		/** team repartition **/
-		Set<Integer> teams = new HashSet<>(configs.size());
-		for (Config c : configs) {
-			teams.add(c.getTeam());
-		}
 		int nbTeam = teams.size();
 
 		// to obtain a random n°1 player to start with
-		Collections.shuffle(configs);
+		Collections.shuffle(playableConfig);
 
 		// Create all scopa hand
-		Config conf = configs.get(0);
+		Config conf = playableConfig.get(0);
 		ScopaHand hand1 = new ScopaHandImpl(conf.getClientID(), conf.getTeam());
 		donour = State.p1;
-		conf = configs.get(1);
+		conf = playableConfig.get(1);
 		ScopaHand hand2 = new ScopaHandImpl(conf.getClientID(), conf.getTeam());
 		ScopaHand hand3 = null;
 		ScopaHand hand4 = null;
 
 		if (nPlayer > 3) {
-			conf = configs.get(3);
+			conf = playableConfig.get(3);
 			hand4 = new ScopaHandImpl(conf.getClientID(), conf.getTeam());
-			conf = configs.get(2);
+			conf = playableConfig.get(2);
 			hand3 = new ScopaHandImpl(conf.getClientID(), conf.getTeam());
 		} else if (nPlayer > 2) {
-			conf = configs.get(2);
+			conf = playableConfig.get(2);
 			hand3 = new ScopaHandImpl(conf.getClientID(), conf.getTeam());
 			hand4 = new EmptyHand();
 		} else {
@@ -105,7 +116,7 @@ public class ScopaGame implements Playable {
 			hand4 = new EmptyHand();
 		}
 
-		configs.add(0, null); // little hack for team readability
+		playableConfig.add(0, null); // little hack for team readability
 
 		if (nbTeam == nPlayer) {
 			// Each player play by itself
@@ -132,7 +143,7 @@ public class ScopaGame implements Playable {
 			players.put(State.p1, hand1.getPlayerName());
 
 			// is in the same team than p1
-			if (configs.get(1).getTeam() == configs.get(2).getTeam()) {
+			if (playableConfig.get(1).getTeam() == playableConfig.get(2).getTeam()) {
 				// YES : set as p3
 				hands.put(hand2.getPlayerName(), hand2);
 				players.put(State.p3, hand2.getPlayerName());
@@ -148,7 +159,7 @@ public class ScopaGame implements Playable {
 				hands.put(hand2.getPlayerName(), hand2);
 				players.put(State.p2, hand2.getPlayerName());
 
-				if (configs.get(3).getTeam() == configs.get(1).getTeam()) {
+				if (playableConfig.get(3).getTeam() == playableConfig.get(1).getTeam()) {
 					// is in the same team than p1
 					// YES : set as p3
 					hands.put(hand3.getPlayerName(), hand3);
@@ -188,34 +199,29 @@ public class ScopaGame implements Playable {
 	@Override
 	public void checkInitialConfig(List<Config> configs, MsgMasterRule rules) throws IllegalInitialConditionException {
 
-		// List<Config> playableConfig = new ArrayList<>(configs);
 		List<Config> playableConfig = new ArrayList<>(configs.size());
+		Map<Integer, Integer> teams = new HashMap<Integer, Integer>();
 
+		// Check config and config number
 		for (Config conf : configs) {
 			if (conf instanceof EmptyConf || conf instanceof ClosedConf) {
 				continue;
 			} else {
 				playableConfig.add(conf);
+				int team = conf.getTeam();
+				Integer teamMate = teams.get(team);
+				if (teamMate == null) {
+					teams.put(team, 1);
+				} else {
+					teams.put(team, teamMate + 1);
+				}
 			}
 		}
 
 		if (playableConfig.size() < 2 || playableConfig.size() > 4) {
 			throw new IllegalInitialConditionException("Too much or too less player: " + playableConfig.size() + ". Need [2,3,4] players");
 		}
-
-		Map<Integer, Integer> teams = new HashMap<Integer, Integer>(playableConfig.size());
-
-		for (Config conf : playableConfig) {
-			int team = conf.getTeam();
-			Integer teamMate = teams.get(team);
-
-			if (teamMate == null) {
-				teams.put(team, 1);
-			} else {
-				teams.put(team, teamMate + 1);
-			}
-		}
-
+		// Check team
 		if (teams.size() < 2) {
 			throw new IllegalInitialConditionException("Need at least 2 teams");
 		}
@@ -233,6 +239,7 @@ public class ScopaGame implements Playable {
 			}
 		}
 
+		// Check rules
 		if (!(rules instanceof MsgScopaRules)) {
 			throw new IllegalInitialConditionException("The msgRules should be MsgScopaRules type but was: " + rules.getClass());
 		}
@@ -246,7 +253,7 @@ public class ScopaGame implements Playable {
 		this.newGame();
 	}
 
-	private MsgBaseConf getMsgGameBaseConf(ScopaHand handy) {
+	private MsgBaseConf getMsgGameBaseConf(ScopaHand handy, PlayerName nextPlayer) {
 		PlayerName currentPlayer = handy.getPlayerName();
 		PlayerName north = null, west = null, east = null;
 		if (nPlayer == 2) {
@@ -275,7 +282,7 @@ public class ScopaGame implements Playable {
 			}
 		}
 
-		return new MsgBaseConf(north, west, east, handy.getHand(), table.cardsOnTable(), this.getNextPlayer());
+		return new MsgBaseConf(north, west, east, handy.getHand(), table.cardsOnTable(), nextPlayer);
 	}
 
 	private ScopaHand getHandByPlayerName(PlayerName name) {
@@ -327,13 +334,15 @@ public class ScopaGame implements Playable {
 
 		} while (!ok);
 
-		state = nextState();
+		// Recover nextPlayer before state update
+		PlayerName nextPlayer = this.getNextPlayer();
 
 		for (ScopaHand hand : hands.values()) {
 			assert hand.isEmpty() : "Hand is not empty ";
 			hand.newHand(deck.draw3Cards());
-			api.sendMsgTo(hand.getPlayerName(), this.getMsgGameBaseConf(hand));
+			api.sendMsgTo(hand.getPlayerName(), this.getMsgGameBaseConf(hand, nextPlayer));
 		}
+		Logger.debug("Donour: " + this.getHandByPlayerState(donour).getPlayerName() + " / ExpectedNextPlayer: " + this.getNextPlayer());
 	}
 
 	@Override
@@ -361,24 +370,8 @@ public class ScopaGame implements Playable {
 				api.sendMsgTo(sender, new MsgScopaAck(nextPlayer));
 				api.sendMsgToAllExcept(sender, new MsgScopaPlay(sender, msgPlay.getPlayed(), msgPlay.getTaken(), nextPlayer));
 
-				if (nextPlayer.equals(SRV_NAME)) {
-					switch (state) {
-					case takeAll:
-						takeAll();
-						//$FALL-THROUGH$
-					case endSet:
-						if (sendScore()) {
-							break; // winner, we don't do a new set
-						}
-						//$FALL-THROUGH$
-					case giveNewHand:
-						giveNewHands();
-						break;
-					default:
-						Logger.error("SRV should play but do nothing");
-						this.closeGameDueToError("Invalid state " + state + ", SRV should rather do something");
-					}
-				}
+				serverPlay();
+
 			} else if (state.equals(State.unknown)) {
 				// Unexpected error
 				this.closeGameDueToError("Unauthorized play: " + msgPlay.toString() + "\nwhile on table: "
@@ -438,6 +431,27 @@ public class ScopaGame implements Playable {
 		return false;
 	}
 
+	private void serverPlay() {
+		PlayerName nextPlayer = this.getNextPlayer();
+		if (SRV_NAME.equals(nextPlayer)) {
+			switch (state) {
+			case giveNewHand:
+				giveNewHands();
+				break;
+			case takeAll:
+				takeAll();
+				break;
+			case endSet:
+				sendScore();
+				break;
+			default:
+				Logger.error("SRV should play but do nothing");
+				this.closeGameDueToError("Invalid state " + state + ", SRV should rather do something");
+			}
+			serverPlay();
+		}
+	}
+
 	private void takeAll() {
 
 		ScopaHand hand = this.getHandByPlayerName(lastPlayerToTake);
@@ -489,25 +503,7 @@ public class ScopaGame implements Playable {
 		case notStarted:
 			return State.readyToStart;
 		case readyToStart:
-			if (donour.equals(State.p1)) {
-				return State.p2;
-			} else if (donour.equals(State.p2)) {
-				if (nPlayer > 2) {
-					return State.p3;
-				} else {
-					return State.p1;
-				}
-			} else if (donour.equals(State.p3)) {
-				if (nPlayer > 3) {
-					return State.p4;
-				} else {
-					return State.p1;
-				}
-			} else if (donour.equals(State.p4)) {
-				return State.p1;
-			} else {
-				throw new IllegalStateException();
-			}
+			return State.p2;
 		case p1:
 			if (donour.equals(State.p1)) {
 				if (this.getHandByPlayerState(State.p1).isEmpty()) {
@@ -607,7 +603,8 @@ public class ScopaGame implements Playable {
 			if (score.checkWinner()) {
 				return State.endMatch;
 			} else {
-				return State.readyToStart;
+				return State.readyToStart; // TODO update donour, State =
+											// donour+1
 			}
 		case endMatch:
 			return State.endMatch; // TODO might be different

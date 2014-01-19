@@ -168,7 +168,7 @@ public class ServerCSocket implements Runnable {
 
 	private void start(MsgStart prequest) {
 		try {
-			// FIXME Should store number of player participating and fail if one
+			// FIXME Should store players participating and fail if one
 			// of them quit
 			sc.transferMsgToAll(prequest, prequest.getSenderID());
 			sc.startGame();

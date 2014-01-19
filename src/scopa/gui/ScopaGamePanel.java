@@ -11,6 +11,7 @@ import java.util.List;
 import scopa.com.MsgBaseConf;
 import scopa.com.MsgScopa;
 import scopa.com.MsgScopaHand;
+import scopa.com.MsgScopaNack;
 import scopa.com.MsgScopaPlay;
 import scopa.logic.EmptyHand;
 import scopa.logic.OffuscatedScopaCard;
@@ -177,7 +178,8 @@ public class ScopaGamePanel extends GamePanel {
 				// Nothing todo
 				break;
 			case nack:
-				this.showWarningToPlayer("The server refused your last play");
+				MsgScopaNack msgNack = MsgCaster.castMsg(MsgScopaNack.class, msgScopa);
+				this.showWarningToPlayer("The server refused your last play:\n" + msgNack.getReason());
 				// TODO Recover lastMove and undo it
 				break;
 			default:
