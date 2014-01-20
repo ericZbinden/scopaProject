@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import scopa.logic.card.ScopaCard;
+import scopa.logic.card.ScopaSum;
+import scopa.logic.card.ScopaValue;
+
 public class ScopaTableImpl extends ArrayList<ScopaCard> implements ScopaTable {
 
 	private static final long serialVersionUID = 6791600481344640732L;

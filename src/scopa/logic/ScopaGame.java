@@ -20,6 +20,10 @@ import scopa.com.MsgScopaPlay;
 import scopa.com.MsgScopaRules;
 import scopa.com.MsgScopaScore;
 import scopa.com.ScopaMsgType;
+import scopa.logic.card.ScopaCard;
+import scopa.logic.hand.EmptyHand;
+import scopa.logic.hand.ScopaHand;
+import scopa.logic.hand.ScopaHandImpl;
 import util.Logger;
 import util.PlayerName;
 
@@ -282,7 +286,7 @@ public class ScopaGame implements Playable {
 			}
 		}
 
-		return new MsgBaseConf(north, west, east, handy.getHand(), table.cardsOnTable(), nextPlayer);
+		return new MsgBaseConf(north, west, east, handy.getCardsInHand(), table.cardsOnTable(), nextPlayer);
 	}
 
 	private ScopaHand getHandByPlayerName(PlayerName name) {
@@ -478,7 +482,7 @@ public class ScopaGame implements Playable {
 		PlayerName nextPlayer = getNextPlayer();
 
 		for (ScopaHand hand : hands.values()) {
-			api.sendMsgTo(hand.getPlayerName(), new MsgScopaHand(hand.getHand(), nextPlayer));
+			api.sendMsgTo(hand.getPlayerName(), new MsgScopaHand(hand.getCardsInHand(), nextPlayer));
 		}
 	}
 

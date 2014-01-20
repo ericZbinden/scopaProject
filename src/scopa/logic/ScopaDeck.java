@@ -2,6 +2,8 @@ package scopa.logic;
 
 import java.util.List;
 
+import scopa.logic.card.ScopaCard;
+
 public interface ScopaDeck {
 
 	/**

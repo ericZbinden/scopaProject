@@ -8,11 +8,14 @@ import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JPanel;
 
-import scopa.logic.ScopaCard;
-import scopa.logic.ScopaHand;
+import scopa.logic.card.ScopaCard;
+import scopa.logic.card.ScopaColor;
+import scopa.logic.card.ScopaValue;
+import scopa.logic.hand.ScopaHand;
 import util.Logger;
 import util.PlayerName;
 
@@ -78,7 +81,7 @@ public class ScopaHandPanel extends JPanel implements ScopaHand, MouseListener {
 	}
 
 	private void addAllCardsInGui() {
-		List<ScopaCard> handy = hand.getHand();
+		List<ScopaCard> handy = hand.getCardsInHand();
 
 		if (handy.size() == 3) {
 			card1.setCard(handy.get(0));
@@ -132,7 +135,7 @@ public class ScopaHandPanel extends JPanel implements ScopaHand, MouseListener {
 					card3.setCard(null);
 				} else {
 					Logger.error("You played a card you don't have.\n\tPlayed: " + card.toString() + "\n\tHave: "
-							+ Arrays.toString(hand.getHand().toArray()));
+							+ Arrays.toString(hand.getCardsInHand().toArray()));
 				}
 			}
 
@@ -154,8 +157,8 @@ public class ScopaHandPanel extends JPanel implements ScopaHand, MouseListener {
 	}
 
 	@Override
-	public List<ScopaCard> getHand() {
-		return hand.getHand();
+	public List<ScopaCard> getCardsInHand() {
+		return hand.getCardsInHand();
 	}
 
 	@Override
@@ -242,6 +245,36 @@ public class ScopaHandPanel extends JPanel implements ScopaHand, MouseListener {
 	@Override
 	public void mouseReleased(MouseEvent arg0) {
 		// Nothing
+	}
+
+	@Override
+	public void resetScore() {
+		hand.resetScore();
+	}
+
+	@Override
+	public boolean took7OfGold() {
+		return hand.took7OfGold();
+	}
+
+	@Override
+	public int tookCardsTotal() {
+		return hand.tookCardsTotal();
+	}
+
+	@Override
+	public int tookGoldTotal() {
+		return hand.tookGoldTotal();
+	}
+
+	@Override
+	public int tookSevenTotal() {
+		return hand.tookSevenTotal();
+	}
+
+	@Override
+	public Map<ScopaColor, ScopaValue> tookBestCardInAllColor() {
+		return hand.tookBestCardInAllColor();
 	}
 
 }

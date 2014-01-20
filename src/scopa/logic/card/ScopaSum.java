@@ -1,4 +1,4 @@
-package scopa.logic;
+package scopa.logic.card;
 
 import java.util.ArrayList;
 import java.util.List;

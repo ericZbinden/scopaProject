@@ -13,12 +13,12 @@ import scopa.com.MsgScopa;
 import scopa.com.MsgScopaHand;
 import scopa.com.MsgScopaNack;
 import scopa.com.MsgScopaPlay;
-import scopa.logic.EmptyHand;
-import scopa.logic.OffuscatedScopaCard;
-import scopa.logic.ScopaCard;
 import scopa.logic.ScopaGame;
-import scopa.logic.ScopaHand;
-import scopa.logic.ScopaHandImpl;
+import scopa.logic.card.OffuscatedScopaCard;
+import scopa.logic.card.ScopaCard;
+import scopa.logic.hand.EmptyHand;
+import scopa.logic.hand.ScopaHand;
+import scopa.logic.hand.ScopaHandImpl;
 import util.Logger;
 import util.PlayerName;
 

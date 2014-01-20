@@ -8,10 +8,10 @@ import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import scopa.logic.EmptyHand;
-import scopa.logic.OffuscatedHand;
-import scopa.logic.ScopaCard;
-import scopa.logic.ScopaHand;
+import scopa.logic.card.ScopaCard;
+import scopa.logic.hand.EmptyHand;
+import scopa.logic.hand.OffuscatedHand;
+import scopa.logic.hand.ScopaHand;
 import util.Logger;
 import util.PlayerName;
 

@@ -8,25 +8,18 @@ import java.util.List;
 
 import org.junit.Test;
 
+import scopa.logic.card.ScopaCard;
+
 public class ScopaTableImplTest {
 
 	ScopaTable table;
-	ScopaCard sevenOfGold = new ScopaCard(ScopaValue.seven, ScopaColor.gold);
-	ScopaCard sevenOfCup = new ScopaCard(ScopaValue.seven, ScopaColor.cup);
-	ScopaCard sevenOfSword = new ScopaCard(ScopaValue.seven, ScopaColor.sword);
-	ScopaCard twoOfGold = new ScopaCard(ScopaValue.two, ScopaColor.gold);
-	ScopaCard fiveOfGold = new ScopaCard(ScopaValue.five, ScopaColor.gold);
-	ScopaCard fiveOfCup = new ScopaCard(ScopaValue.five, ScopaColor.cup);
-	ScopaCard kingOfGold = new ScopaCard(ScopaValue.king, ScopaColor.gold);
-	ScopaCard kingOfSword = new ScopaCard(ScopaValue.king, ScopaColor.sword);
-	ScopaCard kingOfCup = new ScopaCard(ScopaValue.king, ScopaColor.cup);
 
 	@Test
 	public void testEmptyTable() {
 		table = ScopaFactory.getNewScopaTable();
 
 		assertTrue(table.isEmpty());
-		assertTrue(table.allPossibleTakeWith(sevenOfGold).isEmpty());
+		assertTrue(table.allPossibleTakeWith(ScopaTestUtil.sevenOfGold).isEmpty());
 	}
 
 	@Test
@@ -34,59 +27,59 @@ public class ScopaTableImplTest {
 		table = ScopaFactory.getNewScopaTable();
 		assertTrue(table.isEmpty());
 
-		table.putCards(Arrays.asList(sevenOfCup, sevenOfSword));
+		table.putCards(Arrays.asList(ScopaTestUtil.sevenOfCup, ScopaTestUtil.sevenOfSword));
 		assertTrue(table.cardsOnTable().size() == 2);
 
-		List<List<ScopaCard>> possibleOutcome = table.allPossibleTakeWith(sevenOfGold);
+		List<List<ScopaCard>> possibleOutcome = table.allPossibleTakeWith(ScopaTestUtil.sevenOfGold);
 
 		assertTrue(possibleOutcome.size() == 2);
 		// System.out.println(Arrays.toString(possibleOutcome.toArray()));
-		assertTrue(possibleOutcome.contains(Arrays.asList(sevenOfCup)));
-		assertTrue(possibleOutcome.contains(Arrays.asList(sevenOfSword)));
+		assertTrue(possibleOutcome.contains(Arrays.asList(ScopaTestUtil.sevenOfCup)));
+		assertTrue(possibleOutcome.contains(Arrays.asList(ScopaTestUtil.sevenOfSword)));
 	}
 
 	@Test
 	public void testSameValueAndLowerCombinaison() {
 		table = ScopaFactory.getNewScopaTable();
-		table.putCards(Arrays.asList(sevenOfCup, fiveOfGold, twoOfGold));
+		table.putCards(Arrays.asList(ScopaTestUtil.sevenOfCup, ScopaTestUtil.fiveOfGold, ScopaTestUtil.twoOfGold));
 
-		List<List<ScopaCard>> possibleOutcome = table.allPossibleTakeWith(sevenOfGold);
+		List<List<ScopaCard>> possibleOutcome = table.allPossibleTakeWith(ScopaTestUtil.sevenOfGold);
 
 		assertTrue(possibleOutcome.size() == 1);
-		assertTrue(possibleOutcome.get(0).equals(Arrays.asList(sevenOfCup)));
+		assertTrue(possibleOutcome.get(0).equals(Arrays.asList(ScopaTestUtil.sevenOfCup)));
 	}
 
 	@Test
 	public void testSameValueCombinaison() {
 		table = ScopaFactory.getNewScopaTable();
-		table.putCards(Arrays.asList(fiveOfCup, fiveOfGold, twoOfGold));
+		table.putCards(Arrays.asList(ScopaTestUtil.fiveOfCup, ScopaTestUtil.fiveOfGold, ScopaTestUtil.twoOfGold));
 
-		List<List<ScopaCard>> possibleOutcome = table.allPossibleTakeWith(sevenOfGold);
+		List<List<ScopaCard>> possibleOutcome = table.allPossibleTakeWith(ScopaTestUtil.sevenOfGold);
 		// System.out.println(Arrays.toString(possibleOutcome.toArray()));
 
 		assertTrue(possibleOutcome.size() == 2);
-		assertTrue(possibleOutcome.contains(Arrays.asList(fiveOfCup, twoOfGold)));
-		assertTrue(possibleOutcome.contains(Arrays.asList(fiveOfGold, twoOfGold)));
+		assertTrue(possibleOutcome.contains(Arrays.asList(ScopaTestUtil.fiveOfCup, ScopaTestUtil.twoOfGold)));
+		assertTrue(possibleOutcome.contains(Arrays.asList(ScopaTestUtil.fiveOfGold, ScopaTestUtil.twoOfGold)));
 	}
 
 	@Test
 	public void test2SameValueInCombinaison() {
 		table = ScopaFactory.getNewScopaTable();
-		table.putCards(Arrays.asList(fiveOfCup, fiveOfGold, twoOfGold));
+		table.putCards(Arrays.asList(ScopaTestUtil.fiveOfCup, ScopaTestUtil.fiveOfGold, ScopaTestUtil.twoOfGold));
 
-		List<List<ScopaCard>> possibleOutcome = table.allPossibleTakeWith(kingOfGold);
+		List<List<ScopaCard>> possibleOutcome = table.allPossibleTakeWith(ScopaTestUtil.kingOfGold);
 		// System.out.println(Arrays.toString(possibleOutcome.toArray()));
 
 		assertTrue(possibleOutcome.size() == 1);
-		assertTrue(possibleOutcome.contains(Arrays.asList(fiveOfCup, fiveOfGold)));
+		assertTrue(possibleOutcome.contains(Arrays.asList(ScopaTestUtil.fiveOfCup, ScopaTestUtil.fiveOfGold)));
 	}
 
 	@Test
 	public void testNoCombinaison() {
 		table = ScopaFactory.getNewScopaTable();
-		table.putCards(Arrays.asList(fiveOfCup, fiveOfGold, kingOfCup));
+		table.putCards(Arrays.asList(ScopaTestUtil.fiveOfCup, ScopaTestUtil.fiveOfGold, ScopaTestUtil.kingOfCup));
 
-		List<List<ScopaCard>> possibleOutcome = table.allPossibleTakeWith(sevenOfGold);
+		List<List<ScopaCard>> possibleOutcome = table.allPossibleTakeWith(ScopaTestUtil.sevenOfGold);
 		// System.out.println(Arrays.toString(possibleOutcome.toArray()));
 
 		assertTrue(possibleOutcome.isEmpty());
@@ -96,7 +89,7 @@ public class ScopaTableImplTest {
 	public void testPutInitialLessThan10() {
 		table = ScopaFactory.getNewScopaTable();
 
-		boolean result = table.putInitial(Arrays.asList(fiveOfCup, twoOfGold));
+		boolean result = table.putInitial(Arrays.asList(ScopaTestUtil.fiveOfCup, ScopaTestUtil.twoOfGold));
 
 		assertTrue(table.isEmpty());
 		assertFalse(result);
@@ -106,7 +99,7 @@ public class ScopaTableImplTest {
 	public void testPutInitial3Kings() {
 		table = ScopaFactory.getNewScopaTable();
 
-		boolean result = table.putInitial(Arrays.asList(kingOfCup, kingOfGold, kingOfSword));
+		boolean result = table.putInitial(Arrays.asList(ScopaTestUtil.kingOfCup, ScopaTestUtil.kingOfGold, ScopaTestUtil.kingOfSword));
 
 		assertTrue(table.isEmpty());
 		assertFalse(result);
@@ -116,7 +109,8 @@ public class ScopaTableImplTest {
 	public void testPutInitialOk() {
 		table = ScopaFactory.getNewScopaTable();
 
-		boolean result = table.putInitial(Arrays.asList(kingOfCup, sevenOfGold, fiveOfCup, fiveOfGold));
+		boolean result = table.putInitial(Arrays
+				.asList(ScopaTestUtil.kingOfCup, ScopaTestUtil.sevenOfGold, ScopaTestUtil.fiveOfCup, ScopaTestUtil.fiveOfGold));
 
 		assertTrue(table.cardsOnTable().size() == 4);
 		assertTrue(result);

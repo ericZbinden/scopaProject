@@ -1,4 +1,4 @@
-package scopa.logic;
+package scopa.logic.card;
 
 public class OffuscatedScopaCard extends ScopaCard {
 

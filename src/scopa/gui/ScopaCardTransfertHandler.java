@@ -10,8 +10,8 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.TransferHandler;
 
-import scopa.logic.ScopaCard;
 import scopa.logic.ScopaFactory;
+import scopa.logic.card.ScopaCard;
 import util.Logger;
 
 

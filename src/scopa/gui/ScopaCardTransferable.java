@@ -4,8 +4,8 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 
-import scopa.logic.ScopaCard;
 import scopa.logic.ScopaFactory;
+import scopa.logic.card.ScopaCard;
 
 public class ScopaCardTransferable implements Transferable {
 	

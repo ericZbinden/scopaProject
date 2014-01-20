@@ -1,8 +1,13 @@
-package scopa.logic;
+package scopa.logic.hand;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import scopa.logic.card.ScopaCard;
+import scopa.logic.card.ScopaColor;
+import scopa.logic.card.ScopaValue;
 import util.PlayerName;
 import util.ReservedName;
 
@@ -25,7 +30,7 @@ public class EmptyHand implements ScopaHand {
 	}
 
 	@Override
-	public List<ScopaCard> getHand() {
+	public List<ScopaCard> getCardsInHand() {
 		return Arrays.asList();
 	}
 
@@ -57,6 +62,36 @@ public class EmptyHand implements ScopaHand {
 	@Override
 	public boolean isOffuscated() {
 		return false;
+	}
+
+	@Override
+	public void resetScore() {
+		// Nothing
+	}
+
+	@Override
+	public boolean took7OfGold() {
+		return false;
+	}
+
+	@Override
+	public int tookCardsTotal() {
+		return 0;
+	}
+
+	@Override
+	public int tookGoldTotal() {
+		return 0;
+	}
+
+	@Override
+	public int tookSevenTotal() {
+		return 0;
+	}
+
+	@Override
+	public Map<ScopaColor, ScopaValue> tookBestCardInAllColor() {
+		return new HashMap<>(0);
 	}
 
 }

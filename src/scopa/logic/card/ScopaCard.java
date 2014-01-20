@@ -1,8 +1,8 @@
-package scopa.logic;
+package scopa.logic.card;
 
 import java.io.Serializable;
 
-public class ScopaCard implements Serializable {
+public class ScopaCard implements Serializable, Comparable<ScopaCard> {
 
 	private static final long serialVersionUID = -7448441193550564666L;
 
@@ -28,30 +28,36 @@ public class ScopaCard implements Serializable {
 	}
 
 	public boolean isOffuscated() {
-		// FIXME not really correct
-		// is Offuscated if value or color are offuscated
-		return false;
+		return value.isOffuscated() || color.isOffuscated();
 	}
 
 	public boolean isGreater(ScopaCard card) {
-		return ScopaValue.greater(value, card.getValue());
+		return this.value.isGreater(card.getValue());
 	}
 
 	public boolean isSmaller(ScopaCard card) {
-		return ScopaValue.smaller(value, card.getValue());
+		return this.value.isSmaller(card.getValue());
 	}
 
 	public boolean isEqualInValue(ScopaCard card) {
-		return ScopaValue.isEqual(value, card.getValue());
+		return this.value.isValueEqual(card.getValue());
 	}
 
 	public boolean isHigherFor7(ScopaCard card) {
-		return ScopaValue.isHigherFor7(value, card.getValue());
+		if (card == null) {
+			return true;
+		}
+		return value.isHigherFor7(card.getValue());
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof ScopaCard) {
+
+		if (this == null) {
+			return obj == null;
+		} else if (obj == null) {
+			return false;
+		} else if (obj instanceof ScopaCard) {
 			ScopaCard that = (ScopaCard) obj;
 			// Logger.debug("Testing equality between ScopaCard: "+this.toString()+" and: "+that.toString());
 			return that.getColor().equals(this.color) && that.getValue().equals(this.value);
@@ -84,6 +90,15 @@ public class ScopaCard implements Serializable {
 		}
 		hash = hash * 13 + ScopaValue.val(this);
 		return hash;
+	}
+
+	@Override
+	public int compareTo(ScopaCard o) {
+		int comparedValue = this.color.compareTo(o.getColor());
+		if (comparedValue == 0) {
+			return this.value.compareTo(o.getValue());
+		}
+		return comparedValue;
 	}
 
 }

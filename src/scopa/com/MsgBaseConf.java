@@ -2,7 +2,7 @@ package scopa.com;
 
 import java.util.List;
 
-import scopa.logic.ScopaCard;
+import scopa.logic.card.ScopaCard;
 import util.PlayerName;
 
 public class MsgBaseConf extends MsgScopa {

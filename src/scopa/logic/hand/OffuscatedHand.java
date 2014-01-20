@@ -1,26 +1,23 @@
-package scopa.logic;
+package scopa.logic.hand;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import scopa.logic.card.OffuscatedScopaCard;
+import scopa.logic.card.ScopaCard;
 import util.PlayerName;
 
-public class OffuscatedHand implements ScopaHand {
+public class OffuscatedHand extends ScopaHandImpl {
 
 	private int nbCards;
-	private PlayerName playerName;
-	private int team;
-	private int cardsTaken;
 
 	public OffuscatedHand(PlayerName playerName, int team) {
-		this.playerName = playerName;
-		this.team = team;
+		super(playerName, team);
 		nbCards = 3;
-		cardsTaken = 0;
 	}
 
 	@Override
-	public List<ScopaCard> getHand() {
+	public List<ScopaCard> getCardsInHand() {
 
 		List<ScopaCard> cards = new ArrayList<>(nbCards);
 
@@ -49,16 +46,6 @@ public class OffuscatedHand implements ScopaHand {
 	@Override
 	public boolean isEmpty() {
 		return nbCards == 0;
-	}
-
-	@Override
-	public PlayerName getPlayerName() {
-		return playerName;
-	}
-
-	@Override
-	public void addCardsToHeap(List<ScopaCard> taken) {
-		cardsTaken += taken.size();
 	}
 
 	@Override

@@ -8,8 +8,8 @@ import java.awt.Image;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
-import scopa.logic.ScopaCard;
-import scopa.logic.ScopaValue;
+import scopa.logic.card.ScopaCard;
+import scopa.logic.card.ScopaValue;
 
 public class CardLabel extends JPanel {
 

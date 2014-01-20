@@ -5,128 +5,148 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import scopa.logic.hand.ScopaHand;
 import util.Logger;
+import util.PlayerName;
 
 public class ScopaScore {
 
 	private boolean winner = false;
-	private int winnerTeam = -1;
+	private Integer winnerTeam = null;
 	private final int nPlayer;
-	
-	private final Map<String,Integer> teamMap;		// map PLAYER - TEAM
-	private Map<Integer,Integer> teamCurrentScore;	// map TEAM - SCORE of this game
-	private Map<Integer,Integer> teamGameWonScore;	// map TEAM - GAME WON
+
+	private final Map<PlayerName, Integer> teamMap; // map PLAYER - TEAM
+	private Map<Integer, Integer> teamCurrentScore; // map TEAM - SCORE of this
+													// game
+	private Map<Integer, Integer> teamGameWonScore; // map TEAM - GAME WON
 	private Map<ScopaRule, Boolean> rules;
 
-	
-	public ScopaScore(Map<String, Integer> teamMap, boolean reverse){
+	public ScopaScore(Map<PlayerName, Integer> teamMap, Map<ScopaRule, Boolean> rules) {
 		this.teamMap = new HashMap<>(teamMap);
-		
-		this.rules = new HashMap<>(0);
-		rules.put(ScopaRule.reverse, new Boolean(reverse));
-			
+
+		this.rules = rules;
+
 		nPlayer = this.teamMap.size();
-		if(nPlayer < 2 || nPlayer > 4)
-			throw new IllegalArgumentException("Too much or too less player: "+nPlayer+". Need [2,3,4] players");
-		
+		if (nPlayer < 2 || nPlayer > 4) {
+			throw new IllegalArgumentException("Too much or too less player: " + nPlayer + ". Need [2,3,4] players");
+		}
+
 		teamCurrentScore = new HashMap<>(this.teamMap.size());
 		teamGameWonScore = new HashMap<>(this.teamMap.size());
-		for(Integer team : this.teamMap.values()){
+		for (Integer team : this.teamMap.values()) {
 			teamCurrentScore.put(team, 0);
 			teamGameWonScore.put(team, 0);
 		}
 	}
-	
-	public boolean isRuleReverseEnable(){
+
+	public boolean isRuleReverseEnable() {
 		return isRuleEnable(ScopaRule.reverse);
 	}
-	
-	private boolean isRuleEnable(ScopaRule rule){
-		if(rules.containsKey(rule))
+
+	public boolean isRuleScopaEnable() {
+		return isRuleEnable(ScopaRule.scopa);
+	}
+
+	public boolean isRuleNapoliEnable() {
+		return isRuleEnable(ScopaRule.napoli);
+	}
+
+	private boolean isRuleEnable(ScopaRule rule) {
+		if (rules.containsKey(rule)) {
 			return rules.get(rule);
-		
+		}
+
 		return false;
 	}
-	
-	public void resetMatch(){
-		for(Integer team : teamCurrentScore.keySet()){
+
+	public void markScopa(PlayerName scoringPlayer) {
+		if (this.isRuleScopaEnable()) {
+			this.markPoints(scoringPlayer, 1);
+		}
+	}
+
+	public void markNapoli(ScopaHand hand) {
+		if (this.isRuleNapoliEnable()) {
+
+		}
+	}
+
+	private void markPoints(PlayerName scoringPlayer, int point) {
+		Integer scoringTeam = teamMap.get(scoringPlayer);
+		if (scoringTeam == null) {
+			String msg = "Player " + scoringPlayer + " is unknown. Expected player in " + Arrays.toString(teamMap.values().toArray());
+			Logger.error(msg);
+			throw new IllegalArgumentException(msg);
+		}
+
+		teamCurrentScore.put(scoringTeam, teamCurrentScore.get(scoringTeam) + point);
+	}
+
+	public void resetMatch() {
+		for (Integer team : teamCurrentScore.keySet()) {
 			teamCurrentScore.put(team, 0);
 		}
 		winner = false;
-		winnerTeam = -1;
+		winnerTeam = null;
 	}
-	
-	public void resetMatch(boolean reverseRule){
-		this.rules.put(ScopaRule.reverse, new Boolean(reverseRule));
-		resetMatch();
-	}
-	
-	public boolean markScore(Map<String,Integer> markedPoints){
-		for(Entry<String,Integer> entry : markedPoints.entrySet()){
-			Integer team = teamMap.get(entry.getKey());
-			
-			if(team != null){
-				teamCurrentScore.put(team, teamCurrentScore.get(team)+entry.getValue());
-			} else {
-				String msg = "Player "+entry.getKey()+" is unknown. Expected player in "+Arrays.toString(teamMap.values().toArray());
-				Logger.error(msg);
-				throw new IllegalArgumentException(msg);
-			}		
+
+	public void markScore(Map<PlayerName, Integer> markedPoints) {
+		for (Entry<PlayerName, Integer> entry : markedPoints.entrySet()) {
+			markPoints(entry.getKey(), entry.getValue());
 		}
-		
-		return checkWinner();
 	}
-	
-	public boolean checkWinner(){
-		if(winner) return true;
-		
+
+	public boolean checkWinner() {
+		// TODO rework me
+		if (winner) {
+			return true;
+		}
+
 		int worstScore = Integer.MAX_VALUE;
 		int firstBestScore = Integer.MIN_VALUE;
 		int secondBestScore = Integer.MIN_VALUE;
-		int winningTeam = -1;	
+		int winningTeam = -1;
 		int loosingTeam = -1;
 		int teamScore = Integer.MIN_VALUE;
 		int teamNumber = -1;
-		
-		for(Entry<Integer,Integer> entry : teamCurrentScore.entrySet()){
+
+		for (Entry<Integer, Integer> entry : teamCurrentScore.entrySet()) {
 			teamScore = entry.getValue();
 			teamNumber = entry.getKey();
-			if(firstBestScore < teamScore){
+			if (firstBestScore < teamScore) {
 				secondBestScore = firstBestScore;
 				firstBestScore = teamScore;
 				winningTeam = teamNumber;
 			}
-			if(worstScore > teamScore){
+			if (worstScore > teamScore) {
 				worstScore = teamScore;
 				loosingTeam = teamNumber;
 			}
 		}
-		
-		if(firstBestScore > 10 && (secondBestScore+2)<=firstBestScore){
+
+		if (firstBestScore > 10 && (secondBestScore + 2) <= firstBestScore) {
 			winner = true;
-			if(this.isRuleReverseEnable()){
+			if (this.isRuleReverseEnable()) {
 				winnerTeam = loosingTeam;
 			} else {
 				winnerTeam = winningTeam;
 			}
 			return true;
 		}
-		
+
 		return false;
 	}
-	
-	
-	public Map<Integer,Integer> getCurrentTeamScores(){
+
+	public Map<Integer, Integer> getCurrentTeamScores() {
 		return new HashMap<>(teamCurrentScore);
 	}
-	
-	public Map<Integer,Integer> getMatchTeamScores(){
+
+	public Map<Integer, Integer> getMatchTeamScores() {
 		return new HashMap<>(teamGameWonScore);
 	}
-	
-	public int getWinnerTeam(){
+
+	public Integer getWinnerTeam() {
 		return winnerTeam;
 	}
-	
-	
+
 }

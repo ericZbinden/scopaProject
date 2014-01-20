@@ -13,9 +13,9 @@ import java.util.Map;
 
 import javax.swing.JPanel;
 
-import scopa.logic.ScopaCard;
 import scopa.logic.ScopaFactory;
 import scopa.logic.ScopaTable;
+import scopa.logic.card.ScopaCard;
 import util.Logger;
 
 public class ScopaTablePanel extends JPanel implements MouseListener, ScopaTable {

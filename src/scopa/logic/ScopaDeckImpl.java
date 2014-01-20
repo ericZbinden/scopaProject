@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import scopa.logic.card.ScopaCard;
+import scopa.logic.card.ScopaColor;
+import scopa.logic.card.ScopaValue;
+
 public class ScopaDeckImpl extends ArrayList<ScopaCard> implements ScopaDeck {
 
 	private static final long serialVersionUID = 7062358612411467718L;

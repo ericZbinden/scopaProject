@@ -7,8 +7,8 @@ import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import scopa.logic.ScopaCard;
-import scopa.logic.ScopaHand;
+import scopa.logic.card.ScopaCard;
+import scopa.logic.hand.ScopaHand;
 import util.PlayerName;
 
 public class PlayerBorderPanel extends JPanel {

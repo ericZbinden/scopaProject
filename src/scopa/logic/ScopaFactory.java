@@ -2,6 +2,8 @@ package scopa.logic;
 
 import java.awt.datatransfer.DataFlavor;
 
+import scopa.logic.card.ScopaCard;
+
 public class ScopaFactory {
 	
 	private final static String MIME= DataFlavor.javaJVMLocalObjectMimeType +

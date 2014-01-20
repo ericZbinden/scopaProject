@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
-import scopa.logic.ScopaCard;
+import scopa.logic.card.ScopaCard;
 import util.PlayerName;
 
 public class MsgScopaPlay extends MsgScopa {

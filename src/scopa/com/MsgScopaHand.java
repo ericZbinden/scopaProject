@@ -3,7 +3,7 @@ package scopa.com;
 import java.util.Arrays;
 import java.util.List;
 
-import scopa.logic.ScopaCard;
+import scopa.logic.card.ScopaCard;
 import util.PlayerName;
 
 public class MsgScopaHand extends MsgScopa {
