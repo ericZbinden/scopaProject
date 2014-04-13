@@ -47,7 +47,7 @@ public class BorderPanel extends JPanel {
 			throw new IllegalArgumentException("BorderLayoutProperty should be BorderLayout.[NORTH/EAST/WEST], but was: " + borderLayoutProperty);
 		}
 
-		this.setBackground(ScopaGuiConstant.backgroundColor);
+		this.setBackground(ScopaConstant.backgroundColor);
 	}
 
 	/**
@@ -91,9 +91,9 @@ public class BorderPanel extends JPanel {
 		return hand.getPlayerName();
 	}
 
-	public void newHand(List<ScopaCard> newCards) {
+	public <T extends ScopaCard> void newHand(List<T> newCards) {
 		hand.newHand(newCards);
-		this.invalidate();
+		this.repaint();
 	}
 
 	public boolean playCard(ScopaCard playedCard) {

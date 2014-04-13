@@ -49,7 +49,7 @@ public class ScopaGame implements Playable {
 	private PlayerName lastPlayerToTake;
 	private State donour;
 
-	private ScopaScore score;
+	private ScopaScoreTotal score;
 
 	private State state;
 
@@ -57,13 +57,12 @@ public class ScopaGame implements Playable {
 	private ScopaTable table;
 	private Map<PlayerName, ScopaHand> hands; // PLAYERS - HAND
 	private Map<State, PlayerName> players; // Player number - Players name
-	private Map<ScopaRule, Boolean> rules;
+	private ScopaRules rules;
 
 	public ScopaGame() {
 		// CURRENT MAX PLAYER = 4
 		this.state = State.notStarted;
 		hands = new HashMap<>(4);
-		rules = new HashMap<ScopaRule, Boolean>();
 		players = new HashMap<>(4);
 	}
 
@@ -187,9 +186,8 @@ public class ScopaGame implements Playable {
 
 		/** rules **/
 		MsgScopaRules msg = (MsgScopaRules) rules;
-		this.rules.put(ScopaRule.napoli, msg.getNapoli());
-		this.rules.put(ScopaRule.reverse, msg.getReverse());
-		this.rules.put(ScopaRule.scopa, msg.getScopa());
+		this.rules = msg.getRules();
+		this.rules.setRuleTeam((nbTeam == nPlayer ? false : true));
 
 		/** ready to start **/
 		state = nextState();

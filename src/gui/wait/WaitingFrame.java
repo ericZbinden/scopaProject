@@ -353,7 +353,7 @@ public class WaitingFrame extends JFrame implements ActionListener, ChatMsgSende
 
 	@Override
 	public void play(MsgPlay msg) {
-		gameGui.update(msg);
+		gameGui.play(msg);
 	}
 
 	@Override

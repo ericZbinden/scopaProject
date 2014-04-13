@@ -1,5 +1,6 @@
 package gui.util;
 
+import gui.api.ChatDisplay;
 import gui.api.ChatMsgSender;
 
 import java.awt.BorderLayout;
@@ -25,7 +26,7 @@ import util.ReservedName;
 
 import com.server.impl.Server;
 
-public class ChatPanel extends JPanel implements MouseListener, KeyListener {
+public class ChatPanel extends JPanel implements MouseListener, KeyListener, ChatDisplay {
 
 	private JTextField chatEntry = new JTextField();
 	private JTextArea chat = new JTextArea();
@@ -61,6 +62,7 @@ public class ChatPanel extends JPanel implements MouseListener, KeyListener {
 		this.setMinimumSize(new Dimension(290, 300));
 	}
 
+	@Override
 	public synchronized void writeIntoChat(PlayerName writer, String text) {
 		if (writer == null) {
 			writer = new PlayerName((String) null);
@@ -70,6 +72,7 @@ public class ChatPanel extends JPanel implements MouseListener, KeyListener {
 		chat.repaint();
 	}
 
+	@Override
 	public void writeIntoChatFromServer(String text) {
 		int textSize = chat.getText().length();
 		this.writeIntoChat(Server.SERVER_NAME, text);
@@ -138,6 +141,16 @@ public class ChatPanel extends JPanel implements MouseListener, KeyListener {
 				chatMsgSender.sendChatMsg(txt);
 			}
 		}
+	}
+
+	@Override
+	public ChatMsgSender getChatMsgSender() {
+		return chatMsgSender;
+	}
+
+	@Override
+	public void setChatMsgSender(ChatMsgSender chatMsgSender) {
+		this.chatMsgSender = chatMsgSender;
 	}
 
 }

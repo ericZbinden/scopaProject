@@ -100,8 +100,7 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 	}
 
 	/**
-	 * start a Socket listening on the default TCP port. launch a new thread of
-	 * PorkutRequest for each new connections request.
+	 * start a Socket listening on the default TCP port. launch a new thread of PorkutRequest for each new connections request.
 	 */
 	@Override
 	public void run() {
@@ -365,7 +364,7 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 			}
 			game.receiveMsgPlay(msg);
 		} catch (MalformedMessageException e) {
-			// TODO Should inform player of error or just ignore ?
+			Logger.error("Ignoring msg due to malformed exception.", e);
 		}
 	}
 
@@ -451,8 +450,7 @@ public class Server implements Runnable, ServerConnect, ServerApi {
 	}
 
 	/**
-	 * Try to send the message to the provided socket. If an error occurs, the
-	 * socket is closed
+	 * Try to send the message to the provided socket. If an error occurs, the socket is closed
 	 * 
 	 * @param socket
 	 * @param msg

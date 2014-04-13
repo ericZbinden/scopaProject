@@ -1,37 +1,27 @@
 package scopa.gui;
 
-import gui.game.GamePanel;
-
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.util.Arrays;
 import java.util.List;
 
-import scopa.com.MsgBaseConf;
-import scopa.com.MsgScopa;
-import scopa.com.MsgScopaHand;
-import scopa.com.MsgScopaNack;
+import javax.swing.JPanel;
+
 import scopa.com.MsgScopaPlay;
 import scopa.logic.ScopaGame;
 import scopa.logic.card.OffuscatedScopaCard;
 import scopa.logic.card.ScopaCard;
 import scopa.logic.hand.EmptyHand;
 import scopa.logic.hand.ScopaHand;
-import scopa.logic.hand.ScopaHandImpl;
 import util.Logger;
 import util.PlayerName;
 
-import com.msg.MalformedMessageException;
-import com.msg.MsgCaster;
-import com.msg.MsgPlay;
-
-public class ScopaGamePanel extends GamePanel {
+public class ScopaGamePanel extends JPanel {
 
 	private Dimension minSize = new Dimension(800, 800);
 	private boolean built = false;
 
-	private PlayerName nextPlayer;
+	private ScopaGui parent;
 
 	private PlayerBorderPanel south;
 	private BorderPanel west;
@@ -39,26 +29,16 @@ public class ScopaGamePanel extends GamePanel {
 	private BorderPanel north;
 	private ScopaTablePanel table;
 
-	public ScopaGamePanel() {
-		// logic
-		// this.table = ScopaFactory.getNewScopaTable();
-		nextPlayer = ScopaGame.SRV_NAME;
-
+	public ScopaGamePanel(ScopaGui parent) {
+		this.parent = parent;
 		this.setPreferredSize(minSize);
-		this.setMinimumSize(this.getPreferredSize());
-
-		// gui
-		// this.build();
-	}
-
-	private void build(ScopaHand playerHand, PlayerName eastPlayer, PlayerName northPlayer, PlayerName westPlayer) {
-
-		this.setBackground(Color.GREEN);
-		this.setPreferredSize(minSize);
+		this.setBackground(ScopaConstant.backgroundColor);
 		this.setMinimumSize(this.getPreferredSize());
 		this.setLayout(new BorderLayout());
+	}
 
-		// TODO retrieve correct team (if needed)
+	public void build(ScopaHand playerHand, PlayerName eastPlayer, PlayerName northPlayer, PlayerName westPlayer, List<ScopaCard> tableInitial) {
+
 		this.south = new PlayerBorderPanel(playerHand, this);
 		if (eastPlayer == null) {
 			this.east = new BorderPanel(new EmptyHand(), BorderLayout.EAST);
@@ -77,6 +57,7 @@ public class ScopaGamePanel extends GamePanel {
 		}
 
 		this.table = new ScopaTablePanel();
+		table.putInitial(tableInitial);
 
 		this.add(south, BorderLayout.SOUTH);
 		this.add(west, BorderLayout.WEST);
@@ -89,28 +70,34 @@ public class ScopaGamePanel extends GamePanel {
 
 	public void giveNewHand(List<ScopaCard> playerCards) {
 		south.newHand(playerCards);
-		west.newHand(null);
-		east.newHand(null);
-		north.newHand(null);
+
+		List<OffuscatedScopaCard> offuscatedHand = Arrays.asList(new OffuscatedScopaCard(), new OffuscatedScopaCard(), new OffuscatedScopaCard());
+		west.newHand(offuscatedHand);
+		east.newHand(offuscatedHand);
+		north.newHand(offuscatedHand);
 	}
 
 	public void southPlay(ScopaCard playedCard) {
 		south.playCard(playedCard);
+		south.repaint();
 	}
 
 	public void northPlay() {
 		north.playCard(new OffuscatedScopaCard());
+		north.repaint();
 	}
 
 	public void eastPlay() {
 		east.playCard(new OffuscatedScopaCard());
+		east.repaint();
 	}
 
 	public void westPlay() {
 		west.playCard(new OffuscatedScopaCard());
+		west.repaint();
 	}
 
-	public void dudePlay(PlayerName name) {
+	public void playedByNetworkClient(PlayerName name, ScopaCard playedCard, List<ScopaCard> taken) {
 		if (west.getPlayerName().equals(name)) {
 			westPlay();
 		} else if (east.getPlayerName().equals(name)) {
@@ -119,83 +106,16 @@ public class ScopaGamePanel extends GamePanel {
 			northPlay();
 		} else {
 			Logger.error("Unknown player " + name + ". Move ignored");
+			return;
 		}
+
+		table.putCard(playedCard, taken);
 	}
 
-	@Override
-	public void update(MsgPlay msg) {
-
-		try {
-
-			MsgScopa msgScopa = MsgCaster.castMsg(MsgScopa.class, msg);
-			nextPlayer = msgScopa.nextPlayerToPlayIs();
-			switch (msgScopa.getScopaType()) {
-			case baseConf:
-				MsgBaseConf msgConf = MsgCaster.castMsg(MsgBaseConf.class, msgScopa);
-				ScopaHand playerHand = new ScopaHandImpl(this.getLocalClient(), 0);
-				playerHand.newHand(msgConf.getHand());
-
-				PlayerName eastPlayer = msgConf.getPlayerEast();
-				PlayerName westPlayer = msgConf.getPlayerWest();
-				PlayerName northPlayer = msgConf.getPlayerNorth();
-
-				this.build(playerHand, eastPlayer, northPlayer, westPlayer);
-
-				table.putInitial(msgConf.getTable());
-				table.invalidate();
-				break;
-			case play:
-				MsgScopaPlay msgPlay = MsgCaster.castMsg(MsgScopaPlay.class, msgScopa);
-				ScopaCard played = msgPlay.getPlayed(); // TODO display who
-														// played and the replay
-														// thing
-				List<ScopaCard> taken = msgPlay.getTaken();
-				List<ScopaCard> check = table.putCard(played, taken);
-				if (check == null) {
-					// Should not happen
-					Logger.error("Invalid move!!!\n\tTable: " + table.toString() + "\n\tPlayed: " + played.toString() + "\n\tTaken: "
-							+ Arrays.toString(taken.toArray()));
-				}
-				this.dudePlay(msgPlay.getSenderID());
-				table.invalidate();
-				break;
-			case hand:
-				MsgScopaHand msgHand = MsgCaster.castMsg(MsgScopaHand.class, msgScopa);
-				List<? extends ScopaCard> offuscatedHand = Arrays
-						.asList(new OffuscatedScopaCard(), new OffuscatedScopaCard(), new OffuscatedScopaCard());
-				south.newHand(msgHand.getCards());
-				north.newHand((List<ScopaCard>) offuscatedHand);
-				east.newHand((List<ScopaCard>) offuscatedHand);
-				west.newHand((List<ScopaCard>) offuscatedHand);
-				south.invalidate();
-				north.invalidate();
-				east.invalidate();
-				west.invalidate();
-				break;
-			case ack:
-				// MsgScopaAck msgAck = MsgCaster.castMsg(MsgScopaAck.class,
-				// msgScopa);
-				// Nothing todo
-				break;
-			case nack:
-				MsgScopaNack msgNack = MsgCaster.castMsg(MsgScopaNack.class, msgScopa);
-				this.showWarningToPlayer("The server refused your last play:\n" + msgNack.getReason());
-				// TODO Recover lastMove and undo it
-				break;
-			default:
-				Logger.debug("Unknown scopa type: " + msgScopa.getScopaType() + ", ignoring it.");
-			}
-			this.invalidate();
-			this.repaint();
-		} catch (MalformedMessageException e) {
-			Logger.debug("Malformed msg of type: " + msg.getGameType().getGameType() + ". Ignoring it.");
-		}
-	}
-
-	public List<ScopaCard> clientPlayedOnTable(ScopaCard card) {
-		List<ScopaCard> cards = table.putCard(card);
-		return cards;
-	}
+	//	public List<ScopaCard> clientPlayedOnTable(ScopaCard card) {
+	//		List<ScopaCard> cards = table.putCard(card);
+	//		return cards;
+	//	}
 
 	public List<ScopaCard> getSelectedCardsOnTable() {
 		return table.getSelectedCards();
@@ -205,36 +125,42 @@ public class ScopaGamePanel extends GamePanel {
 		return table.allPossibleTakeWith(card);
 	}
 
-	public PlayerName getNextPlayerToPlay() {
-		return nextPlayer;
-	}
-
-	public boolean isLocalClientNextPlayer() {
-		return south.getPlayerName().equals(nextPlayer);
-	}
-
-	public boolean play(ScopaCard playedCard, List<ScopaCard> taken) {
+	//Called by local client when he play
+	public boolean playedByLocalClient(ScopaCard playedCard, List<ScopaCard> taken) {
 		List<ScopaCard> cards = table.putCard(playedCard, taken);
 
 		if (cards == null) {
 			return false;
 		}
-		this.nextPlayer = ScopaGame.SRV_NAME; // avoid double play
+		parent.updateLastMove(playedCard, taken);
+		parent.updateNextPlayer(ScopaGame.SRV_NAME); // avoid double play
 		return true;
 	}
 
 	public void sendMsgScopaPlay(ScopaCard played, List<ScopaCard> taken) {
-		MsgScopaPlay msg = new MsgScopaPlay(this.getLocalClient(), played, taken, null);
-		this.sendMsgPlay(msg);
+		MsgScopaPlay msg = new MsgScopaPlay(parent.getLocalClient(), played, taken, null);
+		parent.sendMsgPlay(msg);
 	}
 
 	public void alertPlayerWrongPlay() {
-		this.showWarningToPlayer("The move you tried to do is not a valid move");
+		parent.showMessageDialog("The move you tried to do is not a valid move");
+	}
+
+	public void showWarningToPlayer(String message) {
+		parent.showMessageDialog(message);
+	}
+
+	public boolean isLocalPlayerNextToPlay() {
+		return parent.isLocalPlayerNextToPlay();
+	}
+
+	public void updateLastMoveWithLocalPlay(ScopaCard played, List<ScopaCard> taken) {
+		parent.updateLastMove(played, taken);
 	}
 
 	@Override
-	public GamePanel clone() {
-		ScopaGamePanel sgp = new ScopaGamePanel();
+	public ScopaGamePanel clone() {
+		ScopaGamePanel sgp = new ScopaGamePanel(parent);
 
 		if (built) {
 			// FIXME does not clone properly
@@ -246,5 +172,4 @@ public class ScopaGamePanel extends GamePanel {
 
 		return sgp;
 	}
-
 }

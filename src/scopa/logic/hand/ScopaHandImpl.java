@@ -20,7 +20,7 @@ public class ScopaHandImpl implements ScopaHand {
 	private Map<ScopaColor, ScopaValue> bestInAllColorTaken;
 
 	// hands
-	private List<ScopaCard> hand;
+	private List<? extends ScopaCard> hand;
 	private int team;
 	private PlayerName player;
 
@@ -46,9 +46,10 @@ public class ScopaHandImpl implements ScopaHand {
 		hand.clear();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<ScopaCard> getCardsInHand() {
-		return hand;
+		return (List<ScopaCard>) hand;
 	}
 
 	@Override
@@ -57,7 +58,7 @@ public class ScopaHandImpl implements ScopaHand {
 	}
 
 	@Override
-	public void newHand(List<ScopaCard> hand) {
+	public <T extends ScopaCard> void newHand(List<T> hand) {
 		this.hand = hand;
 	}
 

@@ -9,19 +9,18 @@ import scopa.logic.hand.ScopaHand;
 import util.Logger;
 import util.PlayerName;
 
-public class ScopaScore {
+public class ScopaScoreTotal {
 
 	private boolean winner = false;
 	private Integer winnerTeam = null;
 	private final int nPlayer;
 
 	private final Map<PlayerName, Integer> teamMap; // map PLAYER - TEAM
-	private Map<Integer, Integer> teamCurrentScore; // map TEAM - SCORE of this
-													// game
+	private Map<Integer, Integer> teamCurrentScore; // map TEAM - SCORE of this game
 	private Map<Integer, Integer> teamGameWonScore; // map TEAM - GAME WON
-	private Map<ScopaRule, Boolean> rules;
+	private ScopaRules rules;
 
-	public ScopaScore(Map<PlayerName, Integer> teamMap, Map<ScopaRule, Boolean> rules) {
+	public ScopaScoreTotal(Map<PlayerName, Integer> teamMap, ScopaRules rules) {
 		this.teamMap = new HashMap<>(teamMap);
 
 		this.rules = rules;
@@ -39,34 +38,14 @@ public class ScopaScore {
 		}
 	}
 
-	public boolean isRuleReverseEnable() {
-		return isRuleEnable(ScopaRule.reverse);
-	}
-
-	public boolean isRuleScopaEnable() {
-		return isRuleEnable(ScopaRule.scopa);
-	}
-
-	public boolean isRuleNapoliEnable() {
-		return isRuleEnable(ScopaRule.napoli);
-	}
-
-	private boolean isRuleEnable(ScopaRule rule) {
-		if (rules.containsKey(rule)) {
-			return rules.get(rule);
-		}
-
-		return false;
-	}
-
 	public void markScopa(PlayerName scoringPlayer) {
-		if (this.isRuleScopaEnable()) {
+		if (rules.isRuleScopaEnable()) {
 			this.markPoints(scoringPlayer, 1);
 		}
 	}
 
 	public void markNapoli(ScopaHand hand) {
-		if (this.isRuleNapoliEnable()) {
+		if (rules.isRuleNapoliEnable()) {
 
 		}
 	}
@@ -126,7 +105,7 @@ public class ScopaScore {
 
 		if (firstBestScore > 10 && (secondBestScore + 2) <= firstBestScore) {
 			winner = true;
-			if (this.isRuleReverseEnable()) {
+			if (rules.isRuleReverseEnable()) {
 				winnerTeam = loosingTeam;
 			} else {
 				winnerTeam = winningTeam;

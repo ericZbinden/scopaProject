@@ -4,61 +4,45 @@ import game.GameType;
 import gui.api.ChatMsgSender;
 import gui.api.GameGui;
 import gui.api.PlayMsgSender;
-import gui.util.ChatPanel;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JSplitPane;
 
 import util.Logger;
 import util.PlayerName;
 
 import com.msg.MsgPlay;
 
-public class GameGuiFrame extends JFrame implements GameGui {
+public class GameGuiFrame extends JFrame implements GameGui, PlayMsgSender {
 
 	private final String TITLE = "ScopaProject";
 
 	private PlayMsgSender playSender;
+	private ChatMsgSender chatMsgSender;
 	private PlayerName client;
 
-	private JPanel gPanel = new JPanel();
-	private JPanel scorePanel = new JPanel();
-	private ChatPanel chatPanel;
+	private final List<JFrame> registeredFrames; //TODO externalize it in a service
 
 	private GamePanel gamePanel;
 
 	public GameGuiFrame(ChatMsgSender chatMsgSender) {
+		this.chatMsgSender = chatMsgSender;
+		registeredFrames = new ArrayList<>();
 
 		GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 		int width = gd.getDisplayMode().getWidth();
 		int height = gd.getDisplayMode().getHeight();
 
-		chatPanel = new ChatPanel(chatMsgSender);
+		this.setLayout(new BorderLayout());
+		//this.add(new EmptyPanel(), BorderLayout.CENTER);
 
-		JSplitPane split = new JSplitPane();
-		split.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
-		split.add(gPanel, JSplitPane.LEFT);
-		gPanel.setLayout(new BorderLayout());
-
-		JSplitPane split2 = new JSplitPane();
-		split2.setOrientation(JSplitPane.VERTICAL_SPLIT);
-		split.add(split2, JSplitPane.RIGHT);
-		split2.add(scorePanel, JSplitPane.TOP);
-		split2.add(chatPanel, JSplitPane.BOTTOM);
-
-		// TODO scorePanel.add(...)
-		// if(gamePanel != null){
-		// gamePanel.add(gameType.getGamePanel());
-		// }
-
-		this.add(split);
 		this.setPreferredSize(new Dimension(width, height));
 		this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		// this.setResizable(false);
@@ -73,24 +57,25 @@ public class GameGuiFrame extends JFrame implements GameGui {
 		this.setTitle(TITLE + ": " + gameType.toString());
 		gamePanel = gameType.getGamePanel();
 		gamePanel.setGameGui(this);
-		gPanel.removeAll();
-		gPanel.add(gamePanel, BorderLayout.CENTER);
-		gPanel.revalidate();
+
+		//this.removeAll();
+		this.add(gamePanel, BorderLayout.CENTER);
+
+		this.invalidate();
+		this.repaint();
 		this.pack();
 		this.setVisible(true);
 	}
 
 	@Override
-	public void update(MsgPlay msg) {
+	public void play(MsgPlay msg) {
 		try {
 			// Protect from anything bad that could happen
 			gamePanel.update(msg);
-			gamePanel.revalidate();
-			this.revalidate();
+			//	this.revalidate();
 		} catch (Exception e) {
-			Logger.error(e.getClass().toString() + ": " + e.getMessage() + "\nCaused by msg: " + msg.toString());
+			Logger.error("Exception caused by msg: " + msg.toString(), e);
 			JOptionPane.showMessageDialog(this, e.getMessage() + " caused by msg:\n\t" + msg.toString());
-			e.printStackTrace();
 		}
 	}
 
@@ -98,7 +83,8 @@ public class GameGuiFrame extends JFrame implements GameGui {
 	public void startNack() {
 		this.playSender = null;
 		this.gamePanel = null;
-		gPanel.removeAll();
+
+		this.revalidate();
 		this.setVisibleToFalse();
 	}
 
@@ -109,7 +95,17 @@ public class GameGuiFrame extends JFrame implements GameGui {
 
 	@Override
 	public void chat(PlayerName sender, String txt) {
-		this.writeIntoChat(sender, txt);
+		gamePanel.writeIntoChat(sender, txt);
+	}
+
+	@Override
+	public void sendChatMsg(String txt) {
+		this.chatMsgSender.sendChatMsg(txt);
+	}
+
+	@Override
+	public ChatMsgSender getChatMsgSender() {
+		return chatMsgSender;
 	}
 
 	@Override
@@ -120,11 +116,6 @@ public class GameGuiFrame extends JFrame implements GameGui {
 	@Override
 	public void setVisibleToFalse() {
 		this.setVisible(false);
-	}
-
-	@Override
-	public void writeIntoChat(PlayerName sender, String txt) {
-		chatPanel.writeIntoChat(sender, txt);
 	}
 
 	@Override
@@ -146,6 +137,10 @@ public class GameGuiFrame extends JFrame implements GameGui {
 	@Override
 	public void disconnect() {
 		playSender.disconnect();
+
+		for (JFrame frame : registeredFrames) {
+			frame.dispose();
+		}
 		super.dispose();
 
 	}
@@ -158,6 +153,22 @@ public class GameGuiFrame extends JFrame implements GameGui {
 	@Override
 	public void showMessageDialog(String messageToClient) {
 		JOptionPane.showMessageDialog(this, messageToClient);
+	}
+
+	@Override
+	public void registerFrame(JFrame frameToRegister) {
+		registeredFrames.add(frameToRegister);
+	}
+
+	@Override
+	public void removeFrame(JFrame frameToUnregister) {
+		registeredFrames.remove(frameToUnregister);
+
+	}
+
+	@Override
+	public Dimension getSize() {
+		return super.getSize();
 	}
 
 }

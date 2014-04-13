@@ -30,6 +30,7 @@ public class ScopaTablePanel extends JPanel implements MouseListener, ScopaTable
 
 	public ScopaTablePanel() {
 		defaultLayout = new GridLayout(2, 6);
+		this.setLayout(defaultLayout);
 		cards = new HashMap<>();
 		biggerThan11 = false;
 		emptyToAdd = 12;
@@ -37,8 +38,8 @@ public class ScopaTablePanel extends JPanel implements MouseListener, ScopaTable
 
 		table = ScopaFactory.getNewScopaTable();
 
-		this.setLayout(defaultLayout);
-		this.setBackground(ScopaGuiConstant.backgroundColor);
+		this.setBackground(ScopaConstant.backgroundColor);
+		this.setPreferredSize(new Dimension(400, 400));
 	}
 
 	private void fillEmptyPanels() {
@@ -74,7 +75,6 @@ public class ScopaTablePanel extends JPanel implements MouseListener, ScopaTable
 			removeCardFromGui(card);
 		}
 		fillEmptyPanels();
-		this.invalidate();
 	}
 
 	private void removeAllCardsFromGui() {
@@ -117,8 +117,6 @@ public class ScopaTablePanel extends JPanel implements MouseListener, ScopaTable
 		if (removeBlank) {
 			removeEmptyPanel(1);
 		}
-
-		this.invalidate();
 	}
 
 	private void addBeforeEmptyPanel(CardLabel clabel) {
@@ -137,7 +135,6 @@ public class ScopaTablePanel extends JPanel implements MouseListener, ScopaTable
 			addCardToGui(card, false);
 		}
 		removeEmptyPanel(cards.size());
-		this.invalidate();
 	}
 
 	public List<ScopaCard> getSelectedCards() {
@@ -150,7 +147,7 @@ public class ScopaTablePanel extends JPanel implements MouseListener, ScopaTable
 		return selected;
 	}
 
-	public void addAndRemoveCardsFromGui(ScopaCard playedCard, List<ScopaCard> takenCards) {
+	private void addAndRemoveCardsFromGui(ScopaCard playedCard, List<ScopaCard> takenCards) {
 		if (takenCards == null) {
 			return;
 		} else if (takenCards.isEmpty()) {
@@ -177,11 +174,7 @@ public class ScopaTablePanel extends JPanel implements MouseListener, ScopaTable
 	@Override
 	public List<ScopaCard> putCard(ScopaCard card, List<ScopaCard> cards) {
 		List<ScopaCard> returned = table.putCard(card, cards);
-		assert returned != null;
-		assert returned.containsAll(cards);
-
 		this.addAndRemoveCardsFromGui(card, returned);
-
 		this.revalidate();
 		return returned;
 	}
@@ -190,12 +183,14 @@ public class ScopaTablePanel extends JPanel implements MouseListener, ScopaTable
 	public void putCards(List<ScopaCard> cards) {
 		table.putCards(cards);
 		this.addCardsToGui(cards);
+		this.revalidate();
 	}
 
 	@Override
 	public List<ScopaCard> takeAll() {
 		List<ScopaCard> returnMe = table.takeAll();
 		this.removeAllCardsFromGui();
+		this.revalidate();
 		return returnMe;
 	}
 
@@ -204,6 +199,7 @@ public class ScopaTablePanel extends JPanel implements MouseListener, ScopaTable
 		boolean accepted = table.putInitial(cards);
 		if (accepted) {
 			this.addCardsToGui(cards);
+			//this.revalidate();
 		}
 		return accepted;
 	}
@@ -263,28 +259,5 @@ public class ScopaTablePanel extends JPanel implements MouseListener, ScopaTable
 		Dimension size = this.getSize();
 		g.drawRect(1, 1, size.width - 2, size.height - 2);
 	}
-
-	// TEST
-	// public static void main(String[] args){
-	// JFrame frame = new JFrame();
-	// frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	// frame.setSize(new Dimension(300,300));
-	//
-	// TablePanel table = new TablePanel();
-	//
-	//
-	// frame.add(table);
-	// frame.setVisible(true);
-	//
-	// table.addCard(new ScopaCard(ScopaValue.as,ScopaColor.cup));
-	// frame.repaint();
-	//
-	// ScopaDeck deck = ScopaFactory.getNewScopaDeck();
-	// deck.shuffle();
-	// table.addCards(deck.drawInitialCards());
-	// table.addCards(deck.draw3Cards());
-	// frame.repaint();
-	//
-	// }
 
 }

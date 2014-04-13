@@ -50,6 +50,10 @@ public class ScopaCard implements Serializable, Comparable<ScopaCard> {
 		return value.isHigherFor7(card.getValue());
 	}
 
+	public String getImgPath() {
+		return "resources/img/" + this.getColor() + "/" + ScopaValue.val(this) + ".png";
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 

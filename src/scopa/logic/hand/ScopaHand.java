@@ -14,7 +14,7 @@ public interface ScopaHand {
 
 	public int getNumberCardInHand();
 
-	public void newHand(List<ScopaCard> hand);
+	public <T extends ScopaCard> void newHand(List<T> hand);
 
 	public boolean playCard(ScopaCard card);
 

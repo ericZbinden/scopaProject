@@ -9,13 +9,10 @@ import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
 import scopa.logic.card.ScopaCard;
-import scopa.logic.card.ScopaValue;
 
 public class CardLabel extends JPanel {
 
 	private static final long serialVersionUID = 5902223281341496902L;
-
-	private static final String offuscatedCardImgPath = "resources/img/gui/carte1.png";
 
 	private ScopaCard card;
 	private Image img;
@@ -26,7 +23,7 @@ public class CardLabel extends JPanel {
 	public CardLabel() {
 		this.isSelected = false;
 		this.isOffuscated = false;
-		this.setSize(new Dimension(43, 60));
+		this.setPreferredSize(new Dimension(80, 100)); //force displaying
 
 		this.img = new ImageIcon(this.getImagePath()).getImage();
 		this.setOpaque(false);
@@ -49,7 +46,6 @@ public class CardLabel extends JPanel {
 
 	public void setSelected(boolean selected) {
 		this.isSelected = selected;
-		this.revalidate();
 		this.repaint();
 	}
 
@@ -74,11 +70,8 @@ public class CardLabel extends JPanel {
 			this.setToolTipText(null);
 		}
 
-		img = new ImageIcon(this.getImagePath()).getImage();
-
-		this.invalidate();
-		// this.revalidate();
-		// this.repaint();
+		this.img = new ImageIcon(this.getImagePath()).getImage();
+		//this.repaint();
 	}
 
 	public ScopaCard getCard() {
@@ -95,19 +88,15 @@ public class CardLabel extends JPanel {
 
 	public void setBorderSize(int size) {
 		this.borderSize = size;
-		this.revalidate();
-		this.repaint();
+		//this.repaint();
 	}
 
-	private String getImagePath() {
-		if (isEmpty())
+	public String getImagePath() {
+		if (isEmpty()) {
 			return "null";
-
-		else if (isOffuscated)
-			return offuscatedCardImgPath;
-
-		else
-			return "resources/img/" + card.getColor() + "/" + ScopaValue.val(card) + ".png";
+		} else {
+			return card.getImgPath();
+		}
 	}
 
 	public boolean isEmpty() {
@@ -139,21 +128,22 @@ public class CardLabel extends JPanel {
 			// Logger.debug("Testing equality between CardLabel: "+this.toString()+" and: "+that.toString());
 			CardLabel thatCard = (CardLabel) that;
 
-			if (this.isEmpty() && thatCard.isEmpty())
+			if (this.isEmpty() && thatCard.isEmpty()) {
 				return true;
-
-			else if (!this.isEmpty() && !thatCard.isEmpty())
+			} else if (!this.isEmpty() && !thatCard.isEmpty()) {
 				return this.getCard().equals(thatCard.getCard());
+			}
 		}
 		return false;
 	}
 
 	@Override
 	public String toString() {
-		if (!isEmpty())
-			return card.toString();
-		else
-			return "EmptyCard";
+		if (!isEmpty()) {
+			return super.toString() + card.toString();
+		} else {
+			return super.toString() + "EmptyCard";
+		}
 	}
 
 	// /**

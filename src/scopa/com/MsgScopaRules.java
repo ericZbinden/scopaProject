@@ -1,7 +1,8 @@
 package scopa.com;
 
-import util.PlayerName;
 import game.GameType;
+import scopa.logic.ScopaRules;
+import util.PlayerName;
 
 import com.msg.MsgMasterRule;
 
@@ -11,24 +12,27 @@ public class MsgScopaRules extends MsgMasterRule {
 	private boolean reverse;
 	private boolean scopa;
 	private boolean napoli;
-	
-	public MsgScopaRules(boolean reverse,boolean napoli, boolean scopa, PlayerName senderID) {
-		super(GameType.SCOPA,senderID);
-		this.reverse=reverse;
+	private boolean team;
+
+	public MsgScopaRules(boolean reverse, boolean napoli, boolean scopa, boolean team, PlayerName senderID) {
+		super(GameType.SCOPA, senderID);
+		this.reverse = reverse;
 		this.scopa = scopa;
 		this.napoli = napoli;
+		this.team = team;
 	}
-	
-	public boolean getReverse(){
-		return reverse;
+
+	public MsgScopaRules(ScopaRules rules, PlayerName senderID) {
+		this(rules.isRuleReverseEnable(), rules.isRuleNapoliEnable(), rules.isRuleScopaEnable(), rules.isRuleTeamEnable(), senderID);
 	}
-	
-	public boolean getNapoli(){
-		return napoli;
-	}
-	
-	public boolean getScopa(){
-		return scopa;
+
+	public ScopaRules getRules() {
+		ScopaRules rules = new ScopaRules();
+		rules.setRuleNapoli(napoli);
+		rules.setRuleScopa(scopa);
+		rules.setRuleReverse(reverse);
+		rules.setRuleTeam(team);
+		return rules;
 	}
 
 }

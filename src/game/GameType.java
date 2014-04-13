@@ -2,7 +2,7 @@ package game;
 
 import gui.api.RulePanel;
 import gui.game.GamePanel;
-import scopa.gui.ScopaGamePanel;
+import scopa.gui.ScopaFramePanel;
 import scopa.gui.ScopaRulePanel;
 import scopa.logic.ScopaGame;
 import zilch.gui.ZilchGamePanel;
@@ -10,7 +10,9 @@ import zilch.gui.ZilchRulePanel;
 import zilch.logic.ZilchGame;
 
 public enum GameType {
-	SCOPA(new ScopaRulePanel(), new ScopaGame(), new ScopaGamePanel()), ZILCH(new ZilchRulePanel(), new ZilchGame(), new ZilchGamePanel());
+	//FIXME constructor should only contain Factory
+	SCOPA(new ScopaRulePanel(), new ScopaGame(), new ScopaFramePanel()), //
+	ZILCH(new ZilchRulePanel(), new ZilchGame(), new ZilchGamePanel());
 
 	private final RulePanel rulePanel;
 

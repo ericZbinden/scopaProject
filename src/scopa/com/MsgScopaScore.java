@@ -1,63 +1,32 @@
 package scopa.com;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import scopa.logic.ScopaGame;
-import scopa.logic.ScopaScore;
+import scopa.logic.ScopaScoreTotal;
+import scopa.logic.ScopaSetResult;
 
 public class MsgScopaScore extends MsgScopa {
 
-	private int scoreT1;
-	
-	private int scoreT2;
-
-	private int scoreT3;
-
-	private int scoreT4;
-	
+	private Map<Integer, ScopaSetResult> scores;
 	private boolean finish;
 
-	
-	public MsgScopaScore(int scoreT1, int scoreT2, int scoreT3, int scoreT4, boolean finish) {
+	public MsgScopaScore(ScopaScoreTotal scores) {
 		super(ScopaMsgType.score, ScopaGame.SRV_NAME);
-		this.scoreT1=scoreT1;
-		this.scoreT2=scoreT2;
-		this.scoreT3=scoreT3;
-		this.scoreT4=scoreT4;
-		this.finish=finish;
-	}
-	
-	public MsgScopaScore(ScopaScore score){
-		super(ScopaMsgType.score, ScopaGame.SRV_NAME);
-		//TODO complete me
-		//this.scoreT1=scoreT1;
-		//this.scoreT2=scoreT2;
-		//this.scoreT3=scoreT3;
-		//this.scoreT4=scoreT4;
-		this.finish= score.checkWinner();
-		
+		//TODO implement me
 	}
 
-
-	public int getScoreT1() {
-		return scoreT1;
-	}
-
-
-	public int getScoreT2() {
-		return scoreT2;
-	}
-
-
-	public int getScoreT3() {
-		return scoreT3;
-	}
-
-
-	public int getScoreT4() {
-		return scoreT4;
-	}
-	
-	public boolean isFinished(){
+	public boolean isFinished() {
 		return finish;
+	}
+
+	public Map<Integer, ScopaSetResult> getResults() {
+		return new HashMap<>(scores);
+	}
+
+	public ScopaSetResult getTeamResult(int teamNumber) {
+		return scores.get(teamNumber);
 	}
 
 }

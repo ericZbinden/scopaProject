@@ -1,5 +1,6 @@
 package gui.game;
 
+import gui.api.ChatDisplay;
 import gui.api.GameGui;
 
 import java.awt.event.ActionEvent;
@@ -14,12 +15,11 @@ import util.PlayerName;
 
 import com.msg.MsgPlay;
 
-public abstract class GamePanel extends JPanel implements ActionListener,
-		Cloneable {
+public abstract class GamePanel extends JPanel implements ActionListener, Cloneable, ChatDisplay {
 
 	private Set<ActionListener> listeners = new HashSet<ActionListener>();
 
-	private GameGui gameGui;
+	protected GameGui gameGui;
 
 	public GamePanel() {
 		listeners = new HashSet<ActionListener>();
@@ -36,8 +36,7 @@ public abstract class GamePanel extends JPanel implements ActionListener,
 	}
 
 	/**
-	 * Collect all action from children. Update the source as this panel and
-	 * return to all subscribed listeners
+	 * Collect all action from children. Update the source as this panel and return to all subscribed listeners
 	 */
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
@@ -47,14 +46,16 @@ public abstract class GamePanel extends JPanel implements ActionListener,
 		}
 	}
 
-	// package protected
-	void setGameGui(GameGui gameGui) {
+	protected void setGameGui(GameGui gameGui) {
 		this.gameGui = gameGui;
 	}
 
-	protected void sendMsgPlay(MsgPlay msg) {
-		// TODO add frame when send fails
+	public void sendMsgPlay(MsgPlay msg) {
 		gameGui.sendMsgPlay(msg);
+	}
+
+	public void sendChatMsg(String msg) {
+		gameGui.sendChatMsg(msg);
 	}
 
 	public PlayerName getLocalClient() {
@@ -67,7 +68,7 @@ public abstract class GamePanel extends JPanel implements ActionListener,
 	@Override
 	abstract public GamePanel clone();
 
-	public void showWarningToPlayer(String message) {
+	public void showMessageDialog(String message) {
 		JOptionPane.showMessageDialog(this, message);
 	}
 

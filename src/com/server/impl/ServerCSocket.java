@@ -61,8 +61,7 @@ public class ServerCSocket implements Runnable {
 	}
 
 	/**
-	 * method in charge of handling the actual request from the peer. call the
-	 * processPacket method if the packet is correct.
+	 * method in charge of handling the actual request from the peer. call the processPacket method if the packet is correct.
 	 */
 	@Override
 	public void run() {
@@ -174,8 +173,7 @@ public class ServerCSocket implements Runnable {
 			sc.startGame();
 		} catch (IllegalInitialConditionException e) {
 			String errorReason = "Game can not start: " + e.getLocalizedMessage();
-			sc.transfertMsgTo(prequest.getSenderID(), new MsgStartNack(errorReason));
-			sc.transferMsgToAll(new MsgChat(Server.SERVER_NAME, errorReason), prequest.getSenderID());
+			sc.transferMsgToAll(new MsgStartNack(errorReason), null);
 		}
 	}
 

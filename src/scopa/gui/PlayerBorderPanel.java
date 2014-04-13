@@ -25,7 +25,7 @@ public class PlayerBorderPanel extends JPanel {
 		this.add(handPanel);
 
 		this.setPreferredSize(new Dimension(400, 200));
-		this.setBackground(ScopaGuiConstant.backgroundColor);
+		this.setBackground(ScopaConstant.backgroundColor);
 	}
 
 	public boolean playCard(ScopaCard playedCard) {
@@ -34,7 +34,7 @@ public class PlayerBorderPanel extends JPanel {
 
 	public void newHand(List<ScopaCard> newCards) {
 		handPanel.newHand(newCards);
-		this.invalidate();
+		this.repaint();
 	}
 
 	public PlayerName getPlayerName() {

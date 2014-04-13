@@ -35,7 +35,7 @@ public class EmptyHand implements ScopaHand {
 	}
 
 	@Override
-	public void newHand(List<ScopaCard> hand) {
+	public <T extends ScopaCard> void newHand(List<T> hand) {
 		// Do nothing
 	}
 

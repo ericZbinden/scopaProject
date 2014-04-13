@@ -33,7 +33,7 @@ public class OffuscatedHand extends ScopaHandImpl {
 	}
 
 	@Override
-	public void newHand(List<ScopaCard> hand) {
+	public <T extends ScopaCard> void newHand(List<T> hand) {
 		nbCards = hand.size();
 	}
 

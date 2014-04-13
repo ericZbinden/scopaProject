@@ -26,7 +26,7 @@ public class ScopaHandPanel extends JPanel implements ScopaHand, MouseListener {
 	}
 
 	private ScopaHand hand;
-	private ScopaGamePanel parent; // FIXME should be an interface
+	private ScopaGamePanel parent;
 	private boolean hasEventHandler = false;
 
 	private CardLabel card1;
@@ -93,7 +93,7 @@ public class ScopaHandPanel extends JPanel implements ScopaHand, MouseListener {
 			card3.setCard(handy.get(2));
 			card3.setTransferHandler(new ScopaCardTransfertHandler(parent));
 
-			this.revalidate();
+			this.invalidate();
 		} else {
 			Logger.debug("Hum... strange... hand size is: " + handy.size() + " but was espected 3");
 		}
@@ -105,7 +105,7 @@ public class ScopaHandPanel extends JPanel implements ScopaHand, MouseListener {
 	}
 
 	@Override
-	public void newHand(List<ScopaCard> newHand) {
+	public <T extends ScopaCard> void newHand(List<T> newHand) {
 		this.hand.newHand(newHand);
 		addAllCardsInGui();
 
@@ -167,9 +167,10 @@ public class ScopaHandPanel extends JPanel implements ScopaHand, MouseListener {
 	}
 
 	private void tryPlay(ScopaCard playedCard, List<ScopaCard> takenCards) {
-		if (parent.play(playedCard, takenCards)) {
+		if (parent.playedByLocalClient(playedCard, takenCards)) {
 			playCard(playedCard);
 			parent.sendMsgScopaPlay(playedCard, takenCards);
+			//parent.updateLastMoveWithLocalPlay(playedCard, takenCards);
 		} else {
 			parent.showWarningToPlayer("Invalid move");
 		}
@@ -180,17 +181,13 @@ public class ScopaHandPanel extends JPanel implements ScopaHand, MouseListener {
 		return hand.isOffuscated();
 	}
 
-	private boolean isLocalClientNextPlayer() {
-		return parent.getNextPlayerToPlay().equals(this.getPlayerName());
-	}
-
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
 		if (!hasEventHandler) {
 			return;
 		}
 
-		if (!isLocalClientNextPlayer()) {
+		if (!parent.isLocalPlayerNextToPlay()) {
 			Logger.debug("Not your time to play dear " + getPlayerName());
 			return;
 		}
